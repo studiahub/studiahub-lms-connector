@@ -55,8 +55,12 @@ final class Settings {
             'api_key_ok' => ['success', 'API key regenerada. Copiala abajo — no se va a mostrar de nuevo.'],
             'url_ok'     => ['success', 'URL del LMS guardada.'],
             'secret_ok'  => ['success', 'Webhook secret generado.'],
+            'webhook_ok' => ['success', 'Webhook recreado. Ya está activo apuntando al LMS.'],
+            'webhook_err'=> ['error',   'No se pudo crear el webhook. Revisá que la URL del LMS esté configurada.'],
         ];
         $flash = isset($_GET['slc_msg']) ? ($msg_map[$_GET['slc_msg']] ?? null) : null;
+
+        $webhook_status = class_exists('\SLC\WebhookBootstrap') ? \SLC\WebhookBootstrap::get_status_summary() : ['state' => 'unknown', 'webhook' => null];
 
         ?>
         <div class="wrap">
@@ -158,6 +162,57 @@ final class Settings {
                             <?php wp_nonce_field('slc_regenerate_webhook_secret'); ?>
                             <button type="submit" class="button">
                                 <?php echo $webhook_secret ? 'Regenerar secret' : 'Generar secret'; ?>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </table>
+
+            <h2 class="title">Webhook WC → LMS (automático)</h2>
+            <p>El plugin crea y mantiene el webhook automáticamente. Solo necesitás tener la URL del LMS configurada.</p>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row">Estado</th>
+                    <td>
+                        <?php
+                        $state = $webhook_status['state'] ?? 'unknown';
+                        $webhook = $webhook_status['webhook'] ?? null;
+                        switch ($state) {
+                            case 'active':
+                                echo '<span style="color:#00a32a;">● Activo</span>';
+                                if (!empty($webhook_status['failure_count'])) {
+                                    echo ' <span style="color:#d63638;">(' . (int) $webhook_status['failure_count'] . ' fallos recientes)</span>';
+                                }
+                                if ($webhook) {
+                                    echo '<br><span style="color:#646970; font-size:12px;">ID #' . (int) $webhook->get_id() . ' → ' . esc_html($webhook->get_delivery_url()) . '</span>';
+                                }
+                                break;
+                            case 'disabled':
+                                echo '<span style="color:#d63638;">● Desactivado</span>';
+                                echo '<br><span style="color:#646970; font-size:12px;">WC lo desactivó por fallos seguidos. Tocá "Recrear webhook" para reactivar.</span>';
+                                break;
+                            case 'missing':
+                                echo '<span style="color:#d63638;">● No existe</span>';
+                                echo '<br><span style="color:#646970; font-size:12px;">Tocá "Recrear webhook" para crearlo ahora.</span>';
+                                break;
+                            case 'lms_not_configured':
+                                echo '<span style="color:#dba617;">● URL del LMS no configurada</span>';
+                                echo '<br><span style="color:#646970; font-size:12px;">Completá la URL arriba y el webhook se crea solo.</span>';
+                                break;
+                            default:
+                                echo '<span style="color:#646970;">—</span>';
+                        }
+                        ?>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Acción</th>
+                    <td>
+                        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"<?php if ($webhook): ?> onsubmit="return confirm('¿Recrear el webhook? Se elimina el existente y se crea uno nuevo con la config actual.');"<?php endif; ?>>
+                            <input type="hidden" name="action" value="slc_recreate_webhook">
+                            <?php wp_nonce_field('slc_recreate_webhook'); ?>
+                            <button type="submit" class="button" <?php disabled($state === 'lms_not_configured'); ?>>
+                                <?php echo $webhook ? 'Recrear webhook' : 'Crear webhook'; ?>
                             </button>
                         </form>
                     </td>
