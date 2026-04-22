@@ -29,6 +29,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-categories.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-products.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-outline.php';
     }
 
     private function register_hooks(): void {
@@ -39,6 +40,7 @@ final class Plugin {
         REST_Categories::register_hooks();
         REST_Products::register_hooks();
         WebhookBootstrap::register_hooks();
+        Shortcode_Outline::register_hooks();
 
         // Entrega SÍNCRONA de webhooks WC. El default de WC es encolarlos en
         // Action Scheduler y procesarlos via wp-cron, lo que introduce delay

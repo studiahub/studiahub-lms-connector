@@ -192,6 +192,15 @@ final class ACF_Registrar {
                 'step'         => 1,
                 'wrapper'      => ['width' => '50'],
             ],
+            [
+                'key'          => 'field_sh_course_outline',
+                'label'        => 'Temario (JSON)',
+                'name'         => 'sh_course_outline',
+                'type'         => 'textarea',
+                'instructions' => 'Estructura de módulos y lecciones sincronizada. Se muestra en la página con el shortcode [studiahub_course_outline].',
+                'rows'         => 6,
+                'new_lines'    => '',
+            ],
         ];
     }
 }

@@ -209,6 +209,13 @@ final class REST_Course_Sync {
         foreach ($map as $field => $value) {
             update_field($field, $value, $product_id);
         }
+
+        // Outline (módulos + lecciones) guardado como JSON. Lo consume el
+        // shortcode [studiahub_course_outline] al renderizar.
+        if (isset($course['outline']) && is_array($course['outline'])) {
+            $json = wp_json_encode($course['outline'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            update_field('sh_course_outline', $json, $product_id);
+        }
     }
 
     private static function assign_category(int $product_id, string $name, bool $append): void {
