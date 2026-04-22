@@ -25,13 +25,13 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-settings.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-auth.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-health.php';
-        // Siguiente fase:
-        // require_once SLC_PLUGIN_DIR . 'includes/class-rest-course-sync.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-rest-course-sync.php';
     }
 
     private function register_hooks(): void {
         ACF_Registrar::register_hooks();
         Settings::register_hooks();
         REST_Health::register_hooks();
+        REST_Course_Sync::register_hooks();
     }
 }
