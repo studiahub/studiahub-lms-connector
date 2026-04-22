@@ -1,0 +1,22 @@
+# Build artifacts
+dist/
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Docker volumes (data persistente del WP local)
+.docker/data/
+.docker/wp-data/
+.docker/db-data/
+
+# Secrets / env
+.env
+.env.local
+*.local
