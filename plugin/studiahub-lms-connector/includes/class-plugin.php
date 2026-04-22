@@ -37,5 +37,14 @@ final class Plugin {
         REST_Course_Sync::register_hooks();
         REST_Categories::register_hooks();
         REST_Products::register_hooks();
+
+        // Entrega SÍNCRONA de webhooks WC. El default de WC es encolarlos en
+        // Action Scheduler y procesarlos via wp-cron, lo que introduce delay
+        // variable (depende del tráfico del WP) y falla en sitios sin tráfico
+        // constante. Para un LMS que necesita crear el enrollment ni bien se
+        // completa el pago, queremos entrega inmediata en el shutdown del
+        // mismo request. El impacto en el tiempo del checkout es ~100-500ms
+        // del round-trip al LMS.
+        add_filter('woocommerce_webhook_deliver_async', '__return_false');
     }
 }
