@@ -26,6 +26,8 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-auth.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-health.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-course-sync.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-rest-categories.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-rest-products.php';
     }
 
     private function register_hooks(): void {
@@ -33,5 +35,7 @@ final class Plugin {
         Settings::register_hooks();
         REST_Health::register_hooks();
         REST_Course_Sync::register_hooks();
+        REST_Categories::register_hooks();
+        REST_Products::register_hooks();
     }
 }
