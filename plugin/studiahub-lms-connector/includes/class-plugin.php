@@ -28,6 +28,8 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-course-sync.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-categories.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-products.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-rest-pair.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-authorize-screen.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-outline.php';
     }
@@ -39,6 +41,8 @@ final class Plugin {
         REST_Course_Sync::register_hooks();
         REST_Categories::register_hooks();
         REST_Products::register_hooks();
+        REST_Pair::register_hooks();
+        Authorize_Screen::register_hooks();
         WebhookBootstrap::register_hooks();
         Shortcode_Outline::register_hooks();
 
