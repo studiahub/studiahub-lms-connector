@@ -109,11 +109,21 @@ final class Authorize_Screen {
         if (!$lms_host || !$return_host) {
             return 'URLs inválidas.';
         }
-        // Anti-open-redirect: el return_url tiene que vivir en el mismo origen que lms_url.
+        // Anti-open-redirect: en prod requerimos mismo host. En dev (loopback /
+        // docker) permitimos pares distintos porque el browser ve el LMS por
+        // localhost mientras que el container lo ve por host.docker.internal.
         if (strtolower($lms_host) !== strtolower($return_host)) {
-            return 'lms_url y return_url están en hosts distintos.';
+            if (!self::is_dev_host($lms_host) || !self::is_dev_host($return_host)) {
+                return 'lms_url y return_url están en hosts distintos.';
+            }
         }
         return null;
+    }
+
+    private static function is_dev_host(string $host): bool {
+        $h = strtolower($host);
+        return in_array($h, ['localhost', '127.0.0.1', 'host.docker.internal'], true)
+            || strpos($h, '127.') === 0;
     }
 
     public static function handle_submit(): void {
