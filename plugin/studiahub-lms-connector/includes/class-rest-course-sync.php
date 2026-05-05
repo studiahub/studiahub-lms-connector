@@ -11,7 +11,8 @@ if (!defined('ABSPATH')) {
  * LMS es single source of truth — push unidireccional.
  */
 final class REST_Course_Sync {
-    private const VALID_LEVELS = ['Principiante', 'Intermedio', 'Avanzado'];
+    private const VALID_LEVELS       = ['Principiante', 'Intermedio', 'Avanzado'];
+    private const VALID_COURSE_TYPES = ['on_demand', 'live', 'in_person', 'hybrid'];
 
     public static function register_hooks(): void {
         add_action('rest_api_init', [self::class, 'register_routes']);
@@ -83,6 +84,15 @@ final class REST_Course_Sync {
             );
         }
 
+        $courseType = $course['courseType'] ?? null;
+        if ($courseType !== null && $courseType !== '' && !in_array($courseType, self::VALID_COURSE_TYPES, true)) {
+            return new \WP_Error(
+                'slc_invalid_course_type',
+                'course.courseType debe ser uno de: ' . implode(', ', self::VALID_COURSE_TYPES) . '.',
+                ['status' => 400]
+            );
+        }
+
         return [
             'wcProductId' => $wcProductId !== null ? (int) $wcProductId : null,
             'course'      => $course,
@@ -105,8 +115,10 @@ final class REST_Course_Sync {
         try {
             $product = new \WC_Product_Simple();
             $product->set_name($course['title']);
-            $product->set_description((string) ($course['longDescription'] ?? ''));
-            $product->set_short_description((string) ($course['shortDescription'] ?? ''));
+            // Descripciones se guardan SOLO en ACFs sh_course_*. Los campos
+            // nativos quedan vacíos; la landing las lee desde Elementor.
+            $product->set_description('');
+            $product->set_short_description('');
             $product->set_status('draft');
             $product->set_catalog_visibility('visible');
             $product->set_virtual(true);
@@ -156,8 +168,10 @@ final class REST_Course_Sync {
         }
 
         $product->set_name($course['title']);
-        $product->set_description((string) ($course['longDescription'] ?? ''));
-        $product->set_short_description((string) ($course['shortDescription'] ?? ''));
+        // Descripciones se guardan SOLO en ACFs. Limpiamos las nativas en cada
+        // sync para evitar drift si alguien las llenó desde WP por error.
+        $product->set_description('');
+        $product->set_short_description('');
         if (isset($course['price']) && is_numeric($course['price'])) {
             $product->set_regular_price((string) $course['price']);
         }
@@ -196,18 +210,46 @@ final class REST_Course_Sync {
         }
 
         $map = [
-            'sh_course_id'                => (string) ($course['lmsId'] ?? ''),
-            'sh_course_short_description' => (string) ($course['shortDescription'] ?? ''),
-            'sh_course_long_description'  => (string) ($course['longDescription'] ?? ''),
-            'sh_course_duration_hours'    => isset($course['durationHours']) ? (int) $course['durationHours'] : 0,
-            'sh_course_level'             => (string) ($course['level'] ?? ''),
-            'sh_course_instructor'        => (string) ($course['instructor'] ?? ''),
-            'sh_course_modules_count'     => isset($course['modulesCount']) ? (int) $course['modulesCount'] : 0,
-            'sh_course_lessons_count'     => isset($course['lessonsCount']) ? (int) $course['lessonsCount'] : 0,
-            'sh_course_access_days'       => isset($course['accessDays']) ? (int) $course['accessDays'] : 0,
+            'sh_course_id'                    => (string) ($course['lmsId'] ?? ''),
+            'sh_course_subtitle'              => (string) ($course['subtitle'] ?? ''),
+            'sh_course_short_description'     => (string) ($course['shortDescription'] ?? ''),
+            'sh_course_long_description'      => (string) ($course['longDescription'] ?? ''),
+            'sh_course_course_type'           => (string) ($course['courseType'] ?? ''),
+            'sh_course_duration_hours'        => isset($course['durationHours']) ? (int) $course['durationHours'] : 0,
+            'sh_course_level'                 => (string) ($course['level'] ?? ''),
+            'sh_course_language'              => (string) ($course['language'] ?? ''),
+            'sh_course_has_certificate'       => !empty($course['hasCertificate']) ? 1 : 0,
+            'sh_course_highlight_badge'       => (string) ($course['highlightBadge'] ?? ''),
+            'sh_course_price_display'         => (string) ($course['priceDisplay'] ?? ''),
+            'sh_course_cta_label'             => (string) ($course['ctaLabel'] ?? ''),
+            'sh_course_trailer_url'           => (string) ($course['trailerUrl'] ?? ''),
+            'sh_course_instructor'            => (string) ($course['instructor'] ?? ''),
+            'sh_course_instructor_title'      => (string) ($course['instructorTitle'] ?? ''),
+            'sh_course_instructor_bio'        => (string) ($course['instructorBio'] ?? ''),
+            'sh_course_instructor_photo_url'  => (string) ($course['instructorPhotoUrl'] ?? ''),
+            'sh_course_modules_count'         => isset($course['modulesCount']) ? (int) $course['modulesCount'] : 0,
+            'sh_course_lessons_count'         => isset($course['lessonsCount']) ? (int) $course['lessonsCount'] : 0,
+            'sh_course_total_duration_min'    => isset($course['totalDurationMin']) ? (int) $course['totalDurationMin'] : 0,
+            'sh_course_access_days'           => isset($course['accessDays']) ? (int) $course['accessDays'] : 0,
         ];
         foreach ($map as $field => $value) {
             update_field($field, $value, $product_id);
+        }
+
+        // Listas: guardadas como JSON. Las consume el shortcode
+        // [studiahub_course_list field="..."].
+        $list_fields = [
+            'learningOutcomes'  => 'sh_course_learning_outcomes',
+            'targetAudience'    => 'sh_course_target_audience',
+            'includedMaterials' => 'sh_course_included_materials',
+            'requirements'      => 'sh_course_requirements',
+        ];
+        foreach ($list_fields as $payload_key => $acf_field) {
+            $items = isset($course[$payload_key]) && is_array($course[$payload_key])
+                ? array_values(array_filter($course[$payload_key], static fn($s) => is_string($s) && $s !== ''))
+                : [];
+            $json = wp_json_encode($items, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            update_field($acf_field, $json, $product_id);
         }
 
         // Outline (módulos + lecciones) guardado como JSON. Lo consume el

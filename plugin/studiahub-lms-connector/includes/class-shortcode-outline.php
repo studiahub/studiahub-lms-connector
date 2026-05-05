@@ -32,6 +32,7 @@ final class Shortcode_Outline {
             'id'           => '',
             'default_open' => '1',
             'show_count'   => '1',
+            'title'        => '',
         ], $atts, self::SHORTCODE_TAG);
 
         $product_id = self::resolve_product_id($atts['id']);
@@ -44,21 +45,39 @@ final class Shortcode_Outline {
             return '';
         }
 
-        $default_open = $atts['default_open'] === '1';
-        $show_count   = $atts['show_count'] === '1';
+        $default_open  = $atts['default_open'] === '1';
+        $show_count    = $atts['show_count'] === '1';
+        $custom_title  = trim((string) $atts['title']);
+        $title         = $custom_title !== '' ? $custom_title : __('Contenido del curso', 'studiahub-lms-connector');
         $total_lessons = array_sum(array_map(static fn($m) => count($m['lessons'] ?? []), $outline));
+        $total_duration_min = 0;
+        foreach ($outline as $m) {
+            if (!empty($m['durationMin']) && is_numeric($m['durationMin'])) {
+                $total_duration_min += (int) $m['durationMin'];
+            } elseif (!empty($m['lessons']) && is_array($m['lessons'])) {
+                foreach ($m['lessons'] as $l) {
+                    if (!empty($l['durationMin']) && is_numeric($l['durationMin'])) {
+                        $total_duration_min += (int) $l['durationMin'];
+                    }
+                }
+            }
+        }
 
         ob_start();
         self::print_styles();
         ?>
         <div class="slc-outline" data-slc-outline>
             <div class="slc-outline__header">
-                <h3 class="slc-outline__title"><?php esc_html_e('Contenido del curso', 'studiahub-lms-connector'); ?></h3>
+                <h3 class="slc-outline__title"><?php echo esc_html($title); ?></h3>
                 <?php if ($show_count): ?>
                     <div class="slc-outline__meta">
                         <span><?php echo esc_html(sprintf('%d módulos', count($outline))); ?></span>
                         <span class="slc-outline__meta-sep">·</span>
                         <span><?php echo esc_html(sprintf('%d lecciones', $total_lessons)); ?></span>
+                        <?php if ($total_duration_min > 0): ?>
+                            <span class="slc-outline__meta-sep">·</span>
+                            <span><?php echo esc_html(self::format_duration($total_duration_min)); ?></span>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
             </div>
@@ -67,12 +86,23 @@ final class Shortcode_Outline {
                     <?php
                     $is_open = $default_open && $index === 0;
                     $lesson_count = isset($module['lessons']) && is_array($module['lessons']) ? count($module['lessons']) : 0;
+                    $module_duration = isset($module['durationMin']) && is_numeric($module['durationMin']) ? (int) $module['durationMin'] : 0;
+                    if ($module_duration === 0 && $lesson_count > 0) {
+                        foreach ($module['lessons'] as $l) {
+                            if (!empty($l['durationMin']) && is_numeric($l['durationMin'])) {
+                                $module_duration += (int) $l['durationMin'];
+                            }
+                        }
+                    }
                     ?>
                     <details class="slc-outline__module"<?php if ($is_open) echo ' open'; ?>>
                         <summary class="slc-outline__summary">
                             <span class="slc-outline__chevron" aria-hidden="true"></span>
                             <span class="slc-outline__module-title"><?php echo esc_html($module['title'] ?? ''); ?></span>
                             <span class="slc-outline__badge"><?php echo esc_html($lesson_count . ' ' . ($lesson_count === 1 ? 'lección' : 'lecciones')); ?></span>
+                            <?php if ($module_duration > 0): ?>
+                                <span class="slc-outline__badge slc-outline__badge--time"><?php echo esc_html(self::format_duration($module_duration)); ?></span>
+                            <?php endif; ?>
                         </summary>
                         <?php if ($lesson_count > 0): ?>
                             <ul class="slc-outline__lessons">
@@ -165,6 +195,7 @@ final class Shortcode_Outline {
             .slc-outline__module[open] .slc-outline__chevron { transform: rotate(45deg); margin-top: 0; margin-bottom: -2px; }
             .slc-outline__module-title { flex: 1; font-size: 15px; color: #1A1B1E; }
             .slc-outline__badge { background: #F1F3F5; color: #495057; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px; }
+            .slc-outline__badge--time { background: #E7F5FF; color: #1971C2; font-variant-numeric: tabular-nums; }
             .slc-outline__lessons { list-style: none; margin: 0; padding: 0 0 8px; border-top: 1px solid #F1F3F5; }
             .slc-outline__lesson { display: flex; align-items: center; gap: 10px; padding: 10px 18px 10px 44px; font-size: 14px; color: #495057; }
             .slc-outline__lesson + .slc-outline__lesson { border-top: 1px solid #F8F9FA; }

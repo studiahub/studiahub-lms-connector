@@ -32,6 +32,11 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-authorize-screen.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-outline.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-list.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-instructor.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-meta.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-badge.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-trailer.php';
     }
 
     private function register_hooks(): void {
@@ -45,6 +50,11 @@ final class Plugin {
         Authorize_Screen::register_hooks();
         WebhookBootstrap::register_hooks();
         Shortcode_Outline::register_hooks();
+        Shortcode_List::register_hooks();
+        Shortcode_Instructor::register_hooks();
+        Shortcode_Meta::register_hooks();
+        Shortcode_Badge::register_hooks();
+        Shortcode_Trailer::register_hooks();
 
         // Entrega SÍNCRONA de webhooks WC. El default de WC es encolarlos en
         // Action Scheduler y procesarlos via wp-cron, lo que introduce delay

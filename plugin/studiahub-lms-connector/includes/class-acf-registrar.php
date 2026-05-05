@@ -19,6 +19,7 @@ final class ACF_Registrar {
         add_filter('acf/prepare_field', [self::class, 'make_readonly']);
         add_action('admin_notices', [self::class, 'render_connected_notice']);
         add_action('admin_head', [self::class, 'render_readonly_css']);
+        add_action('admin_head', [self::class, 'hide_native_description_fields']);
     }
 
     /**
@@ -54,6 +55,38 @@ final class ACF_Registrar {
         }
         echo '<style>.acf-field[data-name^="sh_course_"]{opacity:.7}'
             . '.acf-field[data-name^="sh_course_"] .acf-input{pointer-events:none}</style>';
+    }
+
+    /**
+     * Oculta el editor principal (post_content) y el meta box de short
+     * description SOLO en productos conectados al LMS. Las descripciones
+     * viven en los ACFs sh_course_long_description / sh_course_short_description.
+     * Si el producto se desconecta del LMS, los campos vuelven a aparecer.
+     */
+    public static function hide_native_description_fields(): void {
+        $screen = function_exists('get_current_screen') ? get_current_screen() : null;
+        if (!$screen || $screen->post_type !== 'product' || $screen->base !== 'post') {
+            return;
+        }
+        global $post;
+        if (!$post || !function_exists('get_field')) {
+            return;
+        }
+        $course_id = get_field('sh_course_id', $post->ID);
+        if (empty($course_id)) {
+            return;
+        }
+        echo '<style>'
+            // Editor principal (classic editor / post_content)
+            . '#postdivrich,'
+            . '#wp-content-editor-tools,'
+            . '#wp-content-editor-container,'
+            // Meta box de short description
+            . '#postexcerpt,'
+            // Heading "Product description" / "Product short description" arriba del editor
+            . '#post-body-content > .postarea'
+            . '{display:none!important;}'
+            . '</style>';
     }
 
     /**
@@ -127,6 +160,12 @@ final class ACF_Registrar {
                 'wrapper'       => ['width' => '50'],
             ],
             [
+                'key'     => 'field_sh_course_subtitle',
+                'label'   => 'Subtítulo',
+                'name'    => 'sh_course_subtitle',
+                'type'    => 'text',
+            ],
+            [
                 'key'       => 'field_sh_course_short_description',
                 'label'     => 'Descripción corta',
                 'name'      => 'sh_course_short_description',
@@ -144,13 +183,27 @@ final class ACF_Registrar {
                 'media_upload' => 0,
             ],
             [
+                'key'        => 'field_sh_course_course_type',
+                'label'      => 'Tipo de curso',
+                'name'       => 'sh_course_course_type',
+                'type'       => 'select',
+                'choices'    => [
+                    'on_demand' => 'On demand',
+                    'live'      => 'En vivo',
+                    'in_person' => 'Presencial',
+                    'hybrid'    => 'Híbrido',
+                ],
+                'allow_null' => 1,
+                'wrapper'    => ['width' => '50'],
+            ],
+            [
                 'key'     => 'field_sh_course_duration_hours',
                 'label'   => 'Duración (horas)',
                 'name'    => 'sh_course_duration_hours',
                 'type'    => 'number',
                 'min'     => 0,
                 'step'    => 1,
-                'wrapper' => ['width' => '33'],
+                'wrapper' => ['width' => '50'],
             ],
             [
                 'key'        => 'field_sh_course_level',
@@ -163,14 +216,115 @@ final class ACF_Registrar {
                     'Avanzado'     => 'Avanzado',
                 ],
                 'allow_null' => 1,
-                'wrapper'    => ['width' => '33'],
+                'wrapper'    => ['width' => '50'],
+            ],
+            [
+                'key'     => 'field_sh_course_language',
+                'label'   => 'Idioma',
+                'name'    => 'sh_course_language',
+                'type'    => 'text',
+                'wrapper' => ['width' => '50'],
+            ],
+            [
+                'key'           => 'field_sh_course_has_certificate',
+                'label'         => 'Incluye certificado',
+                'name'          => 'sh_course_has_certificate',
+                'type'          => 'true_false',
+                'ui'            => 1,
+                'default_value' => 0,
+                'wrapper'       => ['width' => '50'],
+            ],
+            [
+                'key'          => 'field_sh_course_highlight_badge',
+                'label'        => 'Highlight badge',
+                'name'         => 'sh_course_highlight_badge',
+                'type'         => 'text',
+                'instructions' => 'Ej: Bestseller, Nuevo, Actualizado 2026.',
+                'wrapper'      => ['width' => '50'],
+            ],
+            [
+                'key'          => 'field_sh_course_price_display',
+                'label'        => 'Precio para mostrar',
+                'name'         => 'sh_course_price_display',
+                'type'         => 'text',
+                'instructions' => 'Texto libre multimoneda para la landing.',
+                'wrapper'      => ['width' => '50'],
+            ],
+            [
+                'key'          => 'field_sh_course_cta_label',
+                'label'        => 'Texto del botón de compra (CTA)',
+                'name'         => 'sh_course_cta_label',
+                'type'         => 'text',
+                'wrapper'      => ['width' => '50'],
+            ],
+            [
+                'key'     => 'field_sh_course_trailer_url',
+                'label'   => 'Trailer / video promocional',
+                'name'    => 'sh_course_trailer_url',
+                'type'    => 'url',
             ],
             [
                 'key'     => 'field_sh_course_instructor',
-                'label'   => 'Instructor',
+                'label'   => 'Instructor (nombre)',
                 'name'    => 'sh_course_instructor',
                 'type'    => 'text',
-                'wrapper' => ['width' => '34'],
+                'wrapper' => ['width' => '50'],
+            ],
+            [
+                'key'     => 'field_sh_course_instructor_title',
+                'label'   => 'Cargo / título del instructor',
+                'name'    => 'sh_course_instructor_title',
+                'type'    => 'text',
+                'wrapper' => ['width' => '50'],
+            ],
+            [
+                'key'   => 'field_sh_course_instructor_bio',
+                'label' => 'Bio del instructor',
+                'name'  => 'sh_course_instructor_bio',
+                'type'  => 'textarea',
+                'rows'  => 4,
+            ],
+            [
+                'key'   => 'field_sh_course_instructor_photo_url',
+                'label' => 'URL foto del instructor',
+                'name'  => 'sh_course_instructor_photo_url',
+                'type'  => 'url',
+            ],
+            [
+                'key'          => 'field_sh_course_learning_outcomes',
+                'label'        => 'Lo que vas a aprender (JSON)',
+                'name'         => 'sh_course_learning_outcomes',
+                'type'         => 'textarea',
+                'instructions' => 'Lista JSON. Renderizar con [studiahub_course_list field="learning"].',
+                'rows'         => 4,
+                'new_lines'    => '',
+            ],
+            [
+                'key'          => 'field_sh_course_target_audience',
+                'label'        => 'A quién está dirigido (JSON)',
+                'name'         => 'sh_course_target_audience',
+                'type'         => 'textarea',
+                'instructions' => 'Lista JSON. Renderizar con [studiahub_course_list field="audience"].',
+                'rows'         => 4,
+                'new_lines'    => '',
+            ],
+            [
+                'key'          => 'field_sh_course_included_materials',
+                'label'        => 'Materiales incluidos (JSON)',
+                'name'         => 'sh_course_included_materials',
+                'type'         => 'textarea',
+                'instructions' => 'Lista JSON. Renderizar con [studiahub_course_list field="materials"].',
+                'rows'         => 4,
+                'new_lines'    => '',
+            ],
+            [
+                'key'          => 'field_sh_course_requirements',
+                'label'        => 'Requisitos (JSON)',
+                'name'         => 'sh_course_requirements',
+                'type'         => 'textarea',
+                'instructions' => 'Lista JSON. Renderizar con [studiahub_course_list field="requirements"].',
+                'rows'         => 4,
+                'new_lines'    => '',
             ],
             [
                 'key'          => 'field_sh_course_modules_count',
@@ -180,7 +334,7 @@ final class ACF_Registrar {
                 'instructions' => 'Derivado. Informativo.',
                 'min'          => 0,
                 'step'         => 1,
-                'wrapper'      => ['width' => '50'],
+                'wrapper'      => ['width' => '33'],
             ],
             [
                 'key'          => 'field_sh_course_lessons_count',
@@ -190,7 +344,17 @@ final class ACF_Registrar {
                 'instructions' => 'Derivado. Informativo.',
                 'min'          => 0,
                 'step'         => 1,
-                'wrapper'      => ['width' => '50'],
+                'wrapper'      => ['width' => '33'],
+            ],
+            [
+                'key'          => 'field_sh_course_total_duration_min',
+                'label'        => 'Duración total (min)',
+                'name'         => 'sh_course_total_duration_min',
+                'type'         => 'number',
+                'instructions' => 'Suma de duraciones de lecciones. Derivado.',
+                'min'          => 0,
+                'step'         => 1,
+                'wrapper'      => ['width' => '34'],
             ],
             [
                 'key'          => 'field_sh_course_outline',
