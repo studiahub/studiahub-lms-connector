@@ -38,6 +38,17 @@ register_activation_hook(__FILE__, function () {
     }
 });
 
+/**
+ * Al desactivar: limpiamos el filter de entrega síncrona de webhooks WC
+ * (woocommerce_webhook_deliver_async) y flusheamos las rewrite rules para que
+ * no queden rutas REST huérfanas. El filter se vuelve a registrar al reactivar
+ * via plugins_loaded → Plugin::register_hooks().
+ */
+register_deactivation_hook(__FILE__, function () {
+    remove_filter('woocommerce_webhook_deliver_async', '__return_false');
+    flush_rewrite_rules();
+});
+
 add_action('plugins_loaded', function () {
     $missing = slc_get_missing_dependencies();
     if (!empty($missing)) {

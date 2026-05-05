@@ -280,6 +280,21 @@ final class REST_Course_Sync {
         require_once ABSPATH . 'wp-admin/includes/file.php';
         require_once ABSPATH . 'wp-admin/includes/media.php';
 
+        // Verificación previa con HEAD: rechazamos el sync si la URL no devuelve
+        // una imagen (evita guardar HTML/PDF/etc en la media library del cliente).
+        $head = wp_remote_head($url, ['timeout' => 10, 'redirection' => 5]);
+        if (!is_wp_error($head)) {
+            $head_code = wp_remote_retrieve_response_code($head);
+            $head_ct   = strtolower((string) wp_remote_retrieve_header($head, 'content-type'));
+            if ($head_code === 200 && $head_ct !== '' && strpos($head_ct, 'image/') !== 0) {
+                return new \WP_Error(
+                    'slc_thumbnail_not_image',
+                    "La URL del thumbnail no es una imagen (Content-Type: {$head_ct}).",
+                    ['status' => 400]
+                );
+            }
+        }
+
         $response = wp_remote_get($url, ['timeout' => 30]);
         if (is_wp_error($response)) {
             return $response;
@@ -293,7 +308,14 @@ final class REST_Course_Sync {
             return new \WP_Error('slc_thumbnail_empty', 'Thumbnail body vacío.', ['status' => 502]);
         }
 
-        $content_type = (string) wp_remote_retrieve_header($response, 'content-type');
+        $content_type = strtolower((string) wp_remote_retrieve_header($response, 'content-type'));
+        if ($content_type !== '' && strpos($content_type, 'image/') !== 0) {
+            return new \WP_Error(
+                'slc_thumbnail_not_image',
+                "La URL del thumbnail no es una imagen (Content-Type: {$content_type}).",
+                ['status' => 400]
+            );
+        }
         $ext          = self::extension_from_mime($content_type);
         $filename     = 'lms-thumb-' . substr(md5($url . microtime()), 0, 12) . '.' . $ext;
 
