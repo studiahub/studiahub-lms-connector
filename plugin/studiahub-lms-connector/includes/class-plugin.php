@@ -21,7 +21,6 @@ final class Plugin {
     }
 
     private function load_classes(): void {
-        require_once SLC_PLUGIN_DIR . 'includes/class-acf-registrar.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-settings.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-auth.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-health.php';
@@ -35,17 +34,10 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-product-metabox.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-authorize-screen.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
-        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-outline.php';
-        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-list.php';
-        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-instructor.php';
-        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-meta.php';
-        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-badge.php';
-        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-trailer.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepage.php';
     }
 
     private function register_hooks(): void {
-        ACF_Registrar::register_hooks();
         Settings::register_hooks();
         REST_Health::register_hooks();
         REST_Course_Sync::register_hooks();
@@ -57,12 +49,6 @@ final class Plugin {
         Product_Metabox::register_hooks();
         Authorize_Screen::register_hooks();
         WebhookBootstrap::register_hooks();
-        Shortcode_Outline::register_hooks();
-        Shortcode_List::register_hooks();
-        Shortcode_Instructor::register_hooks();
-        Shortcode_Meta::register_hooks();
-        Shortcode_Badge::register_hooks();
-        Shortcode_Trailer::register_hooks();
         Shortcode_CoursePage::register_hooks();
 
         // Entrega SÍNCRONA de webhooks WC. El default de WC es encolarlos en
