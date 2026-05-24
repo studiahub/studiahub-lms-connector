@@ -95,7 +95,7 @@
 .slc-cp__chevron { width: 10px; height: 10px; border-right: 2px solid var(--shub-text-muted); border-bottom: 2px solid var(--shub-text-muted); transform: rotate(-45deg); transition: transform 200ms; flex-shrink: 0; margin-top: -2px; }
 details[open] > .slc-cp__summary .slc-cp__chevron,
 details[open] > .slc-cp__faq-q .slc-cp__chevron { transform: rotate(45deg); margin-top: 0; margin-bottom: -2px; }
-.slc-cp__module-title { flex: 1; font-size: 16px; font-weight: 600; color: var(--shub-text-title); }
+.slc-cp__module-title { flex: 1; font-size: 16px; font-weight: 600; color: var(--shub-text-title); margin: 0; line-height: inherit; }
 .slc-cp__module-badge { background: #F1F3F5; color: #495057; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px; white-space: nowrap; }
 .slc-cp__module-badge--time { background: var(--shub-accent-soft); color: var(--shub-accent); }
 .slc-cp__lessons { border-top: 1px solid #F1F3F5; padding-bottom: 8px; }

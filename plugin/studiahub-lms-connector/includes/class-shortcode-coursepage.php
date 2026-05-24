@@ -139,7 +139,7 @@ final class Shortcode_CoursePage {
         ob_start();
         echo self::render_json_ld($payload, $product_id);
         ?>
-        <div class="slc-coursepage">
+        <article class="slc-coursepage" itemscope itemtype="https://schema.org/Course">
 
             <?php /* ── HERO ────────────────────────────────────────────── */ ?>
             <section class="slc-cp__hero">
@@ -293,7 +293,7 @@ final class Shortcode_CoursePage {
                             <details class="slc-cp__module"<?php if ($index === 0) echo ' open'; ?>>
                                 <summary class="slc-cp__summary">
                                     <span class="slc-cp__chevron" aria-hidden="true"></span>
-                                    <span class="slc-cp__module-title"><?php echo esc_html($module['title'] ?? ''); ?></span>
+                                    <h3 class="slc-cp__module-title"><?php echo esc_html($module['title'] ?? ''); ?></h3>
                                     <span class="slc-cp__module-badge"><?php echo esc_html($lc . ' ' . ($lc === 1 ? 'lección' : 'lecciones')); ?></span>
                                     <?php if ($md > 0): ?>
                                         <span class="slc-cp__module-badge slc-cp__module-badge--time"><?php echo esc_html(self::format_duration($md)); ?></span>
@@ -484,7 +484,7 @@ final class Shortcode_CoursePage {
                 </div>
             </section>
 
-        </div>
+        </article>
         <?php if ($trailer !== null): ?>
         <script>
         (function(){
