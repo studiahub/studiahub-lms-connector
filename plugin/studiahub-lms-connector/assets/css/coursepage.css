@@ -131,8 +131,12 @@ details[open] > .slc-cp__faq-q .slc-cp__chevron { transform: rotate(45deg); marg
 .slc-cp__testimonial { display: flex; flex-direction: column; gap: 14px; background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius); padding: 24px; }
 .slc-cp__testimonial-text { font-size: 15px; color: var(--shub-text-body); flex: 1; }
 .slc-cp__testimonial-author { display: flex; align-items: center; gap: 12px; }
-.slc-cp__avatar { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0; }
+.slc-cp__avatar { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #845EF7, #5C7CFA); color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0; overflow: hidden; }
+.slc-cp__avatar--img { object-fit: cover; padding: 0; background: #F1F3F5; }
 .slc-cp__testimonial-name { font-weight: 600; color: var(--shub-text-title); font-size: 15px; }
+.slc-cp__reviews-summary { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 14px 20px; background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius); width: fit-content; }
+.slc-cp__reviews-avg { font-size: 24px; font-weight: 800; color: var(--shub-text-title); line-height: 1; }
+.slc-cp__reviews-count { color: var(--shub-text-body); font-size: 14px; }
 
 /* ── GARANTÍA ── */
 .slc-cp__guarantee { display: flex; align-items: center; gap: 24px; background: linear-gradient(135deg, rgba(18,184,134,0.06), rgba(32,201,151,0.10)); border: 1px solid rgba(18,184,134,0.25); border-radius: var(--shub-radius-lg); padding: 28px 32px; }

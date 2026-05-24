@@ -114,6 +114,12 @@ final class Shortcode_CoursePage {
         $total_min     = (int) ($payload['totalDurationMin'] ?? 0);
         $outline       = is_array($payload['outline'] ?? null) ? $payload['outline'] : [];
 
+        // Reseñas reales de alumnos (solo APPROVED, capped a 50). Si vacío,
+        // caemos al placeholder hardcodeado para que la landing nunca quede
+        // "sin testimonios" en cursos recién publicados.
+        $reviews      = is_array($payload['reviews'] ?? null) ? $payload['reviews'] : [];
+        $review_stats = is_array($payload['reviewStats'] ?? null) ? $payload['reviewStats'] : [];
+
         if ($cta_label === '') {
             $cta_label = __('Inscribirme ahora', 'studiahub-lms-connector');
         }
@@ -398,22 +404,86 @@ final class Shortcode_CoursePage {
                 </div>
             </section>
 
-            <?php /* ── TESTIMONIOS ─────────────────────────────────────── */ ?>
+            <?php /* ── RESEÑAS DE ALUMNOS ──────────────────────────────── */ ?>
             <section class="slc-cp__section slc-cp__section--soft">
                 <div class="slc-cp__wrap">
                     <h2 class="slc-cp__h2"><?php esc_html_e('Lo que dicen nuestros alumnos', 'studiahub-lms-connector'); ?></h2>
-                    <div class="slc-cp__cards3">
-                        <?php foreach ($testimonials as $t): ?>
-                            <div class="slc-cp__testimonial">
-                                <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($t['rating']); ?></span>
-                                <p class="slc-cp__testimonial-text"><?php echo esc_html($t['text']); ?></p>
-                                <div class="slc-cp__testimonial-author">
-                                    <span class="slc-cp__avatar" style="background:<?php echo esc_attr($t['avatar_bg']); ?>;"><?php echo esc_html(mb_substr($t['name'], 0, 1)); ?></span>
-                                    <span class="slc-cp__testimonial-name"><?php echo esc_html($t['name']); ?></span>
-                                </div>
+
+                    <?php if (!empty($reviews)): ?>
+                        <?php
+                        $stats_count = (int) ($review_stats['count'] ?? count($reviews));
+                        $stats_avg   = (float) ($review_stats['average'] ?? 0);
+                        if ($stats_count > 0 && $stats_avg > 0):
+                        ?>
+                            <div class="slc-cp__reviews-summary">
+                                <span class="slc-cp__reviews-avg"><?php echo esc_html(number_format($stats_avg, 1, ',', '')); ?></span>
+                                <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars((int) round($stats_avg)); ?></span>
+                                <span class="slc-cp__reviews-count">
+                                    <?php
+                                    printf(
+                                        esc_html(
+                                            _n(
+                                                '%d reseña de alumnos',
+                                                '%d reseñas de alumnos',
+                                                $stats_count,
+                                                'studiahub-lms-connector'
+                                            )
+                                        ),
+                                        $stats_count
+                                    );
+                                    ?>
+                                </span>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
+                        <?php endif; ?>
+
+                        <div class="slc-cp__cards3">
+                            <?php foreach (array_slice($reviews, 0, 6) as $r): ?>
+                                <?php
+                                $author  = (string) ($r['author'] ?? '');
+                                $rating  = (int) ($r['rating'] ?? 0);
+                                $comment = (string) ($r['comment'] ?? '');
+                                $avatar  = (string) ($r['avatarUrl'] ?? '');
+                                if ($author === '' || $rating < 1) { continue; }
+                                ?>
+                                <div class="slc-cp__testimonial">
+                                    <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($rating); ?></span>
+                                    <?php if ($comment !== ''): ?>
+                                        <p class="slc-cp__testimonial-text"><?php echo esc_html($comment); ?></p>
+                                    <?php endif; ?>
+                                    <div class="slc-cp__testimonial-author">
+                                        <?php if ($avatar !== ''): ?>
+                                            <img
+                                                class="slc-cp__avatar slc-cp__avatar--img"
+                                                src="<?php echo esc_url($avatar); ?>"
+                                                alt=""
+                                                width="40"
+                                                height="40"
+                                                loading="lazy"
+                                                decoding="async"
+                                            />
+                                        <?php else: ?>
+                                            <span class="slc-cp__avatar"><?php echo esc_html(mb_substr($author, 0, 1)); ?></span>
+                                        <?php endif; ?>
+                                        <span class="slc-cp__testimonial-name"><?php echo esc_html($author); ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php else: ?>
+                        <?php /* Fallback: el curso todavía no tiene reseñas reales aprobadas. */ ?>
+                        <div class="slc-cp__cards3">
+                            <?php foreach ($testimonials as $t): ?>
+                                <div class="slc-cp__testimonial">
+                                    <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($t['rating']); ?></span>
+                                    <p class="slc-cp__testimonial-text"><?php echo esc_html($t['text']); ?></p>
+                                    <div class="slc-cp__testimonial-author">
+                                        <span class="slc-cp__avatar" style="background:<?php echo esc_attr($t['avatar_bg']); ?>;"><?php echo esc_html(mb_substr($t['name'], 0, 1)); ?></span>
+                                        <span class="slc-cp__testimonial-name"><?php echo esc_html($t['name']); ?></span>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </section>
 
