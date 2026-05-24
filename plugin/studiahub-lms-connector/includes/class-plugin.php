@@ -30,6 +30,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-products.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-orders.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-pair.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-rest-cache-bust.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-authorize-screen.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-outline.php';
@@ -38,6 +39,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-meta.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-badge.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-trailer.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepage.php';
     }
 
     private function register_hooks(): void {
@@ -49,6 +51,7 @@ final class Plugin {
         REST_Products::register_hooks();
         REST_Orders::register_hooks();
         REST_Pair::register_hooks();
+        REST_Cache_Bust::register_hooks();
         Authorize_Screen::register_hooks();
         WebhookBootstrap::register_hooks();
         Shortcode_Outline::register_hooks();
@@ -57,6 +60,7 @@ final class Plugin {
         Shortcode_Meta::register_hooks();
         Shortcode_Badge::register_hooks();
         Shortcode_Trailer::register_hooks();
+        Shortcode_CoursePage::register_hooks();
 
         // Entrega SÍNCRONA de webhooks WC. El default de WC es encolarlos en
         // Action Scheduler y procesarlos via wp-cron, lo que introduce delay
