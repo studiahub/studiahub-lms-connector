@@ -31,6 +31,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-orders.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-pair.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-cache-bust.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-landing-fetch.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-authorize-screen.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-outline.php';
