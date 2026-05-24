@@ -131,7 +131,8 @@ final class Shortcode_CoursePage {
         $guarantee   = self::hardcode_guarantee();
         $faq         = self::hardcode_faq();
 
-        $trailer_embed = $trailer_url !== '' ? self::to_embed_url($trailer_url) : null;
+        $trailer = $trailer_url !== '' ? self::parse_trailer($trailer_url) : null;
+        $thumbnail_url = trim((string) ($payload['thumbnailUrl'] ?? ''));
 
         wp_enqueue_style(self::STYLE_HANDLE);
 
@@ -172,9 +173,20 @@ final class Shortcode_CoursePage {
                     </div>
 
                     <aside class="slc-cp__hero-card">
-                        <?php if ($trailer_embed !== null): ?>
+                        <?php if ($trailer !== null):
+                            $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
+                        ?>
                             <div class="slc-cp__video">
-                                <iframe src="<?php echo esc_url($trailer_embed); ?>" title="<?php echo esc_attr($title); ?>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                                <div class="slc-cp__trailer-facade"
+                                     data-embed="<?php echo esc_attr($trailer['embed']); ?>"
+                                     <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
+                                     role="button"
+                                     tabindex="0"
+                                     aria-label="<?php echo esc_attr__('Reproducir trailer', 'studiahub-lms-connector'); ?>">
+                                    <button type="button" class="slc-cp__trailer-play" aria-hidden="true">
+                                        <svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.7)"/><polygon points="26,20 26,44 46,32" fill="#fff"/></svg>
+                                    </button>
+                                </div>
                             </div>
                         <?php endif; ?>
                         <div class="slc-cp__price-block">
@@ -468,6 +480,30 @@ final class Shortcode_CoursePage {
             </section>
 
         </div>
+        <?php if ($trailer !== null): ?>
+        <script>
+        (function(){
+            document.querySelectorAll('.slc-cp__trailer-facade').forEach(function(el){
+                var activate = function(){
+                    var embed = el.getAttribute('data-embed');
+                    if (!embed) return;
+                    var iframe = document.createElement('iframe');
+                    iframe.src = embed;
+                    iframe.setAttribute('allow', 'autoplay; encrypted-media; fullscreen; picture-in-picture');
+                    iframe.setAttribute('allowfullscreen', '');
+                    iframe.style.cssText = 'width:100%;height:100%;border:0;position:absolute;inset:0;';
+                    el.innerHTML = '';
+                    el.appendChild(iframe);
+                    el.classList.add('slc-cp__trailer-facade--active');
+                };
+                el.addEventListener('click', activate);
+                el.addEventListener('keydown', function(e){
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); }
+                });
+            });
+        })();
+        </script>
+        <?php endif; ?>
         <?php
         return (string) ob_get_clean();
     }
@@ -537,16 +573,33 @@ final class Shortcode_CoursePage {
         return $chips;
     }
 
-    private static function to_embed_url(string $url): ?string {
+    /**
+     * Detecta el provider del trailer y devuelve [embed, thumb, provider].
+     * Se usa para el facade pattern (thumbnail estática + play, iframe se
+     * carga on-click). Devuelve null si la URL no es válida.
+     */
+    private static function parse_trailer(string $url): ?array {
         $url = trim($url);
+        if ($url === '') {
+            return null;
+        }
         if (preg_match('~(?:youtube\.com/watch\?(?:.*&)?v=|youtu\.be/|youtube\.com/shorts/|youtube\.com/embed/)([A-Za-z0-9_-]{6,})~', $url, $m)) {
-            return 'https://www.youtube.com/embed/' . $m[1] . '?rel=0';
+            $id = $m[1];
+            return [
+                'embed'    => 'https://www.youtube.com/embed/' . $id . '?autoplay=1&rel=0',
+                'thumb'    => 'https://i.ytimg.com/vi/' . $id . '/maxresdefault.jpg',
+                'provider' => 'youtube',
+            ];
         }
         if (preg_match('~vimeo\.com/(?:video/)?(\d+)~', $url, $m)) {
-            return 'https://player.vimeo.com/video/' . $m[1];
+            return [
+                'embed'    => 'https://player.vimeo.com/video/' . $m[1] . '?autoplay=1',
+                'thumb'    => '', // Vimeo thumbnail requiere oEmbed; cae al thumbnail del curso.
+                'provider' => 'vimeo',
+            ];
         }
         if (filter_var($url, FILTER_VALIDATE_URL)) {
-            return $url;
+            return ['embed' => $url, 'thumb' => '', 'provider' => 'generic'];
         }
         return null;
     }
