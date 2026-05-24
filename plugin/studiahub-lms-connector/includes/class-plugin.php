@@ -32,6 +32,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-pair.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-cache-bust.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-landing-fetch.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-product-metabox.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-authorize-screen.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-outline.php';
@@ -53,6 +54,7 @@ final class Plugin {
         REST_Orders::register_hooks();
         REST_Pair::register_hooks();
         REST_Cache_Bust::register_hooks();
+        Product_Metabox::register_hooks();
         Authorize_Screen::register_hooks();
         WebhookBootstrap::register_hooks();
         Shortcode_Outline::register_hooks();
