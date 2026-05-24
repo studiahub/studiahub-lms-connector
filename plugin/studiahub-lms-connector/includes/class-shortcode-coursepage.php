@@ -10,16 +10,22 @@ if (!defined('ABSPATH')) {
  * curso en HTML, full-bleed (a todo el ancho), pensada para insertarse como
  * UN solo shortcode en una plantilla en blanco de Elementor.
  *
- * Toda la data "de curso" sale EN VIVO del LMS, via GET
- * /api/wc/courses/[id]/landing-payload — con WP transient 15 min +
- * stale-while-revalidate. El producto WC solo aporta el postmeta
- * `_lms_course_id` para mapear, el precio nativo (`_price`) y el checkout.
+ * Toda la data sale EN VIVO del LMS via GET /api/wc/courses/[id]/landing-payload
+ * con WP transient 15 min + stale-while-revalidate. El producto WC solo aporta
+ * el postmeta `_lms_course_id` para mapear, el precio nativo (`_price`) y el
+ * checkout.
  *
- * La data "de marketing" (testimonios, FAQ, bonos, garantía, social proof,
- * pricing de oferta) todavía NO existe en el LMS, así que se HARDCODEA acá con
- * ejemplos realistas — marcados con `// HARDCODE: futuro campo LMS`. Cuando el
- * LMS exponga esos campos, se reemplazan los métodos hardcode_*() por lectura
- * del payload.
+ * El payload incluye, además del contenido del curso (outline, instructor,
+ * materiales, etc), la data "de marketing" gestionada desde el admin del LMS:
+ *   - compareAtPrice / discountPercent / installmentsLabel / offerDeadlineAt
+ *   - bonuses[]
+ *   - faq[] (ya mergeado: course.faq || tenant.defaultFaq || [])
+ *   - socialProof (studentsCount real + label override + stats custom)
+ *   - guarantee (null si tenant la deshabilitó)
+ *   - reviews[] + reviewStats (rating REAL de alumnos aprobado)
+ *
+ * Cada sección oculta si no hay data — la landing nunca muestra placeholders
+ * fake.
  *
  * Usage:
  *   [studiahub_course_page]            → producto del contexto WC actual
@@ -82,7 +88,7 @@ final class Shortcode_CoursePage {
             return '<!-- studiahub_course_page: LMS no respondió y no hay cache. -->';
         }
 
-        // ── DATA REAL (payload del LMS, en vivo + cache) ──────────────────
+        // ── DATA DEL CURSO (payload del LMS, en vivo + cache) ─────────────
         $title       = (string) ($payload['title'] ?? get_the_title($product_id));
         $subtitle    = trim((string) ($payload['subtitle'] ?? ''));
         $short_desc  = trim((string) ($payload['shortDescription'] ?? ''));
@@ -114,9 +120,6 @@ final class Shortcode_CoursePage {
         $total_min     = (int) ($payload['totalDurationMin'] ?? 0);
         $outline       = is_array($payload['outline'] ?? null) ? $payload['outline'] : [];
 
-        // Reseñas reales de alumnos (solo APPROVED, capped a 50). Si vacío,
-        // caemos al placeholder hardcodeado para que la landing nunca quede
-        // "sin testimonios" en cursos recién publicados.
         $reviews      = is_array($payload['reviews'] ?? null) ? $payload['reviews'] : [];
         $review_stats = is_array($payload['reviewStats'] ?? null) ? $payload['reviewStats'] : [];
 
@@ -129,13 +132,12 @@ final class Shortcode_CoursePage {
 
         $checkout_url = self::checkout_url($product_id);
 
-        // ── DATA HARDCODEADA (marketing — futuro LMS) ─────────────────────
-        $social      = self::hardcode_social_proof();
-        $offer       = self::hardcode_offer_pricing($price_disp);
-        $bonuses     = self::hardcode_bonuses();
-        $testimonials = self::hardcode_testimonials();
-        $guarantee   = self::hardcode_guarantee();
-        $faq         = self::hardcode_faq();
+        // ── DATA DE MARKETING (payload del LMS, controlado desde el admin) ─
+        $social    = self::data_social_proof($payload);
+        $offer     = self::data_offer_pricing($payload, $price_disp);
+        $bonuses   = self::data_bonuses($payload);
+        $guarantee = self::data_guarantee($payload);
+        $faq       = self::data_faq($payload);
 
         $trailer = $trailer_url !== '' ? self::parse_trailer($trailer_url) : null;
         $thumbnail_url = trim((string) ($payload['thumbnailUrl'] ?? ''));
@@ -161,12 +163,20 @@ final class Shortcode_CoursePage {
                             <p class="slc-cp__hero-subtitle"><?php echo esc_html($short_desc); ?></p>
                         <?php endif; ?>
 
-                        <div class="slc-cp__hero-proof">
-                            <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($social['rating']); ?></span>
-                            <strong><?php echo esc_html(number_format((float) $social['rating'], 1)); ?></strong>
-                            <span class="slc-cp__proof-sep">·</span>
-                            <span><?php echo esc_html($social['students_label']); ?></span>
-                        </div>
+                        <?php if ($social['rating'] !== null || $social['students_label'] !== ''): ?>
+                            <div class="slc-cp__hero-proof">
+                                <?php if ($social['rating'] !== null): ?>
+                                    <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($social['rating']); ?></span>
+                                    <strong><?php echo esc_html(number_format((float) $social['rating'], 1, ',', '')); ?></strong>
+                                <?php endif; ?>
+                                <?php if ($social['rating'] !== null && $social['students_label'] !== ''): ?>
+                                    <span class="slc-cp__proof-sep">·</span>
+                                <?php endif; ?>
+                                <?php if ($social['students_label'] !== ''): ?>
+                                    <span><?php echo esc_html($social['students_label']); ?></span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
 
                         <ul class="slc-cp__hero-meta">
                             <?php foreach (self::meta_chips($type_key, $hours, $total_min, $level, $language, $has_cert, $modules_count, $lessons_count) as $chip): ?>
@@ -199,7 +209,9 @@ final class Shortcode_CoursePage {
                             <?php if ($offer['original'] !== ''): ?>
                                 <div class="slc-cp__price-row">
                                     <span class="slc-cp__price-old"><?php echo esc_html($offer['original']); ?></span>
-                                    <span class="slc-cp__price-off"><?php echo esc_html($offer['discount_label']); ?></span>
+                                    <?php if ($offer['discount_label'] !== ''): ?>
+                                        <span class="slc-cp__price-off"><?php echo esc_html($offer['discount_label']); ?></span>
+                                    <?php endif; ?>
                                 </div>
                             <?php endif; ?>
                             <div class="slc-cp__price-now"><?php echo esc_html($offer['current']); ?></div>
@@ -213,16 +225,19 @@ final class Shortcode_CoursePage {
                                     <?php echo esc_html($offer['deadline']); ?>
                                 </div>
                             <?php endif; ?>
-                            <div class="slc-cp__guarantee-mini">
-                                <?php echo self::icon('shield'); ?>
-                                <span><?php echo esc_html($guarantee['short']); ?></span>
-                            </div>
+                            <?php if ($guarantee !== null): ?>
+                                <div class="slc-cp__guarantee-mini">
+                                    <?php echo self::icon('shield'); ?>
+                                    <span><?php echo esc_html($guarantee['short']); ?></span>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </aside>
                 </div>
             </section>
 
             <?php /* ── BARRA SOCIAL PROOF ──────────────────────────────── */ ?>
+            <?php if (!empty($social['bar'])): ?>
             <section class="slc-cp__bar">
                 <div class="slc-cp__wrap slc-cp__bar-grid">
                     <?php foreach ($social['bar'] as $stat): ?>
@@ -233,6 +248,7 @@ final class Shortcode_CoursePage {
                     <?php endforeach; ?>
                 </div>
             </section>
+            <?php endif; ?>
 
             <?php /* ── QUÉ VAS A APRENDER ──────────────────────────────── */ ?>
             <?php if (!empty($outcomes)): ?>
@@ -385,6 +401,7 @@ final class Shortcode_CoursePage {
             <?php endif; ?>
 
             <?php /* ── BONOS ───────────────────────────────────────────── */ ?>
+            <?php if (!empty($bonuses)): ?>
             <section class="slc-cp__section">
                 <div class="slc-cp__wrap slc-cp__wrap--narrow">
                     <h2 class="slc-cp__h2"><?php esc_html_e('Bonos exclusivos', 'studiahub-lms-connector'); ?></h2>
@@ -395,99 +412,91 @@ final class Shortcode_CoursePage {
                                 <span class="slc-cp__bonus-icon" aria-hidden="true"><?php echo self::icon('gift'); ?></span>
                                 <div class="slc-cp__bonus-body">
                                     <div class="slc-cp__bonus-title"><?php echo esc_html($bonus['title']); ?></div>
-                                    <div class="slc-cp__bonus-desc"><?php echo esc_html($bonus['desc']); ?></div>
+                                    <?php if ($bonus['desc'] !== ''): ?>
+                                        <div class="slc-cp__bonus-desc"><?php echo esc_html($bonus['desc']); ?></div>
+                                    <?php endif; ?>
                                 </div>
-                                <span class="slc-cp__bonus-value"><?php echo esc_html($bonus['value']); ?></span>
+                                <?php if ($bonus['value'] !== ''): ?>
+                                    <span class="slc-cp__bonus-value"><?php echo esc_html($bonus['value']); ?></span>
+                                <?php endif; ?>
                             </div>
                         <?php endforeach; ?>
                     </div>
                 </div>
             </section>
+            <?php endif; ?>
 
-            <?php /* ── RESEÑAS DE ALUMNOS ──────────────────────────────── */ ?>
+            <?php /* ── RESEÑAS DE ALUMNOS (solo si hay reales aprobadas) ── */ ?>
+            <?php if (!empty($reviews)): ?>
             <section class="slc-cp__section slc-cp__section--soft">
                 <div class="slc-cp__wrap">
                     <h2 class="slc-cp__h2"><?php esc_html_e('Lo que dicen nuestros alumnos', 'studiahub-lms-connector'); ?></h2>
 
-                    <?php if (!empty($reviews)): ?>
-                        <?php
-                        $stats_count = (int) ($review_stats['count'] ?? count($reviews));
-                        $stats_avg   = (float) ($review_stats['average'] ?? 0);
-                        if ($stats_count > 0 && $stats_avg > 0):
-                        ?>
-                            <div class="slc-cp__reviews-summary">
-                                <span class="slc-cp__reviews-avg"><?php echo esc_html(number_format($stats_avg, 1, ',', '')); ?></span>
-                                <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars((int) round($stats_avg)); ?></span>
-                                <span class="slc-cp__reviews-count">
-                                    <?php
-                                    printf(
-                                        esc_html(
-                                            _n(
-                                                '%d reseña de alumnos',
-                                                '%d reseñas de alumnos',
-                                                $stats_count,
-                                                'studiahub-lms-connector'
-                                            )
-                                        ),
-                                        $stats_count
-                                    );
-                                    ?>
-                                </span>
-                            </div>
-                        <?php endif; ?>
-
-                        <div class="slc-cp__cards3">
-                            <?php foreach (array_slice($reviews, 0, 6) as $r): ?>
+                    <?php
+                    $stats_count = (int) ($review_stats['count'] ?? count($reviews));
+                    $stats_avg   = (float) ($review_stats['average'] ?? 0);
+                    if ($stats_count > 0 && $stats_avg > 0):
+                    ?>
+                        <div class="slc-cp__reviews-summary">
+                            <span class="slc-cp__reviews-avg"><?php echo esc_html(number_format($stats_avg, 1, ',', '')); ?></span>
+                            <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars((int) round($stats_avg)); ?></span>
+                            <span class="slc-cp__reviews-count">
                                 <?php
-                                $author  = (string) ($r['author'] ?? '');
-                                $rating  = (int) ($r['rating'] ?? 0);
-                                $comment = (string) ($r['comment'] ?? '');
-                                $avatar  = (string) ($r['avatarUrl'] ?? '');
-                                if ($author === '' || $rating < 1) { continue; }
+                                printf(
+                                    esc_html(
+                                        _n(
+                                            '%d reseña de alumnos',
+                                            '%d reseñas de alumnos',
+                                            $stats_count,
+                                            'studiahub-lms-connector'
+                                        )
+                                    ),
+                                    $stats_count
+                                );
                                 ?>
-                                <div class="slc-cp__testimonial">
-                                    <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($rating); ?></span>
-                                    <?php if ($comment !== ''): ?>
-                                        <p class="slc-cp__testimonial-text"><?php echo esc_html($comment); ?></p>
-                                    <?php endif; ?>
-                                    <div class="slc-cp__testimonial-author">
-                                        <?php if ($avatar !== ''): ?>
-                                            <img
-                                                class="slc-cp__avatar slc-cp__avatar--img"
-                                                src="<?php echo esc_url($avatar); ?>"
-                                                alt=""
-                                                width="40"
-                                                height="40"
-                                                loading="lazy"
-                                                decoding="async"
-                                            />
-                                        <?php else: ?>
-                                            <span class="slc-cp__avatar"><?php echo esc_html(mb_substr($author, 0, 1)); ?></span>
-                                        <?php endif; ?>
-                                        <span class="slc-cp__testimonial-name"><?php echo esc_html($author); ?></span>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php else: ?>
-                        <?php /* Fallback: el curso todavía no tiene reseñas reales aprobadas. */ ?>
-                        <div class="slc-cp__cards3">
-                            <?php foreach ($testimonials as $t): ?>
-                                <div class="slc-cp__testimonial">
-                                    <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($t['rating']); ?></span>
-                                    <p class="slc-cp__testimonial-text"><?php echo esc_html($t['text']); ?></p>
-                                    <div class="slc-cp__testimonial-author">
-                                        <span class="slc-cp__avatar" style="background:<?php echo esc_attr($t['avatar_bg']); ?>;"><?php echo esc_html(mb_substr($t['name'], 0, 1)); ?></span>
-                                        <span class="slc-cp__testimonial-name"><?php echo esc_html($t['name']); ?></span>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+                            </span>
                         </div>
                     <?php endif; ?>
+
+                    <div class="slc-cp__cards3">
+                        <?php foreach (array_slice($reviews, 0, 6) as $r): ?>
+                            <?php
+                            $author  = (string) ($r['author'] ?? '');
+                            $rating  = (int) ($r['rating'] ?? 0);
+                            $comment = (string) ($r['comment'] ?? '');
+                            $avatar  = (string) ($r['avatarUrl'] ?? '');
+                            if ($author === '' || $rating < 1) { continue; }
+                            ?>
+                            <div class="slc-cp__testimonial">
+                                <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($rating); ?></span>
+                                <?php if ($comment !== ''): ?>
+                                    <p class="slc-cp__testimonial-text"><?php echo esc_html($comment); ?></p>
+                                <?php endif; ?>
+                                <div class="slc-cp__testimonial-author">
+                                    <?php if ($avatar !== ''): ?>
+                                        <img
+                                            class="slc-cp__avatar slc-cp__avatar--img"
+                                            src="<?php echo esc_url($avatar); ?>"
+                                            alt=""
+                                            width="40"
+                                            height="40"
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
+                                    <?php else: ?>
+                                        <span class="slc-cp__avatar"><?php echo esc_html(mb_substr($author, 0, 1)); ?></span>
+                                    <?php endif; ?>
+                                    <span class="slc-cp__testimonial-name"><?php echo esc_html($author); ?></span>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </section>
+            <?php endif; ?>
 
             <?php /* ── GARANTÍA ────────────────────────────────────────── */ ?>
+            <?php if ($guarantee !== null): ?>
             <section class="slc-cp__section">
                 <div class="slc-cp__wrap slc-cp__wrap--narrow">
                     <div class="slc-cp__guarantee">
@@ -499,8 +508,10 @@ final class Shortcode_CoursePage {
                     </div>
                 </div>
             </section>
+            <?php endif; ?>
 
             <?php /* ── FAQ ─────────────────────────────────────────────── */ ?>
+            <?php if (!empty($faq)): ?>
             <section class="slc-cp__section slc-cp__section--soft">
                 <div class="slc-cp__wrap slc-cp__wrap--narrow">
                     <h2 class="slc-cp__h2"><?php esc_html_e('Preguntas frecuentes', 'studiahub-lms-connector'); ?></h2>
@@ -517,6 +528,7 @@ final class Shortcode_CoursePage {
                     </div>
                 </div>
             </section>
+            <?php endif; ?>
 
             <?php /* ── REQUISITOS ──────────────────────────────────────── */ ?>
             <?php if (!empty($reqs)): ?>
@@ -550,7 +562,18 @@ final class Shortcode_CoursePage {
                             <?php echo esc_html($offer['deadline']); ?>
                         </div>
                     <?php endif; ?>
-                    <div class="slc-cp__final-trust"><?php echo esc_html($guarantee['short']); ?> · <?php echo esc_html($social['students_label']); ?></div>
+                    <?php
+                    $trust_parts = [];
+                    if ($guarantee !== null) {
+                        $trust_parts[] = $guarantee['short'];
+                    }
+                    if ($social['students_label'] !== '') {
+                        $trust_parts[] = $social['students_label'];
+                    }
+                    if (!empty($trust_parts)):
+                    ?>
+                        <div class="slc-cp__final-trust"><?php echo esc_html(implode(' · ', $trust_parts)); ?></div>
+                    <?php endif; ?>
                 </div>
             </section>
 
@@ -613,6 +636,21 @@ final class Shortcode_CoursePage {
             }
         }
         return '';
+    }
+
+    /**
+     * Formatea un número a string de precio. El payload trae números crudos
+     * (compareAtPrice) — los pasamos por wc_price() para respetar la config
+     * de moneda del WC del cliente; si WC no está, fallback a número formateado.
+     */
+    private static function format_price($amount): string {
+        if (!is_numeric($amount)) {
+            return '';
+        }
+        if (function_exists('wc_price')) {
+            return wp_strip_all_tags(wc_price((float) $amount));
+        }
+        return '$' . number_format_i18n((float) $amount, 2);
     }
 
     // ── HELPERS DE DATA REAL ──────────────────────────────────────────────
@@ -698,72 +736,183 @@ final class Shortcode_CoursePage {
         return $out;
     }
 
-    // ── DATA HARDCODEADA (marketing — futuros campos LMS) ─────────────────
-    private static function hardcode_social_proof(): array {
-        // HARDCODE: futuro campo LMS — social proof / rating agregado
+    // ── DATA DE MARKETING (del payload LMS) ───────────────────────────────
+
+    /**
+     * Social proof: rating REAL de reseñas + count REAL de enrollments (o
+     * label override del admin) + stats custom configurados por el tenant.
+     *
+     * Devuelve:
+     *   - rating: float|null (null si no hay reviews aprobadas)
+     *   - students_label: string ('' si no querés mostrar conteo)
+     *   - bar: array de {num, label} para la franja bajo el hero
+     */
+    private static function data_social_proof(array $payload): array {
+        $sp           = is_array($payload['socialProof'] ?? null) ? $payload['socialProof'] : [];
+        $review_stats = is_array($payload['reviewStats'] ?? null) ? $payload['reviewStats'] : [];
+
+        $rating_count = (int) ($review_stats['count'] ?? 0);
+        $rating_avg   = (float) ($review_stats['average'] ?? 0);
+        $rating       = ($rating_count > 0 && $rating_avg > 0) ? $rating_avg : null;
+
+        $students_count = isset($sp['studentsCount']) && is_numeric($sp['studentsCount'])
+            ? (int) $sp['studentsCount']
+            : 0;
+        $students_override = trim((string) ($sp['studentsLabel'] ?? ''));
+
+        if ($students_override !== '') {
+            $students_label = $students_override;
+        } elseif ($students_count > 0) {
+            $students_label = '+' . number_format_i18n($students_count) . ' alumnos';
+        } else {
+            $students_label = '';
+        }
+
+        // Stats para la barra: 1) alumnos real, 2) rating real, 3-4) custom.
+        $bar = [];
+        if ($students_count > 0 || $students_override !== '') {
+            $bar[] = [
+                'num'   => $students_override !== ''
+                    ? $students_override
+                    : '+' . number_format_i18n($students_count),
+                'label' => __('Alumnos inscriptos', 'studiahub-lms-connector'),
+            ];
+        }
+        if ($rating !== null) {
+            $bar[] = [
+                'num'   => number_format($rating, 1, ',', '') . ' ★',
+                'label' => __('Valoración promedio', 'studiahub-lms-connector'),
+            ];
+        }
+        $custom_stats = is_array($sp['stats'] ?? null) ? $sp['stats'] : [];
+        foreach (array_slice($custom_stats, 0, 2) as $stat) {
+            if (!is_array($stat)) continue;
+            $num   = trim((string) ($stat['num'] ?? ''));
+            $label = trim((string) ($stat['label'] ?? ''));
+            if ($num === '' || $label === '') continue;
+            $bar[] = ['num' => $num, 'label' => $label];
+        }
+
         return [
-            'rating'         => 4.8,
-            'students_label' => '+2.400 alumnos',
-            'bar' => [
-                ['num' => '+2.400', 'label' => 'Alumnos inscriptos'],
-                ['num' => '4.8 ★', 'label' => 'Valoración promedio'],
-                ['num' => '98%', 'label' => 'Lo recomiendan'],
-                ['num' => '24/7', 'label' => 'Acceso de por vida'],
-            ],
+            'rating'         => $rating,
+            'students_label' => $students_label,
+            'bar'            => $bar,
         ];
     }
 
-    private static function hardcode_offer_pricing(string $real_price): array {
-        // HARDCODE: futuro campo LMS — pricing de oferta (tachado, descuento,
-        // cuotas, deadline de urgencia). El precio "current" usa el real si existe.
-        $current = $real_price !== '' ? $real_price : '$49.900';
+    /**
+     * Pricing de oferta: precio tachado, descuento, cuotas, deadline relativo.
+     * Todo opcional — strings vacíos cuando no aplica para que el template los
+     * oculte.
+     */
+    private static function data_offer_pricing(array $payload, string $real_price): array {
+        $price        = isset($payload['price']) && is_numeric($payload['price']) ? (float) $payload['price'] : null;
+        $compare_at   = isset($payload['compareAtPrice']) && is_numeric($payload['compareAtPrice'])
+            ? (float) $payload['compareAtPrice']
+            : null;
+        $discount_pct = isset($payload['discountPercent']) && is_numeric($payload['discountPercent'])
+            ? (int) $payload['discountPercent']
+            : null;
+        $installments = trim((string) ($payload['installmentsLabel'] ?? ''));
+        $deadline_iso = trim((string) ($payload['offerDeadlineAt'] ?? ''));
+
+        // Precio tachado solo si es > current y current existe.
+        $original = '';
+        if ($compare_at !== null && $compare_at > 0 && ($price === null || $compare_at > $price)) {
+            $original = self::format_price($compare_at);
+        }
+
+        $discount_label = '';
+        if ($discount_pct !== null && $discount_pct > 0 && $original !== '') {
+            $discount_label = '-' . $discount_pct . '%';
+        }
+
+        // Deadline: el LMS ya manda null si está vencida. Formateamos como
+        // tiempo relativo en castellano: "Termina en 3 días".
+        $deadline_label = '';
+        if ($deadline_iso !== '') {
+            $deadline_ts = strtotime($deadline_iso);
+            $now         = function_exists('current_time') ? (int) current_time('timestamp') : time();
+            if ($deadline_ts && $deadline_ts > $now) {
+                $diff = function_exists('human_time_diff')
+                    ? human_time_diff($now, $deadline_ts)
+                    : floor(($deadline_ts - $now) / 86400) . ' días';
+                $deadline_label = sprintf(
+                    /* translators: %s = tiempo relativo, ej "3 días" */
+                    __('Termina en %s', 'studiahub-lms-connector'),
+                    $diff
+                );
+            }
+        }
+
         return [
-            'original'       => '$89.900',
-            'current'        => $current,
-            'discount_label' => '-44%',
-            'installments'   => 'o 3 cuotas sin interés',
-            'deadline'       => 'Oferta válida hasta el domingo',
+            'original'       => $original,
+            'current'        => $real_price !== '' ? $real_price : self::format_price($price),
+            'discount_label' => $discount_label,
+            'installments'   => $installments,
+            'deadline'       => $deadline_label,
         ];
     }
 
-    private static function hardcode_bonuses(): array {
-        // HARDCODE: futuro campo LMS — bonus stack
+    /**
+     * Bonus stack — viene como array del payload. Cada item: {title, desc, value}.
+     * Devolvemos [] si no hay nada para que el template oculte la sección.
+     */
+    private static function data_bonuses(array $payload): array {
+        $raw = is_array($payload['bonuses'] ?? null) ? $payload['bonuses'] : [];
+        $out = [];
+        foreach ($raw as $b) {
+            if (!is_array($b)) continue;
+            $title = trim((string) ($b['title'] ?? ''));
+            if ($title === '') continue;
+            $out[] = [
+                'title' => $title,
+                'desc'  => trim((string) ($b['desc'] ?? '')),
+                'value' => trim((string) ($b['value'] ?? '')),
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * Garantía: el tenant la puede desactivar (payload trae null). Devolvemos
+     * null en ese caso y el template oculta tanto la sección como el mini-badge
+     * del hero card.
+     */
+    private static function data_guarantee(array $payload): ?array {
+        $g = $payload['guarantee'] ?? null;
+        if (!is_array($g)) {
+            return null;
+        }
+        $title = trim((string) ($g['title'] ?? ''));
+        $text  = trim((string) ($g['text'] ?? ''));
+        if ($title === '' && $text === '') {
+            return null;
+        }
+        // `short` se deriva del title — lo usamos en el mini-badge del hero y
+        // en la barra de trust del CTA final.
         return [
-            ['title' => 'Plantillas descargables', 'desc' => 'Pack de plantillas listas para usar en tus proyectos.', 'value' => 'Valor $12.000'],
-            ['title' => 'Sesión de Q&A en vivo', 'desc' => 'Acceso a una sesión mensual de preguntas con el instructor.', 'value' => 'Valor $20.000'],
-            ['title' => 'Comunidad privada', 'desc' => 'Grupo exclusivo para networking y feedback entre alumnos.', 'value' => 'Valor $8.000'],
+            'title' => $title,
+            'text'  => $text,
+            'short' => $title !== '' ? $title : $text,
         ];
     }
 
-    private static function hardcode_testimonials(): array {
-        // HARDCODE: futuro campo LMS — reseñas / testimonios
-        return [
-            ['name' => 'Martina G.', 'rating' => 5, 'avatar_bg' => '#7950F2', 'text' => 'El curso superó mis expectativas. Las explicaciones son clarísimas y pude aplicar todo desde la primera semana.'],
-            ['name' => 'Lucas R.', 'rating' => 5, 'avatar_bg' => '#228BE6', 'text' => 'Venía probando otros cursos y ninguno me enganchó como este. El temario está muy bien armado.'],
-            ['name' => 'Sofía P.', 'rating' => 4, 'avatar_bg' => '#12B886', 'text' => 'Excelente relación precio-valor. Los bonos por sí solos ya justifican la inscripción.'],
-            ['name' => 'Diego M.', 'rating' => 5, 'avatar_bg' => '#FD7E14', 'text' => 'El instructor responde rápido y la comunidad es un golazo. Lo recomiendo 100%.'],
-        ];
-    }
-
-    private static function hardcode_guarantee(): array {
-        // HARDCODE: futuro campo LMS — garantía money-back
-        return [
-            'title' => 'Garantía de 30 días',
-            'text'  => 'Si en los primeros 30 días sentís que el curso no es para vos, te devolvemos el 100% de tu dinero. Sin preguntas, sin vueltas.',
-            'short' => 'Garantía de 30 días',
-        ];
-    }
-
-    private static function hardcode_faq(): array {
-        // HARDCODE: futuro campo LMS — FAQ
-        return [
-            ['q' => '¿Por cuánto tiempo tengo acceso al curso?', 'a' => 'El acceso es de por vida. Una vez que te inscribís, podés ver el contenido las veces que quieras, sin vencimiento.'],
-            ['q' => '¿Necesito conocimientos previos?', 'a' => 'No. El curso arranca desde lo básico y avanza de forma progresiva, así que podés tomarlo aunque empieces de cero.'],
-            ['q' => '¿Cómo accedo a las clases?', 'a' => 'Apenas se confirma tu pago recibís un email con tus credenciales para entrar a la plataforma y empezar a aprender.'],
-            ['q' => '¿El curso entrega certificado?', 'a' => 'Sí. Al completar el 100% del contenido se genera automáticamente tu certificado de finalización descargable en PDF.'],
-            ['q' => '¿Puedo pagar en cuotas?', 'a' => 'Sí, podés abonar en cuotas sin interés con tarjeta de crédito según los medios de pago disponibles en el checkout.'],
-            ['q' => '¿Qué pasa si no me gusta?', 'a' => 'Contás con 30 días de garantía. Si no quedás conforme, escribinos y te devolvemos el 100% de tu inversión.'],
-        ];
+    /**
+     * FAQ — el LMS ya mergea Course.faq → Tenant.defaultFaq → []. Devolvemos
+     * [] si no hay nada y el template oculta la sección.
+     */
+    private static function data_faq(array $payload): array {
+        $raw = is_array($payload['faq'] ?? null) ? $payload['faq'] : [];
+        $out = [];
+        foreach ($raw as $qa) {
+            if (!is_array($qa)) continue;
+            $q = trim((string) ($qa['q'] ?? ''));
+            $a = trim((string) ($qa['a'] ?? ''));
+            if ($q === '' || $a === '') continue;
+            $out[] = ['q' => $q, 'a' => $a];
+        }
+        return $out;
     }
 
     // ── ICONOS SVG INLINE ─────────────────────────────────────────────────
@@ -841,6 +990,20 @@ final class Shortcode_CoursePage {
         }
         if ($url !== '') {
             $data['url'] = $url;
+        }
+
+        // aggregateRating real cuando hay reseñas aprobadas.
+        $review_stats = is_array($payload['reviewStats'] ?? null) ? $payload['reviewStats'] : [];
+        $rs_count = (int) ($review_stats['count'] ?? 0);
+        $rs_avg   = (float) ($review_stats['average'] ?? 0);
+        if ($rs_count > 0 && $rs_avg > 0) {
+            $data['aggregateRating'] = [
+                '@type'       => 'AggregateRating',
+                'ratingValue' => round($rs_avg, 1),
+                'reviewCount' => $rs_count,
+                'bestRating'  => 5,
+                'worstRating' => 1,
+            ];
         }
 
         return '<script type="application/ld+json">'

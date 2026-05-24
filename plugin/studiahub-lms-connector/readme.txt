@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, acf
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.1.0
+Stable tag: 0.6.0
 License: MIT
 
 Conecta WooCommerce con StudiaHub LMS para sync unidireccional de cursos y procesamiento de webhooks de compra.
@@ -27,6 +27,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 5. Pegar la API key en el panel admin del LMS (Settings del tenant).
 
 == Changelog ==
+
+= 0.6.0 =
+* Shortcode `[studiahub_course_page]` ahora lee TODA la data de marketing del payload del LMS (pricing de oferta, bonuses, garantía, FAQ, social proof real). Se eliminan los hardcodes — cada sección oculta si no hay data. Reseñas: se quita el fallback fake; si el curso no tiene reseñas aprobadas, la sección no se renderiza. Agrega `aggregateRating` al JSON-LD cuando hay reviews reales.
 
 = 0.1.0 =
 * Versión inicial. Bootstrap del plugin con verificación de dependencias (WC + ACF).
