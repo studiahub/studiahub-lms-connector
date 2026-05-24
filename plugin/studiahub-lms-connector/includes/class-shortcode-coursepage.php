@@ -30,7 +30,7 @@ if (!defined('ABSPATH')) {
  */
 final class Shortcode_CoursePage {
     public const SHORTCODE_TAG = 'studiahub_course_page';
-    private static bool $assets_printed = false;
+    public const STYLE_HANDLE  = 'slc-coursepage';
 
     private const TYPE_LABELS = [
         'on_demand' => 'On demand',
@@ -41,6 +41,24 @@ final class Shortcode_CoursePage {
 
     public static function register_hooks(): void {
         add_shortcode(self::SHORTCODE_TAG, [self::class, 'render']);
+        add_action('wp_enqueue_scripts', [self::class, 'register_styles']);
+    }
+
+    /**
+     * Registramos (no enqueueamos) en wp_enqueue_scripts. El enqueue real
+     * se hace en render() cuando el shortcode efectivamente corre, así no
+     * cargamos el CSS en páginas que no lo usan.
+     */
+    public static function register_styles(): void {
+        if (!defined('SLC_VERSION')) {
+            return;
+        }
+        wp_register_style(
+            self::STYLE_HANDLE,
+            SLC_PLUGIN_URL . 'assets/css/coursepage.css',
+            [],
+            SLC_VERSION
+        );
     }
 
     public static function render($atts): string {
@@ -115,8 +133,9 @@ final class Shortcode_CoursePage {
 
         $trailer_embed = $trailer_url !== '' ? self::to_embed_url($trailer_url) : null;
 
+        wp_enqueue_style(self::STYLE_HANDLE);
+
         ob_start();
-        self::print_styles();
         ?>
         <div class="slc-coursepage">
 
@@ -646,201 +665,4 @@ final class Shortcode_CoursePage {
         return $icons[$name] ?? '';
     }
 
-    private static function print_styles(): void {
-        if (self::$assets_printed) {
-            return;
-        }
-        self::$assets_printed = true;
-        ?>
-        <style>
-            /* ── Tokens re-skineables por tenant ── */
-            .slc-coursepage {
-                --shub-accent: #7950F2;
-                --shub-accent-dark: #5F3DC4;
-                --shub-accent-soft: rgba(121, 80, 242, 0.10);
-                --shub-text-title: #0F172A;
-                --shub-text-body: #475569;
-                --shub-text-muted: #64748B;
-                --shub-bg-app: #FFFFFF;
-                --shub-bg-soft: #F8F9FA;
-                --shub-border: #E9ECEF;
-                --shub-border-subtle: #E2E8F0;
-                --shub-radius: 14px;
-                --shub-radius-lg: 16px;
-                --shub-radius-pill: 999px;
-                --shub-gap: 16px;
-                --shub-section-y: 64px;
-                --shub-wrap: 1140px;
-                --shub-wrap-narrow: 820px;
-                --shub-cta-grad: linear-gradient(135deg, #7950F2 0%, #5F3DC4 100%);
-                --shub-hero-grad: linear-gradient(135deg, #EEF0FF 0%, #F4EEFF 50%, #FFF1F8 100%);
-                font-family: inherit;
-                color: var(--shub-text-body);
-                line-height: 1.6;
-                width: 100%;
-            }
-            .slc-coursepage *, .slc-coursepage *::before, .slc-coursepage *::after { box-sizing: border-box; }
-            .slc-coursepage h1, .slc-coursepage h2, .slc-coursepage h3, .slc-coursepage p, .slc-coursepage ul { margin: 0; }
-            .slc-coursepage ul { list-style: none; padding: 0; }
-            .slc-coursepage a { text-decoration: none; }
-
-            .slc-cp__wrap { max-width: var(--shub-wrap); margin: 0 auto; padding: 0 24px; width: 100%; }
-            .slc-cp__wrap--narrow { max-width: var(--shub-wrap-narrow); }
-            .slc-cp__section { padding: var(--shub-section-y) 0; background: var(--shub-bg-app); }
-            .slc-cp__section--soft { background: var(--shub-bg-soft); }
-            .slc-cp__h2 { font-size: clamp(24px, 3vw, 32px); font-weight: 700; color: var(--shub-text-title); letter-spacing: -0.02em; margin-bottom: 28px; line-height: 1.15; }
-            .slc-cp__lead { color: var(--shub-text-muted); font-size: 16px; margin-top: -18px; margin-bottom: 24px; }
-
-            /* ── HERO ── */
-            .slc-cp__hero { background: var(--shub-hero-grad); padding: clamp(48px, 7vw, 88px) 0; }
-            .slc-cp__hero-grid { display: grid; grid-template-columns: 1.2fr 0.9fr; gap: 48px; align-items: center; }
-            .slc-cp__badge { display: inline-block; background: var(--shub-accent-soft); color: var(--shub-accent); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 6px 14px; border-radius: var(--shub-radius-pill); margin-bottom: 18px; }
-            .slc-cp__hero-title { font-size: clamp(30px, 5vw, 48px); font-weight: 800; color: var(--shub-text-title); line-height: 1.08; letter-spacing: -0.025em; margin-bottom: 16px; }
-            .slc-cp__hero-subtitle { font-size: clamp(16px, 2vw, 20px); color: var(--shub-text-body); max-width: 540px; margin-bottom: 22px; }
-            .slc-cp__hero-proof { display: flex; align-items: center; gap: 8px; color: var(--shub-text-title); font-size: 15px; margin-bottom: 24px; }
-            .slc-cp__stars { display: inline-flex; color: #FAB005; }
-            .slc-cp__proof-sep { color: var(--shub-text-muted); }
-            .slc-cp__hero-meta { display: flex; flex-wrap: wrap; gap: 10px; }
-            .slc-cp__meta-chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.7); color: var(--shub-text-body); font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: var(--shub-radius-pill); }
-            .slc-cp__meta-icon { display: inline-flex; color: var(--shub-accent); }
-
-            .slc-cp__hero-card { background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius-lg); overflow: hidden; box-shadow: 0 12px 40px -16px rgba(15,23,42,0.18); }
-            .slc-cp__video { position: relative; padding-bottom: 56.25%; height: 0; background: #000; }
-            .slc-cp__video iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-            .slc-cp__price-block { padding: 24px; }
-            .slc-cp__price-row { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
-            .slc-cp__price-old { color: var(--shub-text-muted); text-decoration: line-through; font-size: 18px; }
-            .slc-cp__price-off { background: #FFE3E3; color: #C92A2A; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: var(--shub-radius-pill); }
-            .slc-cp__price-now { font-size: 38px; font-weight: 800; color: var(--shub-text-title); line-height: 1; letter-spacing: -0.02em; }
-            .slc-cp__price-inst { color: var(--shub-text-muted); font-size: 14px; margin-top: 6px; margin-bottom: 18px; }
-            .slc-cp__cta { display: block; text-align: center; background: var(--shub-cta-grad); color: #fff; font-weight: 700; font-size: 16px; padding: 15px 24px; border-radius: 12px; box-shadow: 0 8px 22px -8px rgba(121,80,242,0.55); transition: transform 150ms ease, box-shadow 150ms ease; }
-            .slc-cp__cta:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -8px rgba(121,80,242,0.6); }
-            .slc-cp__cta--lg { font-size: 17px; padding: 17px 40px; display: inline-block; }
-            .slc-cp__urgency { display: flex; align-items: center; gap: 8px; color: #E8590C; font-size: 13px; font-weight: 600; margin-top: 14px; }
-            .slc-cp__urgency--center { justify-content: center; margin-top: 16px; }
-            .slc-cp__urgency-dot { width: 8px; height: 8px; border-radius: 50%; background: #FD7E14; box-shadow: 0 0 0 0 rgba(253,126,20,0.5); animation: slc-cp-pulse 1.8s infinite; }
-            @keyframes slc-cp-pulse { 0% { box-shadow: 0 0 0 0 rgba(253,126,20,0.5); } 70% { box-shadow: 0 0 0 8px rgba(253,126,20,0); } 100% { box-shadow: 0 0 0 0 rgba(253,126,20,0); } }
-            .slc-cp__guarantee-mini { display: flex; align-items: center; gap: 8px; color: var(--shub-text-muted); font-size: 13px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--shub-border); }
-            .slc-cp__guarantee-mini svg { color: #12B886; flex-shrink: 0; }
-
-            /* ── BARRA SOCIAL PROOF ── */
-            .slc-cp__bar { background: var(--shub-text-title); padding: 28px 0; }
-            .slc-cp__bar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; }
-            .slc-cp__bar-num { font-size: 28px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -0.01em; }
-            .slc-cp__bar-label { font-size: 13px; color: #94A3B8; margin-top: 6px; }
-
-            /* ── CHECKS / OUTCOMES ── */
-            .slc-cp__checks { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-            .slc-cp__check { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; color: var(--shub-text-body); }
-            .slc-cp__check-icon { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 8px; background: rgba(18,184,134,0.12); color: #12B886; flex-shrink: 0; margin-top: 1px; }
-
-            /* ── MINICARDS (audiencia / incluye) ── */
-            .slc-cp__cards3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-            .slc-cp__minicard { display: flex; align-items: flex-start; gap: 14px; background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius); padding: 20px; font-size: 15px; color: var(--shub-text-body); }
-            .slc-cp__minicard-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; background: var(--shub-accent-soft); color: var(--shub-accent); flex-shrink: 0; }
-
-            /* ── OUTLINE / TEMARIO ── */
-            .slc-cp__outline-meta { display: flex; align-items: center; gap: 8px; color: var(--shub-text-muted); font-size: 14px; margin-top: -16px; margin-bottom: 22px; }
-            .slc-cp__dot { opacity: 0.5; }
-            .slc-cp__modules { display: flex; flex-direction: column; gap: 10px; }
-            .slc-cp__module { background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius); overflow: hidden; transition: border-color 150ms; }
-            .slc-cp__module[open] { border-color: var(--shub-border-subtle); }
-            .slc-cp__summary { list-style: none; display: flex; align-items: center; gap: 14px; padding: 16px 20px; cursor: pointer; user-select: none; }
-            .slc-cp__summary::-webkit-details-marker { display: none; }
-            .slc-cp__chevron { width: 10px; height: 10px; border-right: 2px solid var(--shub-text-muted); border-bottom: 2px solid var(--shub-text-muted); transform: rotate(-45deg); transition: transform 200ms; flex-shrink: 0; margin-top: -2px; }
-            details[open] > .slc-cp__summary .slc-cp__chevron,
-            details[open] > .slc-cp__faq-q .slc-cp__chevron { transform: rotate(45deg); margin-top: 0; margin-bottom: -2px; }
-            .slc-cp__module-title { flex: 1; font-size: 16px; font-weight: 600; color: var(--shub-text-title); }
-            .slc-cp__module-badge { background: #F1F3F5; color: #495057; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px; white-space: nowrap; }
-            .slc-cp__module-badge--time { background: var(--shub-accent-soft); color: var(--shub-accent); }
-            .slc-cp__lessons { border-top: 1px solid #F1F3F5; padding-bottom: 8px; }
-            .slc-cp__lesson { display: flex; align-items: center; gap: 12px; padding: 12px 20px 12px 46px; font-size: 15px; color: var(--shub-text-body); }
-            .slc-cp__lesson + .slc-cp__lesson { border-top: 1px solid #F8F9FA; }
-            .slc-cp__lesson-icon { display: inline-flex; color: var(--shub-text-muted); flex-shrink: 0; }
-            .slc-cp__lesson-title { flex: 1; }
-            .slc-cp__lesson-dur { font-size: 13px; color: var(--shub-text-muted); }
-
-            /* ── INSTRUCTOR ── */
-            .slc-cp__instructor { display: flex; gap: 24px; align-items: flex-start; background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius-lg); padding: 28px; }
-            .slc-cp__instructor-photo { flex-shrink: 0; width: 110px; height: 110px; border-radius: 50%; overflow: hidden; background: var(--shub-cta-grad); display: flex; align-items: center; justify-content: center; }
-            .slc-cp__instructor-photo img { width: 100%; height: 100%; object-fit: cover; }
-            .slc-cp__instructor-initial { font-size: 42px; font-weight: 700; color: #fff; }
-            .slc-cp__instructor-name { font-size: 20px; font-weight: 700; color: var(--shub-text-title); }
-            .slc-cp__instructor-role { font-size: 14px; color: var(--shub-accent); font-weight: 600; margin: 4px 0 12px; }
-            .slc-cp__instructor-bio { font-size: 15px; color: var(--shub-text-body); }
-
-            /* ── PROSE ── */
-            .slc-cp__prose { font-size: 16px; color: var(--shub-text-body); }
-            .slc-cp__prose p { margin-bottom: 16px; }
-
-            /* ── BONOS ── */
-            .slc-cp__bonuses { display: flex; flex-direction: column; gap: 14px; }
-            .slc-cp__bonus { display: flex; align-items: center; gap: 18px; background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius); padding: 20px 22px; }
-            .slc-cp__bonus-icon { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; border-radius: 12px; background: rgba(250,176,5,0.14); color: #F08C00; flex-shrink: 0; }
-            .slc-cp__bonus-body { flex: 1; }
-            .slc-cp__bonus-title { font-size: 16px; font-weight: 700; color: var(--shub-text-title); }
-            .slc-cp__bonus-desc { font-size: 14px; color: var(--shub-text-muted); margin-top: 2px; }
-            .slc-cp__bonus-value { background: rgba(18,184,134,0.12); color: #0CA678; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: var(--shub-radius-pill); white-space: nowrap; }
-
-            /* ── TESTIMONIOS ── */
-            .slc-cp__testimonial { display: flex; flex-direction: column; gap: 14px; background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius); padding: 24px; }
-            .slc-cp__testimonial-text { font-size: 15px; color: var(--shub-text-body); flex: 1; }
-            .slc-cp__testimonial-author { display: flex; align-items: center; gap: 12px; }
-            .slc-cp__avatar { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0; }
-            .slc-cp__testimonial-name { font-weight: 600; color: var(--shub-text-title); font-size: 15px; }
-
-            /* ── GARANTÍA ── */
-            .slc-cp__guarantee { display: flex; align-items: center; gap: 24px; background: linear-gradient(135deg, rgba(18,184,134,0.06), rgba(32,201,151,0.10)); border: 1px solid rgba(18,184,134,0.25); border-radius: var(--shub-radius-lg); padding: 28px 32px; }
-            .slc-cp__guarantee-badge { display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: #fff; color: #12B886; flex-shrink: 0; box-shadow: 0 4px 14px -4px rgba(18,184,134,0.4); }
-            .slc-cp__guarantee-title { font-size: 20px; font-weight: 700; color: var(--shub-text-title); margin-bottom: 6px; }
-            .slc-cp__guarantee-text { font-size: 15px; color: var(--shub-text-body); }
-
-            /* ── FAQ ── */
-            .slc-cp__faq { display: flex; flex-direction: column; gap: 10px; }
-            .slc-cp__faq-item { background: #fff; border: 1px solid var(--shub-border); border-radius: var(--shub-radius); overflow: hidden; }
-            .slc-cp__faq-q { list-style: none; display: flex; align-items: center; gap: 14px; padding: 18px 20px; cursor: pointer; user-select: none; font-size: 16px; font-weight: 600; color: var(--shub-text-title); }
-            .slc-cp__faq-q::-webkit-details-marker { display: none; }
-            .slc-cp__faq-a { padding: 0 20px 18px 46px; font-size: 15px; color: var(--shub-text-body); }
-
-            /* ── REQUISITOS ── */
-            .slc-cp__reqs { display: flex; flex-direction: column; gap: 12px; }
-            .slc-cp__reqs li { display: flex; align-items: flex-start; gap: 12px; font-size: 16px; color: var(--shub-text-body); }
-            .slc-cp__req-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--shub-accent); flex-shrink: 0; margin-top: 9px; }
-
-            /* ── CTA FINAL ── */
-            .slc-cp__final { background: var(--shub-cta-grad); padding: clamp(56px, 8vw, 96px) 0; text-align: center; }
-            .slc-cp__final-inner { color: #fff; }
-            .slc-cp__final-title { font-size: clamp(28px, 4vw, 40px); font-weight: 800; color: #fff; letter-spacing: -0.02em; margin-bottom: 14px; }
-            .slc-cp__final-sub { font-size: 18px; color: rgba(255,255,255,0.85); max-width: 560px; margin: 0 auto 28px; }
-            .slc-cp__final-price { display: flex; align-items: baseline; justify-content: center; gap: 14px; margin-bottom: 24px; }
-            .slc-cp__price-old--lg { font-size: 22px; color: rgba(255,255,255,0.6); }
-            .slc-cp__final-now { font-size: 44px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -0.02em; }
-            .slc-cp__final .slc-cp__cta--lg { background: #fff; color: var(--shub-accent-dark); box-shadow: 0 10px 30px -8px rgba(0,0,0,0.3); }
-            .slc-cp__final .slc-cp__cta--lg:hover { box-shadow: 0 14px 36px -8px rgba(0,0,0,0.35); }
-            .slc-cp__final .slc-cp__urgency { color: #FFE066; }
-            .slc-cp__final .slc-cp__urgency-dot { background: #FFE066; }
-            .slc-cp__final-trust { font-size: 14px; color: rgba(255,255,255,0.75); margin-top: 18px; }
-
-            /* ── RESPONSIVE ── */
-            @media (max-width: 900px) {
-                .slc-cp__hero-grid { grid-template-columns: 1fr; gap: 32px; }
-                .slc-cp__cards3 { grid-template-columns: 1fr 1fr; }
-                .slc-cp__bar-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 16px; }
-            }
-            @media (max-width: 640px) {
-                .slc-cp__wrap { padding: 0 18px; }
-                .slc-cp__section { padding: 44px 0; }
-                .slc-cp__checks { grid-template-columns: 1fr; }
-                .slc-cp__cards3 { grid-template-columns: 1fr; }
-                .slc-cp__instructor { flex-direction: column; align-items: center; text-align: center; }
-                .slc-cp__bonus { flex-wrap: wrap; }
-                .slc-cp__bonus-value { margin-left: 66px; }
-                .slc-cp__guarantee { flex-direction: column; text-align: center; }
-                .slc-cp__summary, .slc-cp__faq-q { padding: 14px 16px; gap: 10px; }
-                .slc-cp__lesson { padding: 12px 16px 12px 38px; }
-                .slc-cp__faq-a { padding: 0 16px 16px 40px; }
-            }
-        </style>
-        <?php
-    }
 }
