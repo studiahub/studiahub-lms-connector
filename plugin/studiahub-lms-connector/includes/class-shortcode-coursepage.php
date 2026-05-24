@@ -327,7 +327,12 @@ final class Shortcode_CoursePage {
                     <div class="slc-cp__instructor">
                         <div class="slc-cp__instructor-photo">
                             <?php if ($instructor_photo !== ''): ?>
-                                <img src="<?php echo esc_url($instructor_photo); ?>" alt="<?php echo esc_attr($instructor); ?>" loading="lazy">
+                                <img src="<?php echo esc_url($instructor_photo); ?>"
+                                     alt="<?php echo esc_attr($instructor); ?>"
+                                     width="110"
+                                     height="110"
+                                     loading="lazy"
+                                     decoding="async">
                             <?php else: ?>
                                 <span class="slc-cp__instructor-initial"><?php echo esc_html(mb_substr($instructor, 0, 1)); ?></span>
                             <?php endif; ?>
