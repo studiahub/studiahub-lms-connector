@@ -136,6 +136,7 @@ final class Shortcode_CoursePage {
         wp_enqueue_style(self::STYLE_HANDLE);
 
         ob_start();
+        echo self::render_json_ld($payload, $product_id);
         ?>
         <div class="slc-coursepage">
 
@@ -663,6 +664,60 @@ final class Shortcode_CoursePage {
             'shield'      => '<svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.5 13.5 4v4c0 3.5-2.5 5.5-5.5 6.5C5 13.5 2.5 11.5 2.5 8V4z"/><polyline points="5.8,8 7.3,9.5 10.2,6.2"/></svg>',
         ];
         return $icons[$name] ?? '';
+    }
+
+    /**
+     * Genera structured data Schema.org/Course para SEO (Google Rich Results).
+     */
+    private static function render_json_ld(array $payload, int $product_id): string {
+        $url         = get_permalink($product_id) ?: '';
+        $tenant_name = get_bloginfo('name');
+
+        $data = [
+            '@context'    => 'https://schema.org',
+            '@type'       => 'Course',
+            'name'        => (string) ($payload['title'] ?? get_the_title($product_id)),
+            'description' => (string) ($payload['shortDescription'] ?? ''),
+            'provider'    => [
+                '@type' => 'Organization',
+                'name'  => $tenant_name,
+                'url'   => home_url('/'),
+            ],
+        ];
+
+        if (!empty($payload['thumbnailUrl'])) {
+            $data['image'] = (string) $payload['thumbnailUrl'];
+        }
+        $instructor = is_array($payload['instructor'] ?? null) ? $payload['instructor'] : [];
+        if (!empty($instructor['name'])) {
+            $data['instructor'] = [
+                '@type' => 'Person',
+                'name'  => (string) $instructor['name'],
+            ];
+            if (!empty($instructor['title'])) {
+                $data['instructor']['jobTitle'] = (string) $instructor['title'];
+            }
+        }
+        if (!empty($payload['language'])) {
+            $data['inLanguage'] = (string) $payload['language'];
+        }
+        $total_min = (int) ($payload['totalDurationMin'] ?? 0);
+        if ($total_min > 0) {
+            // ISO 8601 duration, ej PT15H30M.
+            $h   = intdiv($total_min, 60);
+            $m   = $total_min % 60;
+            $iso = 'PT' . ($h > 0 ? $h . 'H' : '') . ($m > 0 ? $m . 'M' : '');
+            if ($iso !== 'PT') {
+                $data['timeRequired'] = $iso;
+            }
+        }
+        if ($url !== '') {
+            $data['url'] = $url;
+        }
+
+        return '<script type="application/ld+json">'
+             . wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+             . '</script>';
     }
 
 }
