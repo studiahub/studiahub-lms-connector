@@ -15,9 +15,9 @@ if (!defined('ABSPATH')) {
  * el postmeta `_lms_course_id` para mapear, el precio nativo (`_price`) y el
  * checkout.
  *
- * El payload incluye, además del contenido del curso (outline, instructor,
+ * El payload incluye, además del contenido del curso (outline, instructors[],
  * materiales, etc), la data "de marketing" gestionada desde el admin del LMS:
- *   - compareAtPrice / discountPercent / installmentsLabel / offerDeadlineAt
+ *   - compareAtPrice (texto libre multimoneda) / installmentsLabel / offerDeadlineAt
  *   - bonuses[]
  *   - faq[] (ya mergeado: course.faq || tenant.defaultFaq || [])
  *   - socialProof (studentsCount real + label override + stats custom)
@@ -103,11 +103,21 @@ final class Shortcode_CoursePage {
         $cta_label   = trim((string) ($payload['ctaLabel'] ?? ''));
         $trailer_url = trim((string) ($payload['trailerUrl'] ?? ''));
 
-        $instructor_data  = is_array($payload['instructor'] ?? null) ? $payload['instructor'] : [];
-        $instructor       = trim((string) ($instructor_data['name'] ?? ''));
-        $instructor_title = trim((string) ($instructor_data['title'] ?? ''));
-        $instructor_bio   = trim((string) ($instructor_data['bio'] ?? ''));
-        $instructor_photo = trim((string) ($instructor_data['photoUrl'] ?? ''));
+        // Instructores ahora vienen como array (uno o más). Cada item:
+        // { id, name, title, bio, photoUrl }.
+        $instructors_raw = is_array($payload['instructors'] ?? null) ? $payload['instructors'] : [];
+        $instructors = [];
+        foreach ($instructors_raw as $i) {
+            if (!is_array($i)) continue;
+            $name = trim((string) ($i['name'] ?? ''));
+            if ($name === '') continue;
+            $instructors[] = [
+                'name'  => $name,
+                'title' => trim((string) ($i['title'] ?? '')),
+                'bio'   => trim((string) ($i['bio'] ?? '')),
+                'photo' => trim((string) ($i['photoUrl'] ?? '')),
+            ];
+        }
 
         // Los arrays JSON ya vienen decodificados en el payload.
         $outcomes  = is_array($payload['learningOutcomes'] ?? null) ? $payload['learningOutcomes'] : [];
@@ -341,34 +351,40 @@ final class Shortcode_CoursePage {
             </section>
             <?php endif; ?>
 
-            <?php /* ── INSTRUCTOR ──────────────────────────────────────── */ ?>
-            <?php if ($instructor !== ''): ?>
+            <?php /* ── INSTRUCTORES ────────────────────────────────────── */ ?>
+            <?php if (!empty($instructors)): ?>
             <section class="slc-cp__section slc-cp__section--soft">
                 <div class="slc-cp__wrap slc-cp__wrap--narrow">
-                    <h2 class="slc-cp__h2"><?php esc_html_e('Tu instructor', 'studiahub-lms-connector'); ?></h2>
+                    <h2 class="slc-cp__h2"><?php
+                        echo esc_html(count($instructors) === 1
+                            ? __('Tu instructor', 'studiahub-lms-connector')
+                            : __('Tus instructores', 'studiahub-lms-connector'));
+                    ?></h2>
+                    <?php foreach ($instructors as $ins): ?>
                     <div class="slc-cp__instructor">
                         <div class="slc-cp__instructor-photo">
-                            <?php if ($instructor_photo !== ''): ?>
-                                <img src="<?php echo esc_url($instructor_photo); ?>"
-                                     alt="<?php echo esc_attr($instructor); ?>"
+                            <?php if ($ins['photo'] !== ''): ?>
+                                <img src="<?php echo esc_url($ins['photo']); ?>"
+                                     alt="<?php echo esc_attr($ins['name']); ?>"
                                      width="110"
                                      height="110"
                                      loading="lazy"
                                      decoding="async">
                             <?php else: ?>
-                                <span class="slc-cp__instructor-initial"><?php echo esc_html(mb_substr($instructor, 0, 1)); ?></span>
+                                <span class="slc-cp__instructor-initial"><?php echo esc_html(mb_substr($ins['name'], 0, 1)); ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="slc-cp__instructor-body">
-                            <div class="slc-cp__instructor-name"><?php echo esc_html($instructor); ?></div>
-                            <?php if ($instructor_title !== ''): ?>
-                                <div class="slc-cp__instructor-role"><?php echo esc_html($instructor_title); ?></div>
+                            <div class="slc-cp__instructor-name"><?php echo esc_html($ins['name']); ?></div>
+                            <?php if ($ins['title'] !== ''): ?>
+                                <div class="slc-cp__instructor-role"><?php echo esc_html($ins['title']); ?></div>
                             <?php endif; ?>
-                            <?php if ($instructor_bio !== ''): ?>
-                                <div class="slc-cp__instructor-bio"><?php echo nl2br(esc_html($instructor_bio)); ?></div>
+                            <?php if ($ins['bio'] !== ''): ?>
+                                <div class="slc-cp__instructor-bio"><?php echo nl2br(esc_html($ins['bio'])); ?></div>
                             <?php endif; ?>
                         </div>
                     </div>
+                    <?php endforeach; ?>
                 </div>
             </section>
             <?php endif; ?>
@@ -807,25 +823,16 @@ final class Shortcode_CoursePage {
      */
     private static function data_offer_pricing(array $payload, string $real_price): array {
         $price        = isset($payload['price']) && is_numeric($payload['price']) ? (float) $payload['price'] : null;
-        $compare_at   = isset($payload['compareAtPrice']) && is_numeric($payload['compareAtPrice'])
-            ? (float) $payload['compareAtPrice']
-            : null;
-        $discount_pct = isset($payload['discountPercent']) && is_numeric($payload['discountPercent'])
-            ? (int) $payload['discountPercent']
-            : null;
+        // compareAtPrice ahora es texto libre multimoneda (ej "USD 199 / ARS 250.000").
+        // Se renderiza tal cual, sin formato wc_price ni cálculo de descuento.
+        $original     = trim((string) ($payload['compareAtPrice'] ?? ''));
         $installments = trim((string) ($payload['installmentsLabel'] ?? ''));
         $deadline_iso = trim((string) ($payload['offerDeadlineAt'] ?? ''));
 
-        // Precio tachado solo si es > current y current existe.
-        $original = '';
-        if ($compare_at !== null && $compare_at > 0 && ($price === null || $compare_at > $price)) {
-            $original = self::format_price($compare_at);
-        }
-
+        // Discount auto-calc removido: con texto libre multimoneda no es
+        // confiable comparar. Si el admin quiere mostrar "-30%", lo carga
+        // manualmente en highlightBadge.
         $discount_label = '';
-        if ($discount_pct !== null && $discount_pct > 0 && $original !== '') {
-            $discount_label = '-' . $discount_pct . '%';
-        }
 
         // Deadline: el LMS ya manda null si está vencida. Formateamos como
         // tiempo relativo en castellano: "Termina en 3 días".
@@ -965,15 +972,19 @@ final class Shortcode_CoursePage {
         if (!empty($payload['thumbnailUrl'])) {
             $data['image'] = (string) $payload['thumbnailUrl'];
         }
-        $instructor = is_array($payload['instructor'] ?? null) ? $payload['instructor'] : [];
-        if (!empty($instructor['name'])) {
-            $data['instructor'] = [
-                '@type' => 'Person',
-                'name'  => (string) $instructor['name'],
-            ];
-            if (!empty($instructor['title'])) {
-                $data['instructor']['jobTitle'] = (string) $instructor['title'];
-            }
+        // Multiple instructors → array of Person entries para schema.org Course.
+        $instructors_raw = is_array($payload['instructors'] ?? null) ? $payload['instructors'] : [];
+        $persons = [];
+        foreach ($instructors_raw as $i) {
+            if (!is_array($i)) continue;
+            $name = trim((string) ($i['name'] ?? ''));
+            if ($name === '') continue;
+            $person = ['@type' => 'Person', 'name' => $name];
+            if (!empty($i['title'])) $person['jobTitle'] = (string) $i['title'];
+            $persons[] = $person;
+        }
+        if (!empty($persons)) {
+            $data['instructor'] = count($persons) === 1 ? $persons[0] : $persons;
         }
         if (!empty($payload['language'])) {
             $data['inLanguage'] = (string) $payload['language'];
