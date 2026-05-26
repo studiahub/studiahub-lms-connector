@@ -152,19 +152,37 @@ final class Shortcode_CoursePage {
         $trailer = $trailer_url !== '' ? self::parse_trailer($trailer_url) : null;
         $thumbnail_url = trim((string) ($payload['thumbnailUrl'] ?? ''));
 
+        // Categoría (no se mostraba antes — la sumamos al hero como pre-title).
+        $category = trim((string) ($payload['category'] ?? ''));
+
+        // ── BRANDING DEL TENANT ───────────────────────────────────────────
+        // El payload trae branding con {primaryColor, secondaryColor, fontFamily, logoUrl}.
+        // Aplicamos colores y tipografía via CSS custom properties INLINE en el wrapper —
+        // así una sola hoja CSS sirve a N tenants con su skin propio.
+        $branding = is_array($payload['branding'] ?? null) ? $payload['branding'] : [];
+        $brand_style = self::build_brand_style($branding);
+
         wp_enqueue_style(self::STYLE_HANDLE);
+        self::maybe_enqueue_google_font($branding['fontFamily'] ?? 'default');
 
         ob_start();
         echo self::render_json_ld($payload, $product_id);
         ?>
-        <article class="slc-coursepage" itemscope itemtype="https://schema.org/Course">
+        <article class="slc-coursepage" itemscope itemtype="https://schema.org/Course"<?php if ($brand_style !== '') echo ' style="' . esc_attr($brand_style) . '"'; ?>>
 
             <?php /* ── HERO ────────────────────────────────────────────── */ ?>
             <section class="slc-cp__hero">
                 <div class="slc-cp__wrap slc-cp__hero-grid">
                     <div class="slc-cp__hero-main">
-                        <?php if ($badge !== ''): ?>
-                            <span class="slc-cp__badge"><?php echo esc_html($badge); ?></span>
+                        <?php if ($badge !== '' || $category !== ''): ?>
+                            <div class="slc-cp__hero-badges">
+                                <?php if ($badge !== ''): ?>
+                                    <span class="slc-cp__badge"><?php echo esc_html($badge); ?></span>
+                                <?php endif; ?>
+                                <?php if ($category !== ''): ?>
+                                    <span class="slc-cp__badge slc-cp__badge--soft"><?php echo esc_html($category); ?></span>
+                                <?php endif; ?>
+                            </div>
                         <?php endif; ?>
                         <h1 class="slc-cp__hero-title"><?php echo esc_html($title); ?></h1>
                         <?php if ($subtitle !== ''): ?>
@@ -955,7 +973,13 @@ final class Shortcode_CoursePage {
      */
     private static function render_json_ld(array $payload, int $product_id): string {
         $url         = get_permalink($product_id) ?: '';
-        $tenant_name = get_bloginfo('name');
+        // Preferimos el nombre de la academia que viene del LMS (tenantName) sobre
+        // el de WP — los clientes a veces tienen el sitio con nombre comercial
+        // distinto a la academia.
+        $tenant_name = trim((string) ($payload['tenantName'] ?? ''));
+        if ($tenant_name === '') {
+            $tenant_name = (string) get_bloginfo('name');
+        }
 
         $data = [
             '@context'    => 'https://schema.org',
@@ -1020,6 +1044,118 @@ final class Shortcode_CoursePage {
         return '<script type="application/ld+json">'
              . wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
              . '</script>';
+    }
+
+    // ── BRANDING DINÁMICO ─────────────────────────────────────────────────
+
+    /**
+     * Construye el `style="--var: ..."` inline a aplicar al wrapper del
+     * shortcode. Lee branding.primaryColor / secondaryColor / fontFamily
+     * y deriva el resto (tonos suaves, dark, gradientes). Los hex inválidos
+     * caen al default — nunca rompemos el render.
+     */
+    public static function build_brand_style(array $branding): string {
+        $primary   = self::sanitize_hex($branding['primaryColor'] ?? '', '#7950F2');
+        $secondary = self::sanitize_hex($branding['secondaryColor'] ?? '', $primary);
+        $font      = trim((string) ($branding['fontFamily'] ?? 'default'));
+
+        $primary_rgb   = self::hex_to_rgb_str($primary);
+        $secondary_rgb = self::hex_to_rgb_str($secondary);
+        $primary_dark  = self::darken_hex($primary, 0.15);
+
+        $vars = [
+            '--shub-accent: '       . $primary,
+            '--shub-accent-dark: '  . $primary_dark,
+            '--shub-accent-soft: rgba(' . $primary_rgb . ', 0.10)',
+            '--shub-accent-rgb: '   . $primary_rgb,
+            '--shub-secondary: '    . $secondary,
+            '--shub-secondary-rgb: '. $secondary_rgb,
+            '--shub-cta-grad: linear-gradient(135deg, ' . $primary . ' 0%, ' . $primary_dark . ' 100%)',
+            '--shub-hero-grad: linear-gradient(135deg, rgba(' . $primary_rgb . ',0.06) 0%, rgba(' . $secondary_rgb . ',0.10) 60%, rgba(' . $primary_rgb . ',0.04) 100%)',
+            '--shub-avatar-grad: linear-gradient(135deg, ' . $secondary . ', ' . $primary . ')',
+        ];
+
+        if ($font !== '' && $font !== 'default') {
+            // Quote families con espacios para que CSS las parsee bien.
+            $needs_quotes = strpos($font, ' ') !== false && strpos($font, '"') === false && strpos($font, "'") === false;
+            $font_value = $needs_quotes ? '"' . $font . '"' : $font;
+            $vars[] = '--shub-font: ' . $font_value . ', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+        }
+
+        return implode('; ', $vars);
+    }
+
+    /**
+     * Si el tenant configuró una Google Font no genérica, la inyectamos en
+     * el `<head>`. Solo weights 400/600/700 — la landing no necesita más.
+     * Solo corre una vez por request aunque haya múltiples shortcodes en
+     * la página.
+     */
+    private static function maybe_enqueue_google_font(string $font): void {
+        static $loaded = [];
+        $font = trim($font);
+        if ($font === '' || $font === 'default') return;
+        // System / safe fonts → no Google Fonts request.
+        $system_fonts = ['system-ui', 'Inter', 'Roboto', 'Arial', 'Helvetica', 'Georgia', 'Times New Roman', 'Verdana'];
+        if (in_array($font, $system_fonts, true) && $font !== 'Inter' && $font !== 'Roboto') return;
+        if (isset($loaded[$font])) return;
+        $loaded[$font] = true;
+
+        $family = rawurlencode($font) . ':wght@400;600;700';
+        $handle = 'slc-coursepage-font-' . sanitize_key($font);
+        wp_enqueue_style(
+            $handle,
+            'https://fonts.googleapis.com/css2?family=' . str_replace('%20', '+', $family) . '&display=swap',
+            [],
+            null
+        );
+    }
+
+    private static function sanitize_hex(string $hex, string $fallback): string {
+        $hex = trim($hex);
+        if ($hex === '') return $fallback;
+        if ($hex[0] !== '#') $hex = '#' . $hex;
+        if (preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) return strtoupper($hex);
+        if (preg_match('/^#[0-9A-Fa-f]{3}$/', $hex)) {
+            // Expand #ABC → #AABBCC
+            $r = $hex[1]; $g = $hex[2]; $b = $hex[3];
+            return strtoupper('#' . $r . $r . $g . $g . $b . $b);
+        }
+        return $fallback;
+    }
+
+    private static function hex_to_rgb_str(string $hex): string {
+        $hex = ltrim($hex, '#');
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+        return $r . ', ' . $g . ', ' . $b;
+    }
+
+    // ── PUBLIC WRAPPERS (consumidos por Shortcode_CoursePitch) ────────────
+    //
+    // No queremos duplicar lógica de pricing / social proof / iconos entre
+    // los dos shortcodes — la data se prepara igual, lo único que cambia
+    // es el HTML/CSS. Exponemos thin wrappers que llaman a los métodos
+    // privados existentes.
+
+    public static function data_social_proof_public(array $payload): array { return self::data_social_proof($payload); }
+    public static function data_offer_pricing_public(array $payload, string $real_price): array { return self::data_offer_pricing($payload, $real_price); }
+    public static function data_bonuses_public(array $payload): array { return self::data_bonuses($payload); }
+    public static function data_guarantee_public(array $payload): ?array { return self::data_guarantee($payload); }
+    public static function data_faq_public(array $payload): array { return self::data_faq($payload); }
+    public static function parse_trailer_public(string $url): ?array { return self::parse_trailer($url); }
+    public static function format_duration_public(int $minutes): string { return self::format_duration($minutes); }
+    public static function stars_public(float $rating): string { return self::stars($rating); }
+    public static function lesson_icon_public(?string $type): string { return self::lesson_icon($type); }
+    public static function maybe_enqueue_google_font_public(string $font): void { self::maybe_enqueue_google_font($font); }
+
+    private static function darken_hex(string $hex, float $amount): string {
+        $hex = ltrim($hex, '#');
+        $r = max(0, (int) (hexdec(substr($hex, 0, 2)) * (1 - $amount)));
+        $g = max(0, (int) (hexdec(substr($hex, 2, 2)) * (1 - $amount)));
+        $b = max(0, (int) (hexdec(substr($hex, 4, 2)) * (1 - $amount)));
+        return sprintf('#%02X%02X%02X', $r, $g, $b);
     }
 
 }
