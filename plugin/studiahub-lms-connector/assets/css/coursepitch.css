@@ -706,3 +706,90 @@
 .elementor-widget .slc-coursepitch p { margin: 0; }
 .elementor-widget .slc-coursepitch .slc-cpitch__prose p { margin-bottom: 18px; }
 .elementor-widget .slc-coursepitch .slc-cpitch__prose p:last-child { margin-bottom: 0; }
+
+/* ─────────────────────────────────────────────────────────────────────────
+ * HERO GIGANTE V2 ORIGINAL (modifier --big)
+ *
+ * Preservado para que diseño itere encima. Se renderiza DEBAJO del hero
+ * asymmetric — los dos coexisten en la landing. Todas las clases tienen
+ * prefijo `herobig` para no colisionar con el asymmetric.
+ * ───────────────────────────────────────────────────────────────────────── */
+.slc-cpitch__hero--big .slc-cpitch__herobig-inner {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+.slc-cpitch__hero--big .slc-cpitch__pretitle {
+    /* Centramos también las pills del pretitle solo dentro del --big */
+    justify-content: center;
+}
+
+.slc-cpitch__herobig-title {
+    font-size: clamp(36px, 6.4vw, 64px);
+    font-weight: 900;
+    color: var(--shub-text-title);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    margin: 0 auto 22px;
+    max-width: 20ch;
+}
+.slc-cpitch__herobig-sub {
+    font-size: clamp(18px, 2vw, 22px);
+    color: var(--shub-text-body);
+    max-width: 64ch;
+    margin: 0 auto 28px;
+    line-height: 1.5;
+}
+.slc-cpitch__herobig-proof {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--shub-text-title);
+    font-size: 15px;
+    margin-bottom: 36px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--shub-border);
+    border-radius: var(--shub-radius-pill);
+}
+
+.slc-cpitch__herobig-trailer {
+    max-width: 880px;
+    margin: 0 auto 44px;
+    border-radius: var(--shub-radius-lg);
+    overflow: hidden;
+    box-shadow: 0 30px 80px -28px rgba(15,23,42,0.4), 0 0 0 1px rgba(var(--shub-accent-rgb), 0.08);
+}
+.slc-cpitch__herobig-thumb {
+    width: 100%;
+    display: block;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+}
+
+.slc-cpitch__herobig-cta { margin-bottom: 36px; }
+.slc-cpitch__hero--big .slc-cpitch__hero-price {
+    /* Centramos el bloque de precio dentro del --big */
+    justify-content: center;
+}
+
+.slc-cpitch__herobig-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Defensive layer contra Elementor (mismo patrón que el resto del archivo). */
+.elementor-widget .slc-coursepitch .slc-cpitch__hero--big .slc-cpitch__herobig-inner { text-align: center; }
+.elementor-widget .slc-coursepitch .slc-cpitch__hero--big .slc-cpitch__pretitle { justify-content: center; }
+.elementor-widget .slc-coursepitch .slc-cpitch__hero--big .slc-cpitch__hero-price { justify-content: center; }
+.elementor-widget .slc-coursepitch .slc-cpitch__herobig-title { margin: 0 auto 22px; }
+.elementor-widget .slc-coursepitch .slc-cpitch__herobig-sub { margin: 0 auto 28px; }
+.elementor-widget .slc-coursepitch .slc-cpitch__herobig-proof { margin: 0 auto 36px; }
+.elementor-widget .slc-coursepitch .slc-cpitch__herobig-trailer { margin: 0 auto 44px; }
+.elementor-widget .slc-coursepitch .slc-cpitch__herobig-meta { justify-content: center; margin: 0; padding: 0; }

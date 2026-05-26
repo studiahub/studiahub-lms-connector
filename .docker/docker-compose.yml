@@ -7,6 +7,10 @@ services:
       MYSQL_USER: wp
       MYSQL_PASSWORD: wp
       MYSQL_ROOT_PASSWORD: rootpw
+    ports:
+      # 3307 en el host para no chocar con un MySQL local en 3306.
+      # Útil para conectarse desde TablePlus / Sequel Ace / etc.
+      - "3307:3306"
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
