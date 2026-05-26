@@ -30,6 +30,15 @@ final class Landing_Fetch {
     private const TIMEOUT_S  = 5;
 
     public static function get_payload(string $course_id): ?array {
+        // 0. Filter de override — usado por el mu-plugin de dev para inyectar
+        // un payload mockeado y permitir trabajar el diseño sin LMS corriendo.
+        // Si el filter devuelve un array, se devuelve directamente saltando
+        // cache + fetch. Cualquier otra cosa (null/false/etc) sigue el flow normal.
+        $override = apply_filters('slc_landing_payload_override', null, $course_id);
+        if (is_array($override)) {
+            return $override;
+        }
+
         $key       = 'slc_landing_' . md5($course_id);
         $key_stale = $key . '_stale';
 

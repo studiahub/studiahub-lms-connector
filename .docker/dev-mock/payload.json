@@ -1,0 +1,209 @@
+{
+  "_comment": "Mock payload de un curso 'realista' usado por el mu-plugin de dev (.docker/mu-plugins/zz-dev-mock-payload.php). Permite trabajar el diseño de las landings sin necesitar el LMS corriendo. Editá libremente los valores para probar variantes (curso sin trailer, sin reseñas, con muchos bonos, etc.).",
+  "lmsId": "demo-course-001",
+  "branding": {
+    "primaryColor": "#7950F2",
+    "secondaryColor": "#FA5252",
+    "fontFamily": "Inter",
+    "logoUrl": null
+  },
+  "tenantName": "Academia Demo",
+  "title": "Marketing Digital Avanzado",
+  "subtitle": "Estrategias modernas para escalar tu negocio online",
+  "shortDescription": "Aprendé a planificar, ejecutar y medir campañas de performance marketing como un profesional.",
+  "longDescription": "<p>Este curso integral te lleva desde los fundamentos del marketing digital hasta las estrategias más avanzadas de growth.</p><p>Vas a dominar Meta Ads, Google Ads, embudos de conversión, email marketing y analítica con datos reales de empresas.</p><p>Pensado para emprendedores, freelancers y profesionales que quieren dejar de \"tirar plata\" en ads y empezar a vender de verdad.</p>",
+  "thumbnailUrl": "https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&q=80",
+  "trailerUrl": "https://www.youtube.com/watch?v=imYffDezqbg",
+  "price": 10000,
+  "priceDisplay": "USD 1.000 / ARS 1.400.000",
+  "ctaLabel": "Quiero inscribirme",
+  "highlightBadge": "Actualizado 2026",
+  "category": "Marketing",
+  "courseType": "on_demand",
+  "level": "Intermedio",
+  "language": "Español",
+  "durationHours": 19,
+  "hasCertificate": true,
+  "instructors": [
+    {
+      "id": "u1",
+      "name": "Gonzalo Banchero",
+      "title": "Founder de StudiaHub",
+      "bio": "10+ años desarrollando experiencias de e-commerce y educación online. Apasionado por el marketing data-driven y la automatización.",
+      "photoUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80"
+    },
+    {
+      "id": "u2",
+      "name": "María García",
+      "title": "Performance Marketing Lead",
+      "bio": "Especialista en performance marketing con más de 50 campañas exitosas para PyMEs. Ex-Meta partner.",
+      "photoUrl": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&q=80"
+    }
+  ],
+  "learningOutcomes": [
+    "Crear campañas de Meta Ads que conviertan desde el día 1",
+    "Diseñar embudos de venta automatizados con tasas de conversión > 3%",
+    "Medir, analizar y optimizar campañas con herramientas pro",
+    "Construir audiencias custom de alta intención de compra",
+    "Implementar estrategias de email marketing que generan retorno"
+  ],
+  "targetAudience": [
+    "Emprendedores que quieren vender más sin depender de su networking",
+    "Profesionales freelance que ofrecen servicios de marketing a clientes",
+    "Dueños de e-commerce que quieren escalar sin perder rentabilidad",
+    "Marketers junior que quieren saltar al siguiente nivel"
+  ],
+  "includedMaterials": [
+    "+ 40 plantillas de campañas en Meta Ads",
+    "Calculadora de ROI y CAC en Excel",
+    "Prompts de GPT para copywriting",
+    "Checklist de auditoría pre-launch",
+    "Acceso a la comunidad privada en Discord"
+  ],
+  "requirements": [
+    "Tener una idea o negocio en marcha (no importa la etapa)",
+    "Acceso a una cuenta de Meta Ads (podemos ayudarte a crearla)",
+    "Disposición a aplicar lo aprendido en proyectos reales",
+    "Sin conocimientos previos requeridos"
+  ],
+  "modulesCount": 5,
+  "lessonsCount": 32,
+  "totalDurationMin": 1140,
+  "outline": [
+    {
+      "title": "Módulo 1: Fundamentos de Marketing Digital",
+      "durationMin": 180,
+      "lessons": [
+        { "title": "Bienvenida al curso", "type": "VIDEO", "durationMin": 8, "free": true },
+        { "title": "Qué es marketing digital en 2026", "type": "VIDEO", "durationMin": 22, "free": true },
+        { "title": "El funnel de conversión moderno", "type": "VIDEO", "durationMin": 35, "free": false },
+        { "title": "Setup de cuentas y herramientas", "type": "TEXT", "durationMin": 15, "free": false },
+        { "title": "Workbook del módulo 1", "type": "PDF", "durationMin": null, "free": false }
+      ]
+    },
+    {
+      "title": "Módulo 2: Meta Ads desde cero a pro",
+      "durationMin": 300,
+      "lessons": [
+        { "title": "Estructura de cuenta correcta", "type": "VIDEO", "durationMin": 28, "free": false },
+        { "title": "Audiencias custom y lookalike", "type": "VIDEO", "durationMin": 45, "free": false },
+        { "title": "Creativos que convierten", "type": "VIDEO", "durationMin": 52, "free": false },
+        { "title": "Píxel y eventos de conversión", "type": "VIDEO", "durationMin": 38, "free": false },
+        { "title": "Optimización y escalado", "type": "VIDEO", "durationMin": 60, "free": false }
+      ]
+    },
+    {
+      "title": "Módulo 3: Google Ads y Search Intent",
+      "durationMin": 240,
+      "lessons": [
+        { "title": "Search vs Display vs YouTube", "type": "VIDEO", "durationMin": 30, "free": false },
+        { "title": "Investigación de keywords", "type": "VIDEO", "durationMin": 45, "free": false },
+        { "title": "Quality score y CPC", "type": "VIDEO", "durationMin": 35, "free": false }
+      ]
+    },
+    {
+      "title": "Módulo 4: Embudos y automatización",
+      "durationMin": 240,
+      "lessons": [
+        { "title": "Landing pages que convierten", "type": "VIDEO", "durationMin": 45, "free": false },
+        { "title": "Email marketing automation", "type": "VIDEO", "durationMin": 55, "free": false },
+        { "title": "CRM e integraciones", "type": "TEXT", "durationMin": 25, "free": false }
+      ]
+    },
+    {
+      "title": "Módulo 5: Analítica y reporting",
+      "durationMin": 180,
+      "lessons": [
+        { "title": "Google Analytics 4", "type": "VIDEO", "durationMin": 50, "free": false },
+        { "title": "Dashboards para clientes", "type": "VIDEO", "durationMin": 40, "free": false },
+        { "title": "Métricas que importan", "type": "VIDEO", "durationMin": 30, "free": false }
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "id": "r1",
+      "rating": 5,
+      "comment": "Espectacular el curso. Recuperé la inversión en la primera campaña que armé después del módulo 2. Recomendadísimo.",
+      "createdAt": "2026-04-15T14:30:00Z",
+      "user": { "firstName": "Carolina", "lastName": "Méndez", "avatarUrl": null }
+    },
+    {
+      "id": "r2",
+      "rating": 5,
+      "comment": "Gon explica de manera clarísima, sin vueltas. Los workbooks son oro puro. Pasé de no entender Meta Ads a llevar 3 cuentas de clientes.",
+      "createdAt": "2026-03-28T09:15:00Z",
+      "user": { "firstName": "Federico", "lastName": "Soto", "avatarUrl": null }
+    },
+    {
+      "id": "r3",
+      "rating": 4,
+      "comment": "Muy bueno el contenido. Me hubiera gustado más profundidad en analytics, pero en general súper completo.",
+      "createdAt": "2026-03-10T18:00:00Z",
+      "user": { "firstName": "Lucía", "lastName": "Pereyra", "avatarUrl": null }
+    },
+    {
+      "id": "r4",
+      "rating": 5,
+      "comment": "El mejor curso de marketing que hice. La parte de embudos automatizados me cambió el negocio.",
+      "createdAt": "2026-02-22T11:45:00Z",
+      "user": { "firstName": "Diego", "lastName": "Ramos", "avatarUrl": null }
+    }
+  ],
+  "reviewStats": { "count": 4, "average": 4.75 },
+  "compareAtPrice": "USD 1.499 / ARS 2.100.000",
+  "installmentsLabel": "o 12 cuotas sin interés",
+  "offerDeadlineAt": "2026-06-15T23:59:59Z",
+  "bonuses": [
+    {
+      "title": "Auditoría 1-on-1 de tu cuenta",
+      "desc": "Sesión privada de 30 min donde reviso tu cuenta de ads y te dejo un plan de acción concreto.",
+      "value": "USD 250"
+    },
+    {
+      "title": "Pack de 20 anuncios listos para copiar",
+      "desc": "Estructuras de copy + creativos en Canva con los mejores anuncios que armamos en agencia.",
+      "value": "USD 99"
+    },
+    {
+      "title": "Acceso a la comunidad por 1 año",
+      "desc": "Networking con otros marketers + AMAs mensuales con expertos invitados.",
+      "value": "USD 149"
+    }
+  ],
+  "faq": [
+    {
+      "q": "¿Cómo accedo al curso después de comprar?",
+      "a": "Inmediatamente. Te llega un email con tu acceso al campus donde podés ver todas las clases."
+    },
+    {
+      "q": "¿Cuánto tiempo tengo para verlo?",
+      "a": "Acceso de por vida. Lo ves a tu ritmo, podés volver cuando quieras, todas las actualizaciones incluidas."
+    },
+    {
+      "q": "¿Necesito conocimientos previos?",
+      "a": "No. El curso arranca desde los fundamentos y va subiendo de complejidad. Si ya sabés algo, igual vas a sacar mucho valor en los módulos avanzados."
+    },
+    {
+      "q": "¿Hay soporte si me trabo?",
+      "a": "Sí. Tenés acceso a la comunidad privada donde podés preguntar, y AMAs mensuales en vivo."
+    },
+    {
+      "q": "¿Sirve si soy de otro país?",
+      "a": "Sí. Todas las estrategias son aplicables globalmente. Los ejemplos están en español y hay casos de varios países LATAM."
+    }
+  ],
+  "socialProof": {
+    "studentsCount": 234,
+    "studentsLabel": "+200 alumnos activos",
+    "stats": [
+      { "num": "98%", "label": "lo recomiendan" },
+      { "num": "4.8★", "label": "valoración promedio" },
+      { "num": "12 meses", "label": "de acceso garantizado" }
+    ]
+  },
+  "guarantee": {
+    "title": "7 días de garantía total",
+    "text": "Si no te convence el curso en los primeros 7 días, te devolvemos el 100% del dinero. Sin preguntas, sin formularios eternos. Solo escribís un email y listo."
+  }
+}
