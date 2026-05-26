@@ -1,161 +1,284 @@
 # 🚀 Empezar acá — Setup completo para diseño
 
-> **Si sos Nadi (diseño):** este documento te guía paso a paso. Vas a leer la **Parte A** y después le pegás a Claude Code el prompt que dice ahí. El asistente sigue solo a partir de ese momento.
+> **Si sos Nadi (diseño):** este documento te explica cómo arrancar. Vas a hacer **3 cosas** y de ahí en adelante un asistente de IA (Claude Code) hace todo lo demás con vos. **No vas a tener que instalar nada a mano más allá de Claude Code** — el asistente instala todo el resto.
 >
-> **Si sos Claude Code:** saltá directo a la **Parte B**. Tu trabajo arranca cuando Nadi te pega el prompt de la Parte A.
+> **Si sos Claude Code:** saltá a la **Parte B**. Ese es tu playbook completo.
 
 ---
 
-# Parte A — Lo que hace Nadi (15-20 min)
+# Parte A — Lo que hace Nadi (5 min)
 
-## 0. Antes que nada
+## 1. Instalá Claude Code
 
-Estás por levantar un WordPress local en tu Mac para iterar visualmente el diseño de una landing page. Todo corre en tu computadora — no toca clientes reales. Cuando termines un cambio, lo subís a GitHub y Gon lo revisa antes de mergearlo.
+Es lo único que necesitás instalar a mano. Es el asistente de IA que va a hacer todo lo demás.
 
-**No necesitás saber programar.** Vas a usar Claude Code como puente: le pedís cosas en español, él hace los cambios.
-
-## 1. Instalá estas apps (10 min)
-
-En este orden:
-
-### a) Docker Desktop
-👉 https://www.docker.com/products/docker-desktop/
-
-- Descargá la versión para Mac (elegí Apple Silicon si tu Mac es M1/M2/M3, Intel si es más vieja).
-- Instalá normal (arrastrá a Applications).
-- Abrí la app. Aceptá los términos. Va a aparecer una **ballenita 🐳 en la barra superior** — eso significa que Docker está corriendo.
-- **Dejala corriendo en background.** Cada vez que prendas la Mac y quieras trabajar, abrí Docker Desktop primero.
-
-### b) Git
-👉 Para chequear si ya lo tenés, abrí **Terminal** (Cmd+Espacio, escribís "terminal", Enter) y tipeá:
-```
-git --version
-```
-Si responde con un número de versión (ej. `git version 2.39.0`), ya está.
-Si no, te va a abrir un instalador automático — aceptá.
-
-### c) GitHub Desktop
-👉 https://desktop.github.com/
-
-- Instalá normal.
-- Cuando abra, **logueate con tu cuenta de GitHub**. (Si no tenés cuenta de GitHub, creala primero en https://github.com/signup — gratis).
-
-### d) Visual Studio Code
-👉 https://code.visualstudio.com/
-
-- Instalá normal. Es donde vas a poder mirar/editar archivos cuando haga falta.
-
-### e) Claude Code
 👉 https://docs.claude.com/claude-code/quickstart
 
-- Seguí las instrucciones de la página para Mac.
-- Vas a necesitar una cuenta de Anthropic con créditos. Si no tenés, hablalo con Gon **antes** de avanzar.
+Seguí las instrucciones de esa página para Mac. Necesitás una cuenta de Anthropic. Si no tenés, hablalo con Gon antes de seguir.
 
-## 2. Hacé fork del repo del plugin (2 min)
+## 2. Abrí Terminal
 
-Un **"fork"** es tu copia personal del proyecto. Vos modificás tu copia sin afectar la original.
+- Apretá `Cmd+Espacio` (lupa de búsqueda de Mac).
+- Escribí `terminal`.
+- Apretá `Enter`.
 
-1. Abrí en el browser: 👉 https://github.com/studiahub/studiahub-lms-connector
-2. Arriba a la derecha, click en el botón **"Fork"**.
-3. Dejá todo por default y click **"Create fork"**.
-4. Te lleva a tu propia copia. La URL ahora dice `github.com/TU-USUARIO/studiahub-lms-connector` — fijate y copiala mentalmente.
+Se va a abrir una ventana negra (o blanca según tu config). Eso es la Terminal.
 
-## 3. Cloná tu fork a tu Mac (2 min)
+## 3. Pegá este comando, dale Enter, y después pegá el prompt
 
-Con GitHub Desktop:
+Primero arrancá Claude Code:
 
-1. Abrí **GitHub Desktop**.
-2. Menú **File → Clone repository**.
-3. En la pestaña "**Your repositories**" elegí `TU-USUARIO/studiahub-lms-connector` (tu fork).
-4. **Local Path:** dejá lo que sugiere o cambialo a `Documents/studiahub-lms-connector` (o donde prefieras).
-5. Click **Clone**. Esperá 30 segundos.
+```
+claude
+```
 
-## 4. Abrí Claude Code en la carpeta del proyecto
+Cuando aparezca el chat de Claude Code, **copiá y pegá exactamente este texto**:
 
-1. Abrí **Terminal**.
-2. Andá a la carpeta. Si la clonaste en `Documents/`, escribí:
-   ```
-   cd ~/Documents/studiahub-lms-connector
-   ```
-   Si fue en otro lado, ajustá la ruta.
-3. Arrancá Claude Code:
-   ```
-   claude
-   ```
-4. Pegá este prompt y dale Enter:
+> Hola Claude. Soy Nadi, diseñadora, no soy técnica. Vengo a trabajar en una landing de WordPress para StudiaHub. Necesito que hagas el setup completo en mi Mac de cero a punto.
+>
+> Por favor leé este documento y ejecutá toda la **Parte B** al pie de la letra. Ejecutá vos todo lo que puedas. Cuando necesites algo de mí (escribir mi contraseña, abrir una app a mano, autorizar algo en el browser), explicame claro y simple qué tengo que hacer.
+>
+> Doc: https://raw.githubusercontent.com/studiahub/studiahub-lms-connector/main/EMPEZAR-AQUI.md
+>
+> Empezá ahora. Yo te voy guiando con vos en pantalla.
 
-> Hola! Soy Nadi, diseñadora. Vengo a trabajar en la landing del plugin StudiaHub LMS Connector. Por favor leé el archivo `EMPEZAR-AQUI.md` en el root del repo y seguí la **Parte B** para guiarme con el setup completo paso a paso. No soy técnica, explicame todo en lenguaje simple y verificá cada paso antes de avanzar al siguiente.
+**Dale Enter.** A partir de ahí, Claude Code se hace cargo. Vos solo respondés lo que te pregunta y aceptás las acciones que te propone (te va a pedir aprobación antes de cada comando importante).
 
-5. **Esperá.** El agente va a leer el doc, verificar tu sistema, y guiarte paso a paso. A partir de acá vos solo respondés lo que él te pregunta y aceptás los comandos que te propone.
+> ⏱️ **Tiempo estimado total del setup**: 20-30 minutos (la mayoría es esperar descargas).
 
 ---
 
-# Parte B — Instrucciones para Claude Code (asistente de Nadi)
+# Parte B — Playbook para Claude Code
 
-> Hola agente. Sos un asistente que ayuda a **Nadi** (diseñadora, **no-técnica**) a hacer el setup completo del entorno de desarrollo local del plugin **studiahub-lms-connector**. Este documento es tu playbook. Seguilo en orden estricto.
+> Hola agente. Sos asistente de **Nadi** (diseñadora, **no-técnica**, Mac, español rioplatense). Acaba de pegarte un prompt pidiéndote que hagas el setup completo del proyecto `studiahub-lms-connector` en su Mac, de cero a landing renderizando.
+>
+> Este es tu playbook completo. Seguilo en orden estricto, ejecutando vos todo lo que puedas.
 
-## Reglas de comunicación con Nadi
+## Reglas absolutas
 
-1. **Español rioplatense, casual, paciente.** Cero jerga técnica sin explicar. Si tenés que usar una palabra técnica (ej. "container", "puerto"), explicala en una línea.
-2. **Antes de cada paso**, decile qué vas a hacer y por qué (en una oración corta).
-3. **Después de cada comando**, verificá que funcionó antes de seguir.
-4. **Si algo falla**, no intentes 3 fixes — explicale a Nadi qué pasó y proponele que le saque captura al Terminal y se la mande a Gon. Mejor parar que cagarla.
-5. **Nunca corras comandos destructivos** sin avisarle (ej. `rm`, `git reset --hard`, `docker compose down -v`).
-6. **No le pidas que ejecute comandos a mano** — vos los ejecutás con la herramienta Bash. Ella solo aprueba.
+1. **Español rioplatense, casual, paciente.** Nada de jerga sin explicar.
+2. **Antes de cada paso decile qué vas a hacer y por qué** (1 oración corta). Después del paso, decile si salió bien.
+3. **Ejecutá vos todos los comandos que puedas** con la herramienta Bash. No le pidas a Nadi que escriba comandos a mano salvo que sea estrictamente necesario (login a GitHub, password de sudo, abrir Docker Desktop).
+4. **Cuando un comando requiere input de ella** (password, OAuth, abrir GUI), explicale exactamente qué va a pasar antes y qué tiene que hacer.
+5. **Si algo falla 2 veces**, parate. Explicale el error, pedile captura, decile que avise a Gon. Mejor parar que destruir cosas.
+6. **Nunca corras comandos destructivos** (rm -rf, git reset --hard, docker volume rm, etc.) sin advertirle explícitamente y esperar su "sí".
+7. **No asumas que tiene cosas instaladas.** Verificá todo, no des nada por sentado.
 
-## Playbook del setup (seguir en orden)
+## Variables del entorno objetivo
 
-### Paso 1 — Verificá las instalaciones base
+Al final del playbook, Nadi debe tener:
+- Homebrew instalado
+- Docker Desktop instalado y CORRIENDO
+- git instalado
+- gh CLI instalado y autenticado contra GitHub
+- Repo `TU-USUARIO/studiahub-lms-connector` forkeado y clonado en `~/Documents/studiahub-lms-connector/` (o donde ella prefiera)
+- WordPress local corriendo en http://localhost:8080
+- La landing V2 renderizada en `http://localhost:8080/?slc_test_render=1&id=59&variant=pitch`
 
-Decí a Nadi: "Voy a chequear que tengas todo lo necesario instalado."
+## Fases del setup
 
-Corré estos checks en paralelo (usá Bash con múltiples llamadas):
+Avanzá por fases. Cada fase tiene un check de "listo para la siguiente". Si una falla, no avanzes.
+
+---
+
+### FASE 0 — Saludá y explicá el plan
+
+Decile algo como:
+
+> "Hola Nadi! Soy Claude. Te voy a ayudar a dejar todo listo para que puedas diseñar la landing. El proceso completo toma 20-30 min, pero la mayoría es esperar descargas. Yo voy a ejecutar lo que pueda; vos solo aprobás lo que te pregunto y a veces te voy a pedir tu contraseña o que abras una app. ¿Arrancamos?"
+
+Esperá su "dale" o equivalente.
+
+---
+
+### FASE 1 — Detectá qué ya tiene instalado
+
+Hacé un scan rápido y silencioso:
 
 ```bash
-docker --version
-docker compose version
-git --version
-which code
+which brew
+which git
+which gh
+which docker
+docker info 2>&1 | head -3
 ```
 
-Y verificá que Docker Desktop esté **corriendo** (no solo instalado):
+Reportale en una frase: "Tenés X, Y y Z. Falta instalar A y B. Voy a arrancar por A."
+
+Si TODO está instalado y Docker está corriendo, saltá directo a FASE 5.
+
+---
+
+### FASE 2 — Homebrew
+
+Si `brew` no está:
+
+Decile:
+
+> "Voy a instalar Homebrew. Es un instalador de programas para Mac, súper estándar. Te va a pedir tu contraseña de Mac (la que usás para desbloquear la compu) — tipeala cuando aparezca el cursor pidiéndola. Mientras escribís no vas a ver caracteres, es normal."
+
+Ejecutá:
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Cuando termine, asegurate de que `brew` esté en el PATH. En Apple Silicon es:
+```bash
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+eval "$(/opt/homebrew/bin/brew shellenv)"
+```
+
+En Intel:
+```bash
+echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
+eval "$(/usr/local/bin/brew shellenv)"
+```
+
+Verificá:
+```bash
+brew --version
+```
+
+Si responde, ✓. Si no, parate y pedile captura.
+
+---
+
+### FASE 3 — Git + GitHub CLI
+
+Decile: "Ahora voy a instalar Git (descarga código) y GitHub CLI (te permite manejar GitHub desde acá). Esto es rápido, no te va a pedir nada."
+
+```bash
+brew install git gh
+```
+
+Verificá:
+```bash
+git --version
+gh --version
+```
+
+---
+
+### FASE 4 — Docker Desktop
+
+Si `docker` no está instalado:
+
+Decile:
+
+> "Voy a instalar Docker Desktop. Es la app que corre el servidor de WordPress en tu Mac. La descarga puede tardar 5-10 minutos según tu internet."
+
+```bash
+brew install --cask docker
+```
+
+**Cuando termine la instalación**, Docker Desktop NO arranca solo. Tenés que pedirle a Nadi que lo abra a mano:
+
+> "Listo, Docker Desktop quedó instalado. Ahora necesito que vos hagas lo siguiente:
+>
+> 1. Apretá `Cmd+Espacio`, escribí `docker` y dale Enter. Se va a abrir Docker Desktop.
+> 2. Va a aparecer una pantalla pidiéndote aceptar los términos. Aceptalos.
+> 3. Va a pedirte tu contraseña de Mac al final del proceso (es para configurar permisos). Ingrésala.
+> 4. Esperá hasta ver una **ballenita 🐳 arriba en la barra superior** (al lado del reloj).
+>
+> Avisame cuando veas la ballenita."
+
+Esperá su confirmación. Cuando confirme, verificá:
+
 ```bash
 docker info 2>&1 | head -3
 ```
 
-**Si todo OK** → "Perfecto, tenés todo. Voy al siguiente paso."
+Tiene que responder sin error. Si dice "Cannot connect to the Docker daemon", Docker todavía está arrancando — esperá 30 segundos y reintentá. Si después de 3 intentos no anda, escala a Gon.
 
-**Si falta algo**:
-- **Docker no instalado**: pedile que descargue desde https://www.docker.com/products/docker-desktop/ y avise cuando esté listo.
-- **Docker no corriendo**: pedile que abra Docker Desktop (la app) y espere a ver la ballenita arriba.
-- **Git no instalado**: explicale que escriba `git --version` en Terminal y le va a abrir el instalador.
-- **VS Code no instalado**: link https://code.visualstudio.com/ (no urgente, puede seguir sin esto).
+---
 
-NO avances al paso 2 hasta que Docker esté corriendo.
+### FASE 5 — Login a GitHub con gh
 
-### Paso 2 — Verificá ubicación y estructura del repo
-
-Asegurate de estar dentro de la carpeta correcta del repo clonado:
-
+Verificá si ya está logueada:
 ```bash
-pwd
-ls -la
+gh auth status 2>&1
 ```
 
-Tiene que haber un `Makefile`, una carpeta `.docker/`, una carpeta `plugin/`, una carpeta `docs/`, y este mismo archivo `EMPEZAR-AQUI.md`.
+Si NO está logueada, decile:
 
-**Si NO está en la carpeta correcta**: pedile a Nadi que confirme dónde clonó el repo y guiarla a hacer `cd` ahí.
-
-### Paso 3 — Levantá el ambiente con `make setup`
-
-Decí: "Ahora voy a levantar WordPress + base de datos en tu Mac. La primera vez tarda 5-10 minutos porque tiene que descargar las imágenes de Docker. Vas a ver mucho texto pasar, es normal."
+> "Necesito conectarte a GitHub. Voy a abrir un proceso que te pide ir a una URL en el browser, copiar un código corto y autorizar la conexión. No es complicado, te guío.
+>
+> Si todavía no tenés cuenta de GitHub, creala primero en https://github.com/signup (gratis), y después seguimos."
 
 Ejecutá:
 ```bash
+gh auth login --git-protocol https --web
+```
+
+Esto va a imprimir un código de 8 caracteres y una URL (https://github.com/login/device). Decile a Nadi:
+
+> "Copiá ESTE código: `XXXX-XXXX`. Abrí ESTA URL en el browser: https://github.com/login/device. Pegá el código ahí. Autorizá la conexión. Volvé acá cuando termines."
+
+Esperá a que el comando finalice. Verificá:
+```bash
+gh auth status
+```
+
+---
+
+### FASE 6 — Fork del repo
+
+Decile: "Voy a hacer una copia tuya del repositorio del plugin. Esto se llama 'fork' — es tu copia personal donde podés cambiar lo que quieras sin afectar el original."
+
+```bash
+gh repo fork studiahub/studiahub-lms-connector --clone=false
+```
+
+Esto crea el fork en su cuenta. Verificá que existe:
+```bash
+gh repo view --json url
+```
+
+---
+
+### FASE 7 — Clone del fork
+
+Preguntale dónde quiere que viva la carpeta del proyecto en su Mac:
+
+> "¿Dónde querés que ponga la carpeta del proyecto en tu Mac? Sugiero `~/Documents/studiahub-lms-connector` (queda en Documentos). Si preferís otro lugar, decímelo. Sino dale Enter para usar el sugerido."
+
+Si elige el default o no contesta claramente, usá `~/Documents/studiahub-lms-connector`.
+
+Primero asegurate de tener su usuario de GitHub:
+```bash
+GH_USER=$(gh api user --jq .login)
+echo "Usuario GitHub: $GH_USER"
+```
+
+Cloná el fork:
+```bash
+mkdir -p ~/Documents
+cd ~/Documents
+gh repo clone "$GH_USER/studiahub-lms-connector"
+```
+
+Verificá:
+```bash
+ls -la ~/Documents/studiahub-lms-connector/EMPEZAR-AQUI.md
+```
+
+Si existe ✓.
+
+---
+
+### FASE 8 — Levantá el ambiente
+
+Decile:
+
+> "Ahora viene el paso más largo. Voy a descargar las imágenes de WordPress y la base de datos, las arranco, e instalo WordPress automáticamente. Puede tardar 5-10 min la primera vez. Vas a ver mucho texto pasar, es normal — esperá a que termine."
+
+```bash
+cd ~/Documents/studiahub-lms-connector
 make setup
 ```
 
-**Mirá el output**. Tiene que terminar con un mensaje que muestra:
+Mirá el output. Debe terminar con:
+
 ```
 ✓ Listo. Probá ahora:
   Admin WP:     http://localhost:8080/wp-admin (user: admin / pass: admin)
@@ -163,123 +286,128 @@ make setup
   Landing V2:   http://localhost:8080/?slc_test_render=1&id=59&variant=pitch
 ```
 
-**Si terminó OK** → seguí al paso 4.
-
-**Si falló**:
-- **Puerto 8080 ocupado**: explicale que probablemente tiene otro WP / Apache corriendo. Pedile captura del error y avisar a Gon.
-- **Docker dio error de red**: pedile que verifique que Docker Desktop está corriendo.
-- **Cualquier otro error**: captura al Terminal completo + avisar a Gon.
-
-### Paso 4 — Verificá que la landing funcione
-
-Ejecutá un check rápido al endpoint:
+Si terminó OK, validá con un curl:
 ```bash
-curl -s "http://localhost:8080/?slc_test_render=1&id=59&variant=pitch" | grep -oE "Marketing Digital Avanzado|Estrategias modernas" | head -3
+sleep 5 && curl -s "http://localhost:8080/?slc_test_render=1&id=59&variant=pitch" | grep -oE "Marketing Digital Avanzado" | head -1
 ```
 
-**Debe responder**: `Marketing Digital Avanzado` y/o `Estrategias modernas`. Si responde vacío, esperá 10 segundos y volvé a probar — WP puede estar terminando de arrancar.
+Tiene que responder `Marketing Digital Avanzado`. Si responde vacío, esperá 15 seg más y reintentá.
 
-**Si todo OK** → decí a Nadi:
+---
 
-> "¡Funciona! Abrí este link en tu browser:
+### FASE 9 — Mostrale la landing y orientala
+
+Decile:
+
+> "¡Listo! Tu WordPress local está corriendo. Abrí este link en tu browser para ver la landing del curso de prueba:
 >
 > http://localhost:8080/?slc_test_render=1&id=59&variant=pitch
 >
-> Vas a ver la landing del curso de prueba. Esta es la **V2** que vas a iterar."
+> Esto es lo que vas a iterar visualmente. La data que ves (instructores, bonos, precios, etc.) es de un curso de prueba — vos diseñás cómo se ve, no qué dice."
 
-### Paso 5 — Onboarding al workflow
+Después, **leé los dos docs principales** (con la herramienta Read) y resumiselos:
 
-Decí: "Hay dos documentos importantes que tenés que leer (o pedirme que te los resuma):
+- `docs/onboarding-diseno.md` — workflow del día a día.
+- `docs/guia-secciones-pitch.md` — mapa de cada sección con su clase CSS.
 
-1. **`docs/onboarding-diseno.md`** — el workflow del día a día (cómo pedirme cambios, cómo subir tu trabajo).
-2. **`docs/guia-secciones-pitch.md`** — el mapa de la landing: qué clase CSS controla qué sección.
+Decile algo como:
 
-¿Querés que te los resuma ahora o preferís leerlos vos primero?"
+> "Hay dos documentos importantes que ya leí por vos:
+>
+> 1. **Workflow** — cómo pedirme cambios y subir tu trabajo a GitHub.
+> 2. **Mapa de secciones** — qué clase CSS controla cada parte de la landing.
+>
+> ¿Querés que te los resuma ahora o preferís pasar directo a probar un primer cambio chiquito?"
 
-Si Nadi pide resumen, leé los dos archivos y resumí los puntos clave (anchos, qué se puede tocar vs qué no, mecánica de Claude Code).
+---
 
-### Paso 6 — Primer cambio sugerido (warm-up)
+### FASE 10 — Primer cambio de warm-up
 
-Para que Nadi pruebe el flow completo, proponele un cambio chiquito de prueba:
+Para cerrar el setup con una victoria, proponé hacer un cambio chiquito:
 
-> "Para que pruebes cómo es trabajar conmigo, decime un cambio chico que quieras hacer en la landing. Por ejemplo:
-> - 'hacé el título del hero un poco más grande'
-> - 'cambiá el color de los botones'
+> "Para que pruebes cómo trabajamos juntas, decime un cambio mínimo que quieras hacer. Por ejemplo:
+> - 'agrandá un poquito el título principal'
+> - 'cambiá el color de los botones a azul'
 > - 'ponele más espacio entre las cards de bonos'
 >
-> Yo te muestro qué archivo voy a tocar antes de hacerlo, lo cambio, y recargás el browser para ver el resultado."
+> Yo te muestro qué archivo voy a tocar antes de hacerlo, lo cambio, y vos recargás el browser para ver el resultado. **Tip importante**: para recargar sin cache, usá Cmd+Shift+R (no solo Cmd+R)."
 
 Cuando Nadi proponga un cambio:
-1. Identificá la(s) clase(s) CSS afectada(s) (usá `docs/guia-secciones-pitch.md` como referencia).
-2. Antes de editar, decile: "Voy a tocar `plugin/studiahub-lms-connector/assets/css/coursepitch.css` y cambiar [X]. ¿Voy?"
+1. Identificá la(s) clase(s) CSS afectada(s) — usá `docs/guia-secciones-pitch.md`.
+2. Decile: "Voy a tocar `plugin/studiahub-lms-connector/assets/css/coursepitch.css`. ¿Voy?"
 3. Hacé el cambio (Edit tool en el CSS).
-4. Decile: "Listo. Recargá el browser con **Cmd+Shift+R** (recarga sin cache) y contame qué te parece."
+4. Decile: "Listo. Recargá el browser con Cmd+Shift+R y contame qué te parece."
+
+---
 
 ## Reglas de qué tocar y qué NO tocar
 
-Aplicar siempre al editar:
-
-### 🎨 Se puede tocar:
+### 🎨 Se puede tocar (diseño):
 - `plugin/studiahub-lms-connector/assets/css/coursepitch.css` (el CSS del V2)
-- `plugin/studiahub-lms-connector/includes/class-shortcode-coursepitch.php` (HTML estructural del V2, con cuidado — pedile a Nadi confirmación si cambia markup significativo)
-- `.docker/dev-mock/payload.json` si Nadi quiere probar variantes de data (ej. ver cómo queda sin reseñas)
+- `plugin/studiahub-lms-connector/includes/class-shortcode-coursepitch.php` (HTML estructural del V2, con cuidado)
+- `.docker/dev-mock/payload.json` (data fake si quiere probar variantes)
 
-### 🚫 NO tocar:
-- `plugin/studiahub-lms-connector/assets/css/coursepage.css` (el CSS del V1 — está congelado)
-- `plugin/studiahub-lms-connector/includes/class-shortcode-coursepage.php` (V1 congelado)
-- `plugin/studiahub-lms-connector/includes/class-landing-fetch.php` (backend del fetch)
-- `plugin/studiahub-lms-connector/includes/class-plugin.php` (loader)
-- Cualquier archivo del LMS Next.js (no estamos en ese repo de todos modos)
+### 🚫 NO tocar (riesgo de romper cosas):
+- `plugin/studiahub-lms-connector/assets/css/coursepage.css` (V1, congelado)
+- `plugin/studiahub-lms-connector/includes/class-shortcode-coursepage.php` (V1, congelado)
+- Cualquier otro archivo `.php` del plugin (backend)
+- Archivos del directorio `.docker/` (salvo `dev-mock/payload.json`)
 
-### 📥 Si Nadi pide algo que NO es diseño:
+### 📥 Si Nadi pide cambiar CONTENIDO (no diseño):
 Si pide cambiar **textos del curso** (título, descripción, instructores, bonos, etc.), explicale:
 
-> "Eso no es diseño, es contenido del curso. Lo edita el dueño de la academia desde el admin del LMS. Vos diseñás **cómo se ve**, no **qué dice**.
+> "Eso es contenido del curso. Lo edita cada cliente desde el admin de su LMS. Vos diseñás cómo se ve, no qué dice.
 >
-> Si querés probar cómo queda con otro texto para ver tu diseño, puedo editar el archivo `.docker/dev-mock/payload.json` (es el contenido fake que usamos solo para diseñar). Pero ese cambio queda solo en tu Mac, no afecta clientes reales."
+> Si querés probar tu diseño con otros textos, puedo editar `.docker/dev-mock/payload.json` que es la data fake que usamos para diseñar. Pero ese cambio queda solo en tu Mac, no afecta clientes reales."
 
-## Comandos útiles que podés ofrecer a Nadi
+## Cómo Nadi sube su trabajo a GitHub
+
+Cuando ella diga "ya está, lo quiero mandar a Gon":
+
+1. Confirmale qué archivos cambió:
+   ```bash
+   cd ~/Documents/studiahub-lms-connector && git status
+   ```
+2. Ofrecele hacer el commit + push + PR vos:
+   - Pedile un título corto del cambio (ej. "Hero más grande + colores morados pastel").
+   - Hacé:
+     ```bash
+     git add <archivos>
+     git commit -m "<título>"
+     git push origin main
+     gh pr create --title "<título>" --body "Cambios visuales en la landing V2 (pitch). Pendiente review de Gon." --base main --head "$GH_USER:main"
+     ```
+   - Pasale el link del PR que devuelve `gh pr create`.
+
+Si ella prefiere usar GitHub Desktop (más visual), explicale los pasos GUI: Commit → Push origin → Create Pull Request.
+
+## Comandos útiles del día a día
 
 Cuando le venga bien:
-- `make refresh` — bustea el cache (si edita el JSON y no ve cambios al recargar).
-- `make logs` — muestra los logs del servidor en vivo si algo se rompe (Ctrl+C para salir).
-- `make down` — apaga el ambiente cuando termina el día (libera memoria).
+- `make refresh` — bustea el cache (cuando edita el JSON y no ve cambios al recargar).
+- `make logs` — logs en vivo si algo se rompe (Ctrl+C para salir).
+- `make down` — apaga el ambiente al terminar el día.
 - `make up` — vuelve a arrancarlo al día siguiente.
 
 ## Cuándo escalar a Gon
 
-Decile a Nadi que mande captura + descripción a Gon en estos casos:
+Decile que mande captura + descripción a Gon en estos casos:
 - Cualquier error de Docker que no se resuelva en 2 intentos.
 - Puerto 8080 ocupado y no podés liberarlo.
 - `make setup` falla con error técnico inentendible.
-- Nadi pide hacer un cambio que **rompe algo del backend** (no de diseño).
-- Nadi quiere mergear su PR (eso lo hace Gon).
-
-## Cómo Nadi sube su trabajo a GitHub
-
-Cuando termine una iteración y quiera mandar PR:
-
-1. Abrir **GitHub Desktop** (no Terminal — para no asustarla).
-2. En la lista izquierda ve los archivos modificados.
-3. Abajo escribe un summary corto (ej. "Hero más grande + colores pastel").
-4. Click **"Commit to main"**.
-5. Click **"Push origin"** arriba a la derecha.
-6. Click **"Create Pull Request"** (te lleva al browser).
-7. Llenar título + descripción, click **"Create pull request"**.
-8. Avisar a Gon.
-
-Si Nadi pide help con esto, guiala paso a paso con captures sugeridas.
+- Pide cambios que rompen el backend del plugin.
+- Quiere mergear su PR (eso lo hace Gon).
 
 ---
 
-# 📋 Apéndice — Información de contexto del proyecto
+# 📋 Apéndice — Contexto del proyecto
 
 - **Repo plugin (en el que está trabajando Nadi)**: `studiahub/studiahub-lms-connector`
-- **Repo LMS** (no usar — pero conviene saber que existe): `studiahub/studiahub-lms`. Nadi NO necesita correrlo localmente: el mock JSON cubre toda la data.
-- **Puerto WordPress local**: `http://localhost:8080`
-- **DB local (acceso TablePlus opcional)**: host `127.0.0.1`, port `3307`, user `wp`, pass `wp`, database `wordpress`.
-- **Variantes de landing actuales**:
-  - V1 (congelada): `[studiahub_course_page]` → http://localhost:8080/?slc_test_render=1&id=59&variant=page
-  - V2 (en iteración): `[studiahub_course_pitch]` → http://localhost:8080/?slc_test_render=1&id=59&variant=pitch
-- **Cliente del repo**: StudiaHub, agencia digital en Buenos Aires. El plugin se instala en WordPress de clientes (academias online).
-- **Branding dinámico**: los colores y la tipografía de cada landing los configura cada cliente en su panel admin del LMS (no son hardcoded). Para diseño usamos el branding del cliente demo: primary `#7950F2`, secondary `#FA5252`, font Inter.
+- **Repo LMS** (no usar — solo saber que existe): `studiahub/studiahub-lms`. Nadi NO necesita correrlo: el mock JSON cubre toda la data.
+- **WordPress local**: http://localhost:8080
+- **DB local** (TablePlus opcional): host `127.0.0.1`, port `3307`, user `wp`, pass `wp`, db `wordpress`.
+- **Variantes de landing**:
+  - V1 (congelada): `[studiahub_course_page]` → `?slc_test_render=1&id=59&variant=page`
+  - V2 (en iteración): `[studiahub_course_pitch]` → `?slc_test_render=1&id=59&variant=pitch`
+- **Mock activo**: el mu-plugin `.docker/mu-plugins/zz-dev-mock-payload.php` intercepta el fetch al LMS y devuelve `.docker/dev-mock/payload.json`. Por eso Nadi puede trabajar sin tener el LMS Next.js corriendo.
+- **Branding**: el primaryColor (#7950F2 morado), secondaryColor (#FA5252), font Inter vienen del mock. En producción los configura cada cliente desde su admin del LMS.
