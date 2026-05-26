@@ -172,97 +172,194 @@ final class Shortcode_CoursePage {
         ?>
         <article class="slc-coursepage" itemscope itemtype="https://schema.org/Course"<?php if ($brand_style !== '') echo ' style="' . esc_attr($brand_style) . '"'; ?>>
 
-            <?php /* ── HERO ────────────────────────────────────────────── */ ?>
+            <?php /* ── HERO gigante centrado (estilo DTC, trailer dominante) ── */ ?>
             <section class="slc-cp__hero">
-                <div class="slc-cp__wrap slc-cp__hero-grid">
-                    <div class="slc-cp__hero-main">
-                        <?php if ($badge !== '' || $category !== ''): ?>
-                            <div class="slc-cp__hero-badges">
-                                <?php if ($badge !== ''): ?>
-                                    <span class="slc-cp__badge"><?php echo esc_html($badge); ?></span>
-                                <?php endif; ?>
-                                <?php if ($category !== ''): ?>
-                                    <span class="slc-cp__badge slc-cp__badge--soft"><?php echo esc_html($category); ?></span>
-                                <?php endif; ?>
-                            </div>
-                        <?php endif; ?>
-                        <h1 class="slc-cp__hero-title"><?php echo esc_html($title); ?></h1>
-                        <?php if ($subtitle !== ''): ?>
-                            <p class="slc-cp__hero-subtitle"><?php echo esc_html($subtitle); ?></p>
-                        <?php elseif ($short_desc !== ''): ?>
-                            <p class="slc-cp__hero-subtitle"><?php echo esc_html($short_desc); ?></p>
-                        <?php endif; ?>
-
-                        <?php if ($social['rating'] !== null || $social['students_label'] !== ''): ?>
-                            <div class="slc-cp__hero-proof">
-                                <?php if ($social['rating'] !== null): ?>
-                                    <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($social['rating']); ?></span>
-                                    <strong><?php echo esc_html(number_format((float) $social['rating'], 1, ',', '')); ?></strong>
-                                <?php endif; ?>
-                                <?php if ($social['rating'] !== null && $social['students_label'] !== ''): ?>
-                                    <span class="slc-cp__proof-sep">·</span>
-                                <?php endif; ?>
-                                <?php if ($social['students_label'] !== ''): ?>
-                                    <span><?php echo esc_html($social['students_label']); ?></span>
-                                <?php endif; ?>
-                            </div>
-                        <?php endif; ?>
-
-                        <ul class="slc-cp__hero-meta">
-                            <?php foreach (self::meta_chips($type_key, $hours, $total_min, $level, $language, $has_cert, $modules_count, $lessons_count) as $chip): ?>
-                                <li class="slc-cp__meta-chip">
-                                    <span class="slc-cp__meta-icon" aria-hidden="true"><?php echo $chip['icon']; ?></span>
-                                    <?php echo esc_html($chip['label']); ?>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    </div>
-
-                    <aside class="slc-cp__hero-card">
-                        <?php if ($trailer !== null):
-                            $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
-                        ?>
-                            <div class="slc-cp__video">
-                                <div class="slc-cp__trailer-facade"
-                                     data-embed="<?php echo esc_attr($trailer['embed']); ?>"
-                                     <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
-                                     role="button"
-                                     tabindex="0"
-                                     aria-label="<?php echo esc_attr__('Reproducir trailer', 'studiahub-lms-connector'); ?>">
-                                    <button type="button" class="slc-cp__trailer-play" aria-hidden="true">
-                                        <svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.7)"/><polygon points="26,20 26,44 46,32" fill="#fff"/></svg>
-                                    </button>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                        <div class="slc-cp__price-block">
-                            <?php if ($offer['original'] !== ''): ?>
-                                <div class="slc-cp__price-row">
-                                    <span class="slc-cp__price-old"><?php echo esc_html($offer['original']); ?></span>
-                                    <?php if ($offer['discount_label'] !== ''): ?>
-                                        <span class="slc-cp__price-off"><?php echo esc_html($offer['discount_label']); ?></span>
-                                    <?php endif; ?>
-                                </div>
+                <div class="slc-cp__wrap slc-cp__hero-inner">
+                    <?php if ($badge !== '' || $category !== ''): ?>
+                        <div class="slc-cp__hero-badges">
+                            <?php if ($badge !== ''): ?>
+                                <span class="slc-cp__badge"><?php echo esc_html($badge); ?></span>
                             <?php endif; ?>
-                            <div class="slc-cp__price-now"><?php echo esc_html($offer['current']); ?></div>
-                            <?php if ($offer['installments'] !== ''): ?>
-                                <div class="slc-cp__price-inst"><?php echo esc_html($offer['installments']); ?></div>
-                            <?php endif; ?>
-                            <a class="slc-cp__cta" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
-                            <?php if ($offer['deadline'] !== ''): ?>
-                                <div class="slc-cp__urgency">
-                                    <span class="slc-cp__urgency-dot" aria-hidden="true"></span>
-                                    <?php echo esc_html($offer['deadline']); ?>
-                                </div>
-                            <?php endif; ?>
-                            <?php if ($guarantee !== null): ?>
-                                <div class="slc-cp__guarantee-mini">
-                                    <?php echo self::icon('shield'); ?>
-                                    <span><?php echo esc_html($guarantee['short']); ?></span>
-                                </div>
+                            <?php if ($category !== ''): ?>
+                                <span class="slc-cp__badge slc-cp__badge--soft"><?php echo esc_html($category); ?></span>
                             <?php endif; ?>
                         </div>
-                    </aside>
+                    <?php endif; ?>
+
+                    <h1 class="slc-cp__hero-title"><?php echo esc_html($title); ?></h1>
+
+                    <?php if ($subtitle !== ''): ?>
+                        <p class="slc-cp__hero-subtitle"><?php echo esc_html($subtitle); ?></p>
+                    <?php elseif ($short_desc !== ''): ?>
+                        <p class="slc-cp__hero-subtitle"><?php echo esc_html($short_desc); ?></p>
+                    <?php endif; ?>
+
+                    <?php if ($social['rating'] !== null || $social['students_label'] !== ''): ?>
+                        <div class="slc-cp__hero-proof">
+                            <?php if ($social['rating'] !== null): ?>
+                                <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($social['rating']); ?></span>
+                                <strong><?php echo esc_html(number_format((float) $social['rating'], 1, ',', '')); ?></strong>
+                            <?php endif; ?>
+                            <?php if ($social['rating'] !== null && $social['students_label'] !== ''): ?>
+                                <span class="slc-cp__proof-sep">·</span>
+                            <?php endif; ?>
+                            <?php if ($social['students_label'] !== ''): ?>
+                                <span><?php echo esc_html($social['students_label']); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($trailer !== null):
+                        $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
+                    ?>
+                        <div class="slc-cp__hero-trailer">
+                            <div class="slc-cp__trailer-facade"
+                                 data-embed="<?php echo esc_attr($trailer['embed']); ?>"
+                                 <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
+                                 role="button"
+                                 tabindex="0"
+                                 aria-label="<?php echo esc_attr__('Reproducir trailer', 'studiahub-lms-connector'); ?>">
+                                <button type="button" class="slc-cp__trailer-play" aria-hidden="true">
+                                    <svg viewBox="0 0 64 64" width="80" height="80"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.7)"/><polygon points="26,20 26,44 46,32" fill="#fff"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    <?php elseif ($thumbnail_url !== ''): ?>
+                        <div class="slc-cp__hero-trailer">
+                            <img class="slc-cp__hero-thumb" src="<?php echo esc_url($thumbnail_url); ?>" alt="" loading="lazy" />
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="slc-cp__hero-cta">
+                        <?php if ($offer['original'] !== '' || $offer['discount_label'] !== ''): ?>
+                            <div class="slc-cp__price-row">
+                                <?php if ($offer['original'] !== ''): ?>
+                                    <span class="slc-cp__price-old"><?php echo esc_html($offer['original']); ?></span>
+                                <?php endif; ?>
+                                <?php if ($offer['discount_label'] !== ''): ?>
+                                    <span class="slc-cp__price-off"><?php echo esc_html($offer['discount_label']); ?></span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="slc-cp__price-now"><?php echo esc_html($offer['current']); ?></div>
+                        <?php if ($offer['installments'] !== ''): ?>
+                            <div class="slc-cp__price-inst"><?php echo esc_html($offer['installments']); ?></div>
+                        <?php endif; ?>
+                        <a class="slc-cp__cta slc-cp__cta--lg" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
+                        <?php if ($offer['deadline'] !== ''): ?>
+                            <div class="slc-cp__urgency slc-cp__urgency--center">
+                                <span class="slc-cp__urgency-dot" aria-hidden="true"></span>
+                                <?php echo esc_html($offer['deadline']); ?>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($guarantee !== null): ?>
+                            <div class="slc-cp__guarantee-mini slc-cp__guarantee-mini--center">
+                                <?php echo self::icon('shield'); ?>
+                                <span><?php echo esc_html($guarantee['short']); ?></span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <ul class="slc-cp__hero-meta">
+                        <?php foreach (self::meta_chips($type_key, $hours, $total_min, $level, $language, $has_cert, $modules_count, $lessons_count) as $chip): ?>
+                            <li class="slc-cp__meta-chip">
+                                <span class="slc-cp__meta-icon" aria-hidden="true"><?php echo $chip['icon']; ?></span>
+                                <?php echo esc_html($chip['label']); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+            </section>
+
+            <?php /* ── HERO GIGANTE (preservado de V2 — full-width centrado) ──
+                 Se renderiza debajo del hero asymmetric con un modifier
+                 `--big` que aísla su CSS. Diseño va a iterar sobre esto. */ ?>
+            <section class="slc-cp__hero slc-cp__hero--big">
+                <div class="slc-cp__hero-bg" aria-hidden="true"></div>
+                <div class="slc-cp__wrap slc-cp__herobig-inner">
+                    <?php if ($badge !== '' || $category !== ''): ?>
+                        <div class="slc-cp__hero-badges">
+                            <?php if ($badge !== ''): ?>
+                                <span class="slc-cp__badge"><?php echo esc_html($badge); ?></span>
+                            <?php endif; ?>
+                            <?php if ($category !== ''): ?>
+                                <span class="slc-cp__badge slc-cp__badge--soft"><?php echo esc_html($category); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <h1 class="slc-cp__herobig-title"><?php echo esc_html($title); ?></h1>
+
+                    <?php if ($subtitle !== '' || $short_desc !== ''): ?>
+                        <p class="slc-cp__herobig-subtitle"><?php echo esc_html($subtitle !== '' ? $subtitle : $short_desc); ?></p>
+                    <?php endif; ?>
+
+                    <?php if ($social['rating'] !== null || $social['students_label'] !== ''): ?>
+                        <div class="slc-cp__herobig-proof">
+                            <?php if ($social['rating'] !== null): ?>
+                                <span class="slc-cp__stars" aria-hidden="true"><?php echo self::stars($social['rating']); ?></span>
+                                <strong><?php echo esc_html(number_format((float) $social['rating'], 1, ',', '')); ?></strong>
+                            <?php endif; ?>
+                            <?php if ($social['rating'] !== null && $social['students_label'] !== ''): ?>
+                                <span class="slc-cp__proof-sep">·</span>
+                            <?php endif; ?>
+                            <?php if ($social['students_label'] !== ''): ?>
+                                <span><?php echo esc_html($social['students_label']); ?></span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($trailer !== null):
+                        $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
+                    ?>
+                        <div class="slc-cp__herobig-trailer">
+                            <div class="slc-cp__trailer-facade"
+                                 data-embed="<?php echo esc_attr($trailer['embed']); ?>"
+                                 <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
+                                 role="button"
+                                 tabindex="0"
+                                 aria-label="<?php echo esc_attr__('Reproducir trailer', 'studiahub-lms-connector'); ?>">
+                                <button type="button" class="slc-cp__trailer-play" aria-hidden="true">
+                                    <svg viewBox="0 0 64 64" width="80" height="80"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.7)"/><polygon points="26,20 26,44 46,32" fill="#fff"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    <?php elseif ($thumbnail_url !== ''): ?>
+                        <div class="slc-cp__herobig-trailer">
+                            <img class="slc-cp__herobig-thumb" src="<?php echo esc_url($thumbnail_url); ?>" alt="" loading="lazy" />
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="slc-cp__herobig-cta">
+                        <?php if ($offer['original'] !== ''): ?>
+                            <div class="slc-cp__herobig-price-row">
+                                <span class="slc-cp__price-old"><?php echo esc_html($offer['original']); ?></span>
+                                <?php if ($offer['discount_label'] !== ''): ?>
+                                    <span class="slc-cp__price-off"><?php echo esc_html($offer['discount_label']); ?></span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+                        <div class="slc-cp__herobig-price-now"><?php echo esc_html($offer['current']); ?></div>
+                        <?php if ($offer['installments'] !== ''): ?>
+                            <div class="slc-cp__herobig-price-inst"><?php echo esc_html($offer['installments']); ?></div>
+                        <?php endif; ?>
+                        <a class="slc-cp__cta slc-cp__cta--xl" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
+                        <?php if ($offer['deadline'] !== ''): ?>
+                            <div class="slc-cp__urgency slc-cp__urgency--center">
+                                <span class="slc-cp__urgency-dot" aria-hidden="true"></span>
+                                <?php echo esc_html($offer['deadline']); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <ul class="slc-cp__herobig-meta">
+                        <?php foreach (self::meta_chips($type_key, $hours, $total_min, $level, $language, $has_cert, $modules_count, $lessons_count) as $chip): ?>
+                            <li class="slc-cp__meta-chip">
+                                <span class="slc-cp__meta-icon" aria-hidden="true"><?php echo $chip['icon']; ?></span>
+                                <?php echo esc_html($chip['label']); ?>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
                 </div>
             </section>
 
