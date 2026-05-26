@@ -119,13 +119,17 @@
 /* Cuando el header está centrado, el h2 también se auto-centra horizontalmente. */
 .slc-cpitch__section-head--center .slc-cpitch__h2 { margin-left: auto; margin-right: auto; }
 
-/* ── HERO GIGANTE ────────────────────────────────────────────────────── */
+/* ── HERO ASYMMETRIC (2 cols: texto izq + card derecha) ────────────────
+ * Robusto con o sin trailer: la card derecha se autoajusta a:
+ *   trailer + price block, o thumbnail + price block, o solo price block.
+ * El "skin DTC" sigue: bg radial multi-color (accent + secondary), card
+ * con sombra marcada y radius lg, gradient pill arriba, garantía sticker.
+ * ──────────────────────────────────────────────────────────────────── */
 .slc-cpitch__hero {
     position: relative;
-    padding: clamp(64px, 9vw, 120px) 0 clamp(56px, 7vw, 88px);
+    padding: clamp(56px, 8vw, 104px) 0;
     background: #fff;
     overflow: hidden;
-    text-align: center;
 }
 .slc-cpitch__hero-bg {
     position: absolute;
@@ -136,11 +140,17 @@
         radial-gradient(ellipse 60% 40% at 85% 70%, rgba(var(--shub-accent-rgb), 0.10), transparent 70%);
     pointer-events: none;
 }
-/* El hero ES centrado en toda su columna — confirmamos text-align center
- * acá para que ningún padre/builder lo rompa. */
-.slc-cpitch__hero-inner { position: relative; z-index: 1; text-align: center; }
+.slc-cpitch__hero-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1.15fr 0.95fr;
+    gap: clamp(40px, 5vw, 72px);
+    align-items: center;
+}
+.slc-cpitch__hero-main { text-align: left; }
 
-.slc-cpitch__pretitle { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+.slc-cpitch__pretitle { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
 .slc-cpitch__pretitle-pill {
     background: var(--shub-cta-grad);
     color: #fff;
@@ -162,21 +172,19 @@
 }
 
 .slc-cpitch__hero-title {
-    font-size: clamp(36px, 6.4vw, 64px);
+    font-size: clamp(34px, 5.6vw, 56px);
     font-weight: 900;
     color: var(--shub-text-title);
-    line-height: 1.02;
+    line-height: 1.05;
     letter-spacing: -0.035em;
-    margin-bottom: 22px;
-    max-width: 20ch;
-    margin-left: auto;
-    margin-right: auto;
+    margin: 0 0 22px;
+    max-width: 18ch;
 }
 .slc-cpitch__hero-sub {
-    font-size: clamp(18px, 2vw, 22px);
+    font-size: clamp(17px, 1.7vw, 21px);
     color: var(--shub-text-body);
-    max-width: 64ch;
-    margin: 0 auto 28px;
+    max-width: 56ch;
+    margin: 0 0 26px;
     line-height: 1.5;
 }
 .slc-cpitch__hero-proof {
@@ -185,7 +193,7 @@
     gap: 10px;
     color: var(--shub-text-title);
     font-size: 15px;
-    margin-bottom: 36px;
+    margin: 0 0 28px;
     padding: 10px 18px;
     background: rgba(255,255,255,0.7);
     backdrop-filter: blur(8px);
@@ -195,14 +203,22 @@
 .slc-cpitch__stars { display: inline-flex; color: #FAB005; }
 .slc-cpitch__proof-sep { color: var(--shub-text-muted); }
 
-.slc-cpitch__hero-trailer {
-    max-width: 880px;
-    margin: 0 auto 44px;
+.slc-cpitch__hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
+.slc-cpitch__meta-chip { display: inline-flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.85); backdrop-filter: blur(6px); color: var(--shub-text-body); font-size: 13px; font-weight: 500; padding: 9px 14px; border-radius: var(--shub-radius-pill); border: 1px solid rgba(var(--shub-accent-rgb), 0.08); }
+.slc-cpitch__meta-icon { display: inline-flex; color: var(--shub-accent); }
+
+/* Card derecha del hero (precio + trailer opcional + CTA + garantía) */
+.slc-cpitch__hero-card {
+    background: #fff;
+    border: 1px solid var(--shub-border);
     border-radius: var(--shub-radius-lg);
     overflow: hidden;
-    box-shadow: 0 30px 80px -28px rgba(15,23,42,0.4), 0 0 0 1px rgba(var(--shub-accent-rgb), 0.08);
+    box-shadow: 0 30px 72px -28px rgba(15,23,42,0.28), 0 0 0 1px rgba(var(--shub-accent-rgb), 0.05);
 }
+.slc-cpitch__hero-media { position: relative; background: #000; }
+.slc-cpitch__hero-media .slc-cpitch__trailer-facade { aspect-ratio: 16 / 9; }
 .slc-cpitch__hero-thumb { width: 100%; display: block; aspect-ratio: 16 / 9; object-fit: cover; }
+
 .slc-cpitch__trailer-facade {
     position: relative;
     width: 100%;
@@ -220,11 +236,11 @@
 .slc-cpitch__play { display: inline-flex; }
 .slc-cpitch__trailer-facade--active { cursor: default; }
 
-.slc-cpitch__hero-cta { margin-bottom: 36px; }
-.slc-cpitch__hero-price { display: flex; align-items: baseline; justify-content: center; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
-.slc-cpitch__price-old { color: var(--shub-text-muted); text-decoration: line-through; font-size: 20px; }
-.slc-cpitch__price-now { font-size: clamp(36px, 4.6vw, 52px); font-weight: 800; color: var(--shub-text-title); line-height: 1; letter-spacing: -0.025em; }
-.slc-cpitch__price-inst { color: var(--shub-text-muted); font-size: 14px; flex-basis: 100%; }
+.slc-cpitch__hero-cardbody { padding: 28px; }
+.slc-cpitch__hero-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin-bottom: 22px; }
+.slc-cpitch__price-old { color: var(--shub-text-muted); text-decoration: line-through; font-size: 18px; }
+.slc-cpitch__price-now { font-size: clamp(34px, 3.8vw, 42px); font-weight: 800; color: var(--shub-text-title); line-height: 1; letter-spacing: -0.025em; }
+.slc-cpitch__price-inst { color: var(--shub-text-muted); font-size: 14px; flex-basis: 100%; margin: 0; }
 
 .slc-cpitch__btn {
     display: inline-block;
@@ -239,18 +255,26 @@
 .slc-cpitch__btn:hover { transform: translateY(-2px); box-shadow: 0 22px 44px -12px rgba(var(--shub-accent-rgb), 0.7); color: #fff; }
 .slc-cpitch__btn--xl { font-size: 18px; padding: 20px 44px; min-width: 280px; }
 .slc-cpitch__btn--md { font-size: 14px; padding: 12px 24px; }
+.slc-cpitch__btn--block { display: block; width: 100%; font-size: 17px; padding: 17px 24px; }
 .slc-cpitch__btn--on-dark { background: #fff; color: var(--shub-accent-dark); box-shadow: 0 16px 36px -10px rgba(0,0,0,0.4); }
 .slc-cpitch__btn--on-dark:hover { color: var(--shub-accent-dark); box-shadow: 0 22px 44px -12px rgba(0,0,0,0.5); }
 
-.slc-cpitch__deadline { display: inline-flex; align-items: center; gap: 8px; color: #E8590C; font-size: 14px; font-weight: 600; margin-top: 16px; }
-/* --center se rompe en su propia línea para no quedar inline al lado del CTA. */
+.slc-cpitch__deadline { display: inline-flex; align-items: center; gap: 8px; color: #E8590C; font-size: 14px; font-weight: 600; margin-top: 14px; }
 .slc-cpitch__deadline--center { display: flex; justify-content: center; }
 .slc-cpitch__deadline-dot { width: 9px; height: 9px; border-radius: 50%; background: #FD7E14; box-shadow: 0 0 0 0 rgba(253,126,20,0.5); animation: slc-cpitch-pulse 1.8s infinite; }
 @keyframes slc-cpitch-pulse { 0% { box-shadow: 0 0 0 0 rgba(253,126,20,0.5); } 70% { box-shadow: 0 0 0 10px rgba(253,126,20,0); } 100% { box-shadow: 0 0 0 0 rgba(253,126,20,0); } }
 
-.slc-cpitch__hero-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.slc-cpitch__meta-chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--shub-text-body); font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: var(--shub-radius-pill); border: 1px solid var(--shub-border); }
-.slc-cpitch__meta-icon { display: inline-flex; color: var(--shub-accent); }
+.slc-cpitch__hero-guarantee {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--shub-text-muted);
+    font-size: 13px;
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--shub-border);
+}
+.slc-cpitch__hero-guarantee svg { color: #12B886; flex-shrink: 0; }
 
 /* ── CHECKS (outcomes) — left-aligned, coherente con header left ─── */
 .slc-cpitch__checks {
@@ -614,6 +638,8 @@
 
 /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
+    .slc-cpitch__hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .slc-cpitch__hero-title { max-width: none; }
     .slc-cpitch__band-grid { gap: 28px 32px; }
     .slc-cpitch__reviews-grid { grid-template-columns: 1fr 1fr; }
 }
@@ -623,8 +649,7 @@
     .slc-cpitch__section { padding: 64px 0; }
     .slc-cpitch__checks { grid-template-columns: 1fr; }
     .slc-cpitch__reviews-grid { grid-template-columns: 1fr; }
-    .slc-cpitch__hero-trailer { margin-bottom: 32px; }
-    .slc-cpitch__hero-meta { display: none; }
+    .slc-cpitch__hero-cardbody { padding: 22px; }
     .slc-cpitch__btn--xl { min-width: 0; width: 100%; padding: 18px 24px; font-size: 17px; }
     .slc-cpitch__instructor {
         grid-template-columns: 1fr;
@@ -665,8 +690,12 @@
  * specificity con `.elementor-widget-...`. Estas reglas duplicadas con
  * `.elementor-widget` como prefijo ganan la cascade sin necesidad de
  * `!important`. NO afectan landings que no usen Elementor. */
-.elementor-widget .slc-coursepitch .slc-cpitch__hero-inner,
 .elementor-widget .slc-coursepitch .slc-cpitch__final-inner { text-align: center; }
+.elementor-widget .slc-coursepitch .slc-cpitch__hero-main { text-align: left; }
+.elementor-widget .slc-coursepitch .slc-cpitch__hero-title { margin: 0 0 22px; }
+.elementor-widget .slc-coursepitch .slc-cpitch__hero-sub { margin: 0 0 26px; }
+.elementor-widget .slc-coursepitch .slc-cpitch__pretitle { margin: 0 0 24px; }
+.elementor-widget .slc-coursepitch .slc-cpitch__hero-proof { margin: 0 0 28px; }
 .elementor-widget .slc-coursepitch .slc-cpitch__section-head { text-align: left; }
 .elementor-widget .slc-coursepitch .slc-cpitch__section-head--center { text-align: center; }
 .elementor-widget .slc-coursepitch .slc-cpitch__band-grid { justify-content: center; }

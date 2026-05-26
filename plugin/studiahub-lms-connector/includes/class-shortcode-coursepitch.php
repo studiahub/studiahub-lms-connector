@@ -137,95 +137,106 @@ final class Shortcode_CoursePitch {
         ?>
         <article class="slc-coursepitch" itemscope itemtype="https://schema.org/Course"<?php if ($brand_style !== '') echo ' style="' . esc_attr($brand_style) . '"'; ?>>
 
-            <?php /* ── HERO grande, full-bleed, trailer dominante ─────── */ ?>
+            <?php /* ── HERO asymmetric: texto izq + card derecha (robusto con/sin trailer) ─── */ ?>
             <section class="slc-cpitch__hero">
                 <div class="slc-cpitch__hero-bg" aria-hidden="true"></div>
-                <div class="slc-cpitch__wrap slc-cpitch__hero-inner">
-                    <?php if ($badge !== '' || $category !== ''): ?>
-                        <div class="slc-cpitch__pretitle">
-                            <?php if ($badge !== ''): ?>
-                                <span class="slc-cpitch__pretitle-pill"><?php echo esc_html($badge); ?></span>
-                            <?php endif; ?>
-                            <?php if ($category !== ''): ?>
-                                <span class="slc-cpitch__pretitle-cat"><?php echo esc_html($category); ?></span>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <h1 class="slc-cpitch__hero-title"><?php echo esc_html($title); ?></h1>
-
-                    <?php if ($subtitle !== '' || $short_desc !== ''): ?>
-                        <p class="slc-cpitch__hero-sub"><?php echo esc_html($subtitle !== '' ? $subtitle : $short_desc); ?></p>
-                    <?php endif; ?>
-
-                    <?php if ($social['rating'] !== null || $social['students_label'] !== ''): ?>
-                        <div class="slc-cpitch__hero-proof">
-                            <?php if ($social['rating'] !== null): ?>
-                                <span class="slc-cpitch__stars" aria-hidden="true"><?php echo Shortcode_CoursePage::stars_public($social['rating']); ?></span>
-                                <strong><?php echo esc_html(number_format((float) $social['rating'], 1, ',', '')); ?></strong>
-                                <span class="slc-cpitch__proof-sep">·</span>
-                            <?php endif; ?>
-                            <?php if ($social['students_label'] !== ''): ?>
-                                <span><?php echo esc_html($social['students_label']); ?></span>
-                            <?php endif; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($trailer !== null):
-                        $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
-                    ?>
-                        <div class="slc-cpitch__hero-trailer">
-                            <div class="slc-cpitch__trailer-facade"
-                                 data-embed="<?php echo esc_attr($trailer['embed']); ?>"
-                                 <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
-                                 role="button"
-                                 tabindex="0"
-                                 aria-label="<?php echo esc_attr__('Reproducir trailer', 'studiahub-lms-connector'); ?>">
-                                <span class="slc-cpitch__play" aria-hidden="true">
-                                    <svg viewBox="0 0 64 64" width="80" height="80"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.7)"/><polygon points="26,20 26,44 46,32" fill="#fff"/></svg>
-                                </span>
-                            </div>
-                        </div>
-                    <?php elseif ($thumbnail_url !== ''): ?>
-                        <div class="slc-cpitch__hero-trailer">
-                            <img class="slc-cpitch__hero-thumb" src="<?php echo esc_url($thumbnail_url); ?>" alt="" loading="lazy" />
-                        </div>
-                    <?php endif; ?>
-
-                    <div class="slc-cpitch__hero-cta">
-                        <div class="slc-cpitch__hero-price">
-                            <?php if ($offer['original'] !== ''): ?>
-                                <span class="slc-cpitch__price-old"><?php echo esc_html($offer['original']); ?></span>
-                            <?php endif; ?>
-                            <span class="slc-cpitch__price-now"><?php echo esc_html($offer['current']); ?></span>
-                            <?php if ($offer['installments'] !== ''): ?>
-                                <span class="slc-cpitch__price-inst"><?php echo esc_html($offer['installments']); ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <a class="slc-cpitch__btn slc-cpitch__btn--xl" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
-                        <?php if ($offer['deadline'] !== ''): ?>
-                            <div class="slc-cpitch__deadline">
-                                <span class="slc-cpitch__deadline-dot" aria-hidden="true"></span>
-                                <?php echo esc_html($offer['deadline']); ?>
+                <div class="slc-cpitch__wrap slc-cpitch__hero-grid">
+                    <div class="slc-cpitch__hero-main">
+                        <?php if ($badge !== '' || $category !== ''): ?>
+                            <div class="slc-cpitch__pretitle">
+                                <?php if ($badge !== ''): ?>
+                                    <span class="slc-cpitch__pretitle-pill"><?php echo esc_html($badge); ?></span>
+                                <?php endif; ?>
+                                <?php if ($category !== ''): ?>
+                                    <span class="slc-cpitch__pretitle-cat"><?php echo esc_html($category); ?></span>
+                                <?php endif; ?>
                             </div>
                         <?php endif; ?>
+
+                        <h1 class="slc-cpitch__hero-title"><?php echo esc_html($title); ?></h1>
+
+                        <?php if ($subtitle !== '' || $short_desc !== ''): ?>
+                            <p class="slc-cpitch__hero-sub"><?php echo esc_html($subtitle !== '' ? $subtitle : $short_desc); ?></p>
+                        <?php endif; ?>
+
+                        <?php if ($social['rating'] !== null || $social['students_label'] !== ''): ?>
+                            <div class="slc-cpitch__hero-proof">
+                                <?php if ($social['rating'] !== null): ?>
+                                    <span class="slc-cpitch__stars" aria-hidden="true"><?php echo Shortcode_CoursePage::stars_public($social['rating']); ?></span>
+                                    <strong><?php echo esc_html(number_format((float) $social['rating'], 1, ',', '')); ?></strong>
+                                <?php endif; ?>
+                                <?php if ($social['rating'] !== null && $social['students_label'] !== ''): ?>
+                                    <span class="slc-cpitch__proof-sep">·</span>
+                                <?php endif; ?>
+                                <?php if ($social['students_label'] !== ''): ?>
+                                    <span><?php echo esc_html($social['students_label']); ?></span>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <ul class="slc-cpitch__hero-meta">
+                            <?php foreach (self::meta_chips($type_key, $hours, $total_min, $level, $language, $has_cert, $modules_count, $lessons_count) as $chip): ?>
+                                <li class="slc-cpitch__meta-chip">
+                                    <span class="slc-cpitch__meta-icon" aria-hidden="true"><?php echo $chip['icon']; ?></span>
+                                    <?php echo esc_html($chip['label']); ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
 
-                    <ul class="slc-cpitch__hero-meta">
-                        <?php foreach (self::meta_chips($type_key, $hours, $total_min, $level, $language, $has_cert, $modules_count, $lessons_count) as $chip): ?>
-                            <li class="slc-cpitch__meta-chip">
-                                <span class="slc-cpitch__meta-icon" aria-hidden="true"><?php echo $chip['icon']; ?></span>
-                                <?php echo esc_html($chip['label']); ?>
-                            </li>
-                        <?php endforeach; ?>
-                    </ul>
+                    <aside class="slc-cpitch__hero-card">
+                        <?php if ($trailer !== null):
+                            $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
+                        ?>
+                            <div class="slc-cpitch__hero-media">
+                                <div class="slc-cpitch__trailer-facade"
+                                     data-embed="<?php echo esc_attr($trailer['embed']); ?>"
+                                     <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
+                                     role="button"
+                                     tabindex="0"
+                                     aria-label="<?php echo esc_attr__('Reproducir trailer', 'studiahub-lms-connector'); ?>">
+                                    <span class="slc-cpitch__play" aria-hidden="true">
+                                        <svg viewBox="0 0 64 64" width="72" height="72"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.7)"/><polygon points="26,20 26,44 46,32" fill="#fff"/></svg>
+                                    </span>
+                                </div>
+                            </div>
+                        <?php elseif ($thumbnail_url !== ''): ?>
+                            <div class="slc-cpitch__hero-media">
+                                <img class="slc-cpitch__hero-thumb" src="<?php echo esc_url($thumbnail_url); ?>" alt="" loading="lazy" />
+                            </div>
+                        <?php endif; ?>
+                        <div class="slc-cpitch__hero-cardbody">
+                            <div class="slc-cpitch__hero-price">
+                                <?php if ($offer['original'] !== ''): ?>
+                                    <span class="slc-cpitch__price-old"><?php echo esc_html($offer['original']); ?></span>
+                                <?php endif; ?>
+                                <span class="slc-cpitch__price-now"><?php echo esc_html($offer['current']); ?></span>
+                                <?php if ($offer['installments'] !== ''): ?>
+                                    <span class="slc-cpitch__price-inst"><?php echo esc_html($offer['installments']); ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <a class="slc-cpitch__btn slc-cpitch__btn--block" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
+                            <?php if ($offer['deadline'] !== ''): ?>
+                                <div class="slc-cpitch__deadline">
+                                    <span class="slc-cpitch__deadline-dot" aria-hidden="true"></span>
+                                    <?php echo esc_html($offer['deadline']); ?>
+                                </div>
+                            <?php endif; ?>
+                            <?php if ($guarantee !== null): ?>
+                                <div class="slc-cpitch__hero-guarantee">
+                                    <svg viewBox="0 0 16 16" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1l6 2v5c0 4-3 6-6 7-3-1-6-3-6-7V3l6-2z"/></svg>
+                                    <span><?php echo esc_html($guarantee['short']); ?></span>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </aside>
                 </div>
             </section>
 
             <?php /* ── HOOK / OUTCOMES (qué vas a lograr) ─────────────── */ ?>
             <?php if (!empty($outcomes)): ?>
             <section class="slc-cpitch__section">
-                <div class="slc-cpitch__wrap">
+                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
                         <span class="slc-cpitch__eyebrow"><?php esc_html_e('Lo que te llevás', 'studiahub-lms-connector'); ?></span>
                         <h2 class="slc-cpitch__h2"><?php esc_html_e('Al terminar este curso vas a poder…', 'studiahub-lms-connector'); ?></h2>
@@ -272,7 +283,7 @@ final class Shortcode_CoursePitch {
             <?php /* ── PARA QUIÉN ES ───────────────────────────────────── */ ?>
             <?php if (!empty($audience)): ?>
             <section class="slc-cpitch__section">
-                <div class="slc-cpitch__wrap">
+                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
                         <span class="slc-cpitch__eyebrow"><?php esc_html_e('Para vos', 'studiahub-lms-connector'); ?></span>
                         <h2 class="slc-cpitch__h2"><?php esc_html_e('¿Es para vos?', 'studiahub-lms-connector'); ?></h2>
@@ -429,7 +440,7 @@ final class Shortcode_CoursePitch {
             <?php /* ── RESEÑAS (grid grande, destacadas) ───────────────── */ ?>
             <?php if (!empty($reviews)): ?>
             <section class="slc-cpitch__section slc-cpitch__section--soft">
-                <div class="slc-cpitch__wrap">
+                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
                         <span class="slc-cpitch__eyebrow"><?php esc_html_e('Lo que dicen', 'studiahub-lms-connector'); ?></span>
                         <h2 class="slc-cpitch__h2"><?php esc_html_e('Alumnos reales, resultados reales', 'studiahub-lms-connector'); ?></h2>
