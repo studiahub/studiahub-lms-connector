@@ -275,6 +275,51 @@ background: var(--shub-accent);
 
 ---
 
+---
+
+## 🏷️ Sobre los títulos de cada sección ("Todo lo que vas a aprender", "Tus instructores", etc.)
+
+Los títulos de cada bloque (eyebrow + H2) **NO vienen del LMS**. Son strings hardcoded en el PHP del plugin. Ejemplos:
+
+| Sección | Eyebrow | Título (H2) |
+|---|---|---|
+| Outcomes | "Lo que te llevás" | "Al terminar este curso vas a poder…" |
+| Descripción larga | "La propuesta" | "Por qué tomar este curso" |
+| Audience | "Para vos" | "¿Es para vos?" |
+| Outline | "Plan de estudio" | "Todo lo que vas a aprender" |
+| Bonos | "Bonos exclusivos" | "Si te inscribís hoy, también te llevás:" |
+| Instructores | "Quién enseña" | "Tus instructores" |
+| Reseñas | "Lo que dicen" | "Alumnos reales, resultados reales" |
+| Garantía | (sello) | "X días de garantía total" (este SÍ viene del LMS) |
+| FAQ | "Dudas" | "Preguntas frecuentes" |
+| Requisitos | "Lo que necesitás" | "Antes de empezar" |
+
+### ⚠️ Si los modificás, afectás a TODOS los clientes
+
+Estos labels viven en el archivo PHP del plugin (`includes/class-shortcode-coursepitch.php`). Cambiarlos altera el template para todos los cursos de todos los clientes que usen este plugin. **No es algo malo** — es parte de tu rol como diseño definir el copy del template — pero tenelo presente.
+
+### Si querés cambiar uno
+
+Pedile a Claude Code:
+
+> "En la sección de outline del shortcode pitch, cambiá el título 'Todo lo que vas a aprender' por 'Programa completo del curso'."
+
+Claude Code va a editar el PHP y el cambio aparece al recargar.
+
+### Lo que sí viene del LMS y NO se toca acá
+
+- El **título del curso** (h1 del hero) → viene de `payload.title`.
+- El **subtítulo** del curso → `payload.subtitle`.
+- La **descripción larga** del curso → `payload.longDescription`.
+- El **título de la garantía** (ej. "7 días de garantía") → `payload.guarantee.title`.
+- Los **textos de cada FAQ** (pregunta + respuesta) → `payload.faq`.
+- Los **nombres de instructores, sus bios, sus cargos** → `payload.instructors`.
+- Etc.
+
+Todo eso lo configura cada cliente desde su admin del LMS. Nadi no los toca.
+
+---
+
 ## 🔍 Cómo identificar qué clase tocar
 
 1. Abrí la landing en el browser.

@@ -148,9 +148,51 @@
       "comment": "El mejor curso de marketing que hice. La parte de embudos automatizados me cambió el negocio.",
       "createdAt": "2026-02-22T11:45:00Z",
       "user": { "firstName": "Diego", "lastName": "Ramos", "avatarUrl": null }
+    },
+    {
+      "id": "r5",
+      "rating": 5,
+      "comment": "Justo lo que necesitaba. Trabajo en una agencia chica y ahora puedo manejar las cuentas de Meta sin depender de freelancers externos. La inversión se paga sola.",
+      "createdAt": "2026-02-08T16:22:00Z",
+      "user": { "firstName": "Sofía", "lastName": "Acosta", "avatarUrl": null }
+    },
+    {
+      "id": "r6",
+      "rating": 5,
+      "comment": "Increíble cómo Gon arma cada clase. Los ejemplos son reales, no inventados. Me sirvió muchísimo para escalar mi e-commerce de ropa.",
+      "createdAt": "2026-01-30T10:05:00Z",
+      "user": { "firstName": "Martín", "lastName": "Iglesias", "avatarUrl": null }
+    },
+    {
+      "id": "r7",
+      "rating": 4,
+      "comment": "Muy completo. Algunas secciones son un poco largas pero el contenido vale la pena. Las plantillas que vienen como bono te ahorran horas de laburo.",
+      "createdAt": "2026-01-18T13:50:00Z",
+      "user": { "firstName": "Valeria", "lastName": "Quintana", "avatarUrl": null }
+    },
+    {
+      "id": "r8",
+      "rating": 5,
+      "comment": "Recomiendo este curso con los ojos cerrados. Antes pagaba a una agencia $800 por mes para que me manejen ads. Ahora lo hago yo y mejor. Se paga solo en un mes.",
+      "createdAt": "2026-01-05T19:12:00Z",
+      "user": { "firstName": "Ezequiel", "lastName": "Bernal", "avatarUrl": null }
+    },
+    {
+      "id": "r9",
+      "rating": 5,
+      "comment": "Llegué al curso pensando que sabía algo de marketing digital. Salí dándome cuenta de que apenas había arañado la superficie. Mi ROAS pasó de 1.5x a 4.2x en 3 meses.",
+      "createdAt": "2025-12-20T08:30:00Z",
+      "user": { "firstName": "Camila", "lastName": "Núñez", "avatarUrl": null }
+    },
+    {
+      "id": "r10",
+      "rating": 4,
+      "comment": "Muy buen curso. La comunidad en Discord es un plus enorme — pregunto cosas específicas de mi nicho y siempre alguien responde rápido.",
+      "createdAt": "2025-12-12T14:45:00Z",
+      "user": { "firstName": "Joaquín", "lastName": "Vargas", "avatarUrl": null }
     }
   ],
-  "reviewStats": { "count": 4, "average": 4.75 },
+  "reviewStats": { "count": 10, "average": 4.7 },
   "compareAtPrice": "USD 1.499 / ARS 2.100.000",
   "installmentsLabel": "o 12 cuotas sin interés",
   "offerDeadlineAt": "2026-06-15T23:59:59Z",
