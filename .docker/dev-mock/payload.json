@@ -120,76 +120,77 @@
       ]
     }
   ],
+  "_reviews_format_note": "Formato canónico del payload: author (string ya formateado), avatarUrl, rating, comment, createdAt. NO usar { user: { firstName, lastName } } — ese es el formato de la DB, no del payload.",
   "reviews": [
     {
-      "id": "r1",
+      "author": "Carolina M.",
+      "avatarUrl": null,
       "rating": 5,
       "comment": "Espectacular el curso. Recuperé la inversión en la primera campaña que armé después del módulo 2. Recomendadísimo.",
-      "createdAt": "2026-04-15T14:30:00Z",
-      "user": { "firstName": "Carolina", "lastName": "Méndez", "avatarUrl": null }
+      "createdAt": "2026-04-15T14:30:00Z"
     },
     {
-      "id": "r2",
+      "author": "Federico S.",
+      "avatarUrl": null,
       "rating": 5,
       "comment": "Gon explica de manera clarísima, sin vueltas. Los workbooks son oro puro. Pasé de no entender Meta Ads a llevar 3 cuentas de clientes.",
-      "createdAt": "2026-03-28T09:15:00Z",
-      "user": { "firstName": "Federico", "lastName": "Soto", "avatarUrl": null }
+      "createdAt": "2026-03-28T09:15:00Z"
     },
     {
-      "id": "r3",
+      "author": "Lucía P.",
+      "avatarUrl": null,
       "rating": 4,
       "comment": "Muy bueno el contenido. Me hubiera gustado más profundidad en analytics, pero en general súper completo.",
-      "createdAt": "2026-03-10T18:00:00Z",
-      "user": { "firstName": "Lucía", "lastName": "Pereyra", "avatarUrl": null }
+      "createdAt": "2026-03-10T18:00:00Z"
     },
     {
-      "id": "r4",
+      "author": "Diego R.",
+      "avatarUrl": null,
       "rating": 5,
       "comment": "El mejor curso de marketing que hice. La parte de embudos automatizados me cambió el negocio.",
-      "createdAt": "2026-02-22T11:45:00Z",
-      "user": { "firstName": "Diego", "lastName": "Ramos", "avatarUrl": null }
+      "createdAt": "2026-02-22T11:45:00Z"
     },
     {
-      "id": "r5",
+      "author": "Sofía A.",
+      "avatarUrl": null,
       "rating": 5,
       "comment": "Justo lo que necesitaba. Trabajo en una agencia chica y ahora puedo manejar las cuentas de Meta sin depender de freelancers externos. La inversión se paga sola.",
-      "createdAt": "2026-02-08T16:22:00Z",
-      "user": { "firstName": "Sofía", "lastName": "Acosta", "avatarUrl": null }
+      "createdAt": "2026-02-08T16:22:00Z"
     },
     {
-      "id": "r6",
+      "author": "Martín I.",
+      "avatarUrl": null,
       "rating": 5,
       "comment": "Increíble cómo Gon arma cada clase. Los ejemplos son reales, no inventados. Me sirvió muchísimo para escalar mi e-commerce de ropa.",
-      "createdAt": "2026-01-30T10:05:00Z",
-      "user": { "firstName": "Martín", "lastName": "Iglesias", "avatarUrl": null }
+      "createdAt": "2026-01-30T10:05:00Z"
     },
     {
-      "id": "r7",
+      "author": "Valeria Q.",
+      "avatarUrl": null,
       "rating": 4,
       "comment": "Muy completo. Algunas secciones son un poco largas pero el contenido vale la pena. Las plantillas que vienen como bono te ahorran horas de laburo.",
-      "createdAt": "2026-01-18T13:50:00Z",
-      "user": { "firstName": "Valeria", "lastName": "Quintana", "avatarUrl": null }
+      "createdAt": "2026-01-18T13:50:00Z"
     },
     {
-      "id": "r8",
+      "author": "Ezequiel B.",
+      "avatarUrl": null,
       "rating": 5,
       "comment": "Recomiendo este curso con los ojos cerrados. Antes pagaba a una agencia $800 por mes para que me manejen ads. Ahora lo hago yo y mejor. Se paga solo en un mes.",
-      "createdAt": "2026-01-05T19:12:00Z",
-      "user": { "firstName": "Ezequiel", "lastName": "Bernal", "avatarUrl": null }
+      "createdAt": "2026-01-05T19:12:00Z"
     },
     {
-      "id": "r9",
+      "author": "Camila N.",
+      "avatarUrl": null,
       "rating": 5,
       "comment": "Llegué al curso pensando que sabía algo de marketing digital. Salí dándome cuenta de que apenas había arañado la superficie. Mi ROAS pasó de 1.5x a 4.2x en 3 meses.",
-      "createdAt": "2025-12-20T08:30:00Z",
-      "user": { "firstName": "Camila", "lastName": "Núñez", "avatarUrl": null }
+      "createdAt": "2025-12-20T08:30:00Z"
     },
     {
-      "id": "r10",
+      "author": "Joaquín V.",
+      "avatarUrl": null,
       "rating": 4,
       "comment": "Muy buen curso. La comunidad en Discord es un plus enorme — pregunto cosas específicas de mi nicho y siempre alguien responde rápido.",
-      "createdAt": "2025-12-12T14:45:00Z",
-      "user": { "firstName": "Joaquín", "lastName": "Vargas", "avatarUrl": null }
+      "createdAt": "2025-12-12T14:45:00Z"
     }
   ],
   "reviewStats": { "count": 10, "average": 4.7 },
