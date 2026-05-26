@@ -156,9 +156,11 @@ final class Shortcode_CoursePage {
         $category = trim((string) ($payload['category'] ?? ''));
 
         // ── BRANDING DEL TENANT ───────────────────────────────────────────
-        // El payload trae branding con {primaryColor, secondaryColor, fontFamily, logoUrl}.
+        // El payload trae branding con {primaryColor, secondaryColor, fontFamily}.
         // Aplicamos colores y tipografía via CSS custom properties INLINE en el wrapper —
         // así una sola hoja CSS sirve a N tenants con su skin propio.
+        // NOTA: el logo del tenant NO se renderiza acá. La landing vive dentro
+        // del header/footer del sitio WP del cliente, que ya muestra su logo.
         $branding = is_array($payload['branding'] ?? null) ? $payload['branding'] : [];
         $brand_style = self::build_brand_style($branding);
 
@@ -1053,6 +1055,10 @@ final class Shortcode_CoursePage {
      * shortcode. Lee branding.primaryColor / secondaryColor / fontFamily
      * y deriva el resto (tonos suaves, dark, gradientes). Los hex inválidos
      * caen al default — nunca rompemos el render.
+     *
+     * `branding.logoUrl` está disponible en el payload pero NO se renderiza:
+     * la landing se embebe dentro del sitio del cliente que ya tiene su
+     * propio header con logo.
      */
     public static function build_brand_style(array $branding): string {
         $primary   = self::sanitize_hex($branding['primaryColor'] ?? '', '#7950F2');

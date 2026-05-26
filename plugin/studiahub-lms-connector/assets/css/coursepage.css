@@ -50,8 +50,33 @@
     -moz-osx-font-smoothing: grayscale;
 }
 .slc-coursepage *, .slc-coursepage *::before, .slc-coursepage *::after { box-sizing: border-box; }
-.slc-coursepage h1, .slc-coursepage h2, .slc-coursepage h3, .slc-coursepage p, .slc-coursepage ul { margin: 0; }
-.slc-coursepage ul { list-style: none; padding: 0; }
+/* Reset agresivo: WP themes y Elementor inyectan margins/line-heights raros
+ * sobre h1/h2/h3/p/ul que se cuelan via cascade.
+ * Usamos :where() para specificity 0 — así cualquier regla con clase propia
+ * (.slc-cp__hero-title etc) la sobreescribe sin pelear con specificity. */
+:where(.slc-coursepage) h1,
+:where(.slc-coursepage) h2,
+:where(.slc-coursepage) h3,
+:where(.slc-coursepage) h4,
+:where(.slc-coursepage) h5,
+:where(.slc-coursepage) h6,
+:where(.slc-coursepage) p,
+:where(.slc-coursepage) ul,
+:where(.slc-coursepage) ol,
+:where(.slc-coursepage) li {
+    margin: 0;
+    padding: 0;
+}
+/* Headings con line-height tight propio — sino heredan 1.65 del body y los
+ * títulos de varias líneas quedan con MUCHO aire interno. */
+:where(.slc-coursepage) h1,
+:where(.slc-coursepage) h2,
+:where(.slc-coursepage) h3,
+:where(.slc-coursepage) h4,
+:where(.slc-coursepage) h5,
+:where(.slc-coursepage) h6 { line-height: 1.15; }
+:where(.slc-coursepage) ul,
+:where(.slc-coursepage) ol { list-style: none; }
 .slc-coursepage a { text-decoration: none; }
 
 .slc-cp__wrap { max-width: var(--shub-wrap); margin: 0 auto; padding: 0 32px; width: 100%; }
@@ -103,7 +128,7 @@
     position: relative;
     z-index: 1;
 }
-.slc-cp__hero-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.slc-cp__hero-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 28px; }
 .slc-cp__badge {
     display: inline-block;
     background: var(--shub-accent);
@@ -126,22 +151,24 @@
     font-size: clamp(32px, 5.4vw, 54px);
     font-weight: 800;
     color: var(--shub-text-title);
-    line-height: 1.06;
+    line-height: 1.1;
     letter-spacing: -0.03em;
-    margin-bottom: 20px;
+    /* Aire extra arriba/abajo: title respira contra badges + subtitle */
+    margin: 0 0 18px;
     max-width: 17ch;
 }
 .slc-cp__hero-subtitle {
     font-size: clamp(17px, 1.7vw, 21px);
     color: var(--shub-text-body);
     max-width: 56ch;
-    margin-bottom: 28px;
+    /* Subtitle pegado un poco al title (es complemento) + bastante aire al proof/meta */
+    margin: 0 0 32px;
     line-height: 1.55;
 }
-.slc-cp__hero-proof { display: flex; align-items: center; gap: 8px; color: var(--shub-text-title); font-size: 15px; margin-bottom: 28px; }
+.slc-cp__hero-proof { display: flex; align-items: center; gap: 8px; color: var(--shub-text-title); font-size: 15px; margin: 0 0 28px; }
 .slc-cp__stars { display: inline-flex; color: #FAB005; }
 .slc-cp__proof-sep { color: var(--shub-text-muted); }
-.slc-cp__hero-meta { display: flex; flex-wrap: wrap; gap: 10px; }
+.slc-cp__hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
 .slc-cp__meta-chip {
     display: inline-flex;
     align-items: center;
@@ -472,3 +499,21 @@ details[open] > .slc-cp__faq-q .slc-cp__chevron { transform: rotate(45deg); marg
     .slc-cp__lesson { padding: 13px 18px 13px 42px; }
     .slc-cp__faq-a { padding: 0 18px 18px 44px; }
 }
+
+/* ── DEFENSIVE LAYER: overrides contra Elementor / theme injections ─────
+ * Algunos themes y Elementor inyectan `.elementor-widget-container p { margin-bottom: 20px; }`
+ * o `text-align` que se cuelan por especificidad. Estas reglas re-aseguran
+ * la jerarquía propia del shortcode SIN romper landings que NO usan Elementor.
+ * Solo aplicamos !important donde realmente competimos. */
+.elementor-widget .slc-coursepage .slc-cp__hero-title,
+.elementor-widget .slc-coursepage .slc-cp__hero-subtitle,
+.elementor-widget .slc-coursepage .slc-cp__hero-badges,
+.elementor-widget .slc-coursepage .slc-cp__hero-proof,
+.elementor-widget .slc-coursepage .slc-cp__hero-meta { text-align: left; }
+.elementor-widget .slc-coursepage .slc-cp__hero-title { margin: 0 0 18px; }
+.elementor-widget .slc-coursepage .slc-cp__hero-subtitle { margin: 0 0 32px; }
+.elementor-widget .slc-coursepage .slc-cp__hero-badges { margin: 0 0 28px; }
+.elementor-widget .slc-coursepage .slc-cp__hero-proof { margin: 0 0 28px; }
+.elementor-widget .slc-coursepage p { margin: 0; }
+.elementor-widget .slc-coursepage .slc-cp__prose p { margin-bottom: 18px; }
+.elementor-widget .slc-coursepage .slc-cp__prose p:last-child { margin-bottom: 0; }

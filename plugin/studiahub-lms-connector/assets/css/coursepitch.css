@@ -42,9 +42,38 @@
     -webkit-font-smoothing: antialiased;
 }
 .slc-coursepitch *, .slc-coursepitch *::before, .slc-coursepitch *::after { box-sizing: border-box; }
-.slc-coursepitch h1, .slc-coursepitch h2, .slc-coursepitch h3, .slc-coursepitch p, .slc-coursepitch ul { margin: 0; }
-.slc-coursepitch ul { list-style: none; padding: 0; }
+/* Reset agresivo contra Elementor/theme injections.
+ * Usamos :where() para que el reset tenga specificity 0 — así cualquier
+ * regla con clase propia (.slc-cpitch__hero-title) la sobreescribe sin
+ * tener que ser más específica.
+ * Sin este reset, los h1/h2/h3 heredan line-heights y margins del theme
+ * y la jerarquía visual se rompe. */
+:where(.slc-coursepitch) h1,
+:where(.slc-coursepitch) h2,
+:where(.slc-coursepitch) h3,
+:where(.slc-coursepitch) h4,
+:where(.slc-coursepitch) h5,
+:where(.slc-coursepitch) h6,
+:where(.slc-coursepitch) p,
+:where(.slc-coursepitch) ul,
+:where(.slc-coursepitch) ol,
+:where(.slc-coursepitch) li {
+    margin: 0;
+    padding: 0;
+}
+/* Headings con line-height tight propio — sino heredan 1.65 del body y los
+ * títulos de varias líneas quedan con MUCHO aire interno. */
+:where(.slc-coursepitch) h1,
+:where(.slc-coursepitch) h2,
+:where(.slc-coursepitch) h3,
+:where(.slc-coursepitch) h4,
+:where(.slc-coursepitch) h5,
+:where(.slc-coursepitch) h6 { line-height: 1.15; }
+:where(.slc-coursepitch) ul,
+:where(.slc-coursepitch) ol { list-style: none; }
 .slc-coursepitch a { text-decoration: none; }
+/* Default text-align del wrapper para que ningún hijo herede left/center del theme */
+.slc-coursepitch { text-align: left; }
 
 .slc-cpitch__wrap { max-width: var(--shub-wrap); margin: 0 auto; padding: 0 32px; width: 100%; }
 .slc-cpitch__wrap--narrow { max-width: var(--shub-wrap-narrow); }
@@ -52,7 +81,12 @@
 .slc-cpitch__section { padding: var(--shub-section-y) 0; background: var(--shub-bg-app); }
 .slc-cpitch__section--soft { background: var(--shub-bg-soft); }
 
-.slc-cpitch__section-head { margin-bottom: var(--shub-title-gap); text-align: center; }
+/* Header de sección — DEFAULT left-aligned.
+ * Se ve coherente con contenido tipo lista/grid/cards (que casi siempre
+ * son left-aligned). Para secciones cuyo contenido es realmente centrado
+ * (hero, CTA final, banner sobre fondo oscuro) usamos el modifier --center. */
+.slc-cpitch__section-head { margin-bottom: var(--shub-title-gap); text-align: left; }
+.slc-cpitch__section-head--center { text-align: center; }
 .slc-cpitch__eyebrow {
     display: inline-block;
     font-size: 12px;
@@ -63,7 +97,7 @@
     background: rgba(var(--shub-accent-rgb), 0.10);
     padding: 7px 14px;
     border-radius: var(--shub-radius-pill);
-    margin-bottom: 16px;
+    margin: 0 0 18px;
 }
 .slc-cpitch__eyebrow--accent {
     color: #fff;
@@ -78,10 +112,12 @@
     font-weight: 800;
     color: var(--shub-text-title);
     letter-spacing: -0.03em;
-    line-height: 1.1;
-    max-width: 22ch;
-    margin: 0 auto;
+    line-height: 1.15;
+    max-width: 30ch;
+    margin: 0;
 }
+/* Cuando el header está centrado, el h2 también se auto-centra horizontalmente. */
+.slc-cpitch__section-head--center .slc-cpitch__h2 { margin-left: auto; margin-right: auto; }
 
 /* ── HERO GIGANTE ────────────────────────────────────────────────────── */
 .slc-cpitch__hero {
@@ -100,7 +136,9 @@
         radial-gradient(ellipse 60% 40% at 85% 70%, rgba(var(--shub-accent-rgb), 0.10), transparent 70%);
     pointer-events: none;
 }
-.slc-cpitch__hero-inner { position: relative; z-index: 1; }
+/* El hero ES centrado en toda su columna — confirmamos text-align center
+ * acá para que ningún padre/builder lo rompa. */
+.slc-cpitch__hero-inner { position: relative; z-index: 1; text-align: center; }
 
 .slc-cpitch__pretitle { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
 .slc-cpitch__pretitle-pill {
@@ -205,7 +243,8 @@
 .slc-cpitch__btn--on-dark:hover { color: var(--shub-accent-dark); box-shadow: 0 22px 44px -12px rgba(0,0,0,0.5); }
 
 .slc-cpitch__deadline { display: inline-flex; align-items: center; gap: 8px; color: #E8590C; font-size: 14px; font-weight: 600; margin-top: 16px; }
-.slc-cpitch__deadline--center { justify-content: center; }
+/* --center se rompe en su propia línea para no quedar inline al lado del CTA. */
+.slc-cpitch__deadline--center { display: flex; justify-content: center; }
 .slc-cpitch__deadline-dot { width: 9px; height: 9px; border-radius: 50%; background: #FD7E14; box-shadow: 0 0 0 0 rgba(253,126,20,0.5); animation: slc-cpitch-pulse 1.8s infinite; }
 @keyframes slc-cpitch-pulse { 0% { box-shadow: 0 0 0 0 rgba(253,126,20,0.5); } 70% { box-shadow: 0 0 0 10px rgba(253,126,20,0); } 100% { box-shadow: 0 0 0 0 rgba(253,126,20,0); } }
 
@@ -213,8 +252,14 @@
 .slc-cpitch__meta-chip { display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--shub-text-body); font-size: 13px; font-weight: 500; padding: 9px 16px; border-radius: var(--shub-radius-pill); border: 1px solid var(--shub-border); }
 .slc-cpitch__meta-icon { display: inline-flex; color: var(--shub-accent); }
 
-/* ── CHECKS (outcomes) ───────────────────────────────────────────────── */
-.slc-cpitch__checks { max-width: var(--shub-wrap-narrow); margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; }
+/* ── CHECKS (outcomes) — left-aligned, coherente con header left ─── */
+.slc-cpitch__checks {
+    max-width: var(--shub-wrap-narrow);
+    margin: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 28px;
+}
 .slc-cpitch__check { display: flex; align-items: flex-start; gap: 14px; font-size: 16.5px; color: var(--shub-text-body); line-height: 1.55; }
 .slc-cpitch__check-icon { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 50%; background: var(--shub-cta-grad); color: #fff; font-weight: 700; font-size: 16px; flex-shrink: 0; margin-top: 1px; box-shadow: 0 6px 16px -6px rgba(var(--shub-accent-rgb), 0.5); }
 
@@ -232,17 +277,36 @@
     background: radial-gradient(circle at 30% 50%, rgba(var(--shub-accent-rgb), 0.18), transparent 50%);
     pointer-events: none;
 }
-.slc-cpitch__band-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; text-align: center; position: relative; z-index: 1; }
-.slc-cpitch__band-num { font-size: 34px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -0.02em; }
-.slc-cpitch__band-label { font-size: 13px; color: #94A3B8; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.6px; }
+/* Band de stats: usamos flex + justify-content center para que el bloque
+ * se centre como un todo aunque haya 2, 3 o 4 stats. Si fuese grid fixed
+ * en 4 cols, con 3 stats el bloque queda volcado a la izquierda. */
+.slc-cpitch__band-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px 56px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+.slc-cpitch__band-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-width: 140px;
+}
+.slc-cpitch__band-num { font-size: 34px; font-weight: 800; color: #fff; line-height: 1; letter-spacing: -0.02em; text-align: center; }
+.slc-cpitch__band-label { font-size: 13px; color: #94A3B8; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.6px; text-align: center; }
 
 /* ── PROSE (long description) ────────────────────────────────────────── */
 .slc-cpitch__prose { font-size: 16.5px; color: var(--shub-text-body); line-height: 1.75; }
 .slc-cpitch__prose p { margin-bottom: 18px; }
 .slc-cpitch__prose p:last-child { margin-bottom: 0; }
 
-/* ── PERSONAS (para quién es) ────────────────────────────────────────── */
-.slc-cpitch__personas { max-width: var(--shub-wrap-narrow); margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+/* ── PERSONAS (para quién es) — left-aligned ─────────────────────── */
+.slc-cpitch__personas { max-width: var(--shub-wrap-narrow); margin: 0; display: flex; flex-direction: column; gap: 12px; }
 .slc-cpitch__persona {
     display: flex;
     align-items: center;
@@ -255,16 +319,20 @@
     color: var(--shub-text-body);
     transition: border-color 150ms ease, transform 150ms ease;
 }
+.slc-cpitch__persona > span:not(.slc-cpitch__persona-mark) { flex: 1; }
 .slc-cpitch__persona:hover { border-color: var(--shub-accent); transform: translateX(4px); }
+/* Flecha pegada al final del row (no al principio) — patrón "ítem → ir" */
 .slc-cpitch__persona-mark {
     font-size: 22px;
     font-weight: 800;
     color: var(--shub-accent);
     line-height: 1;
+    margin-left: auto;
+    order: 2;
 }
 
 /* ── OUTLINE ─────────────────────────────────────────────────────────── */
-.slc-cpitch__outline-meta { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--shub-text-muted); font-size: 14px; margin-top: calc(var(--shub-title-gap) * -1 + 12px); margin-bottom: var(--shub-title-gap); }
+.slc-cpitch__outline-meta { display: flex; align-items: center; justify-content: flex-start; gap: 10px; color: var(--shub-text-muted); font-size: 14px; margin-top: calc(var(--shub-title-gap) * -1 + 12px); margin-bottom: var(--shub-title-gap); }
 .slc-cpitch__dot { opacity: 0.5; }
 .slc-cpitch__modules { display: flex; flex-direction: column; gap: 14px; }
 .slc-cpitch__module {
@@ -352,12 +420,13 @@
 .slc-cpitch__bonus-title { font-size: 18px; font-weight: 700; color: var(--shub-text-title); margin: 0 0 6px; }
 .slc-cpitch__bonus-desc { font-size: 15px; color: var(--shub-text-body); margin: 0; line-height: 1.55; }
 .slc-cpitch__bonus-value {
-    text-align: right;
+    text-align: center;
     background: rgba(18,184,134,0.12);
     border: 1px solid rgba(18,184,134,0.25);
     border-radius: 12px;
     padding: 10px 16px;
     flex-shrink: 0;
+    min-width: 110px;
 }
 .slc-cpitch__bonus-value-label { display: block; font-size: 10px; font-weight: 700; color: #0CA678; letter-spacing: 1px; }
 .slc-cpitch__bonus-value-num { display: block; font-size: 18px; font-weight: 800; color: #099268; line-height: 1.1; margin-top: 2px; }
@@ -396,7 +465,7 @@
 .slc-cpitch__reviews-hero {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 24px;
     margin-top: calc(var(--shub-title-gap) * -1 + 12px);
     margin-bottom: var(--shub-title-gap);
@@ -468,6 +537,7 @@
 .slc-cpitch__seal-top { font-size: 9px; font-weight: 800; letter-spacing: 1.4px; opacity: 0.9; }
 .slc-cpitch__seal-mid { font-size: 32px; font-weight: 900; line-height: 1; margin: 2px 0; }
 .slc-cpitch__seal-bot { font-size: 8.5px; font-weight: 800; letter-spacing: 1.2px; opacity: 0.9; }
+.slc-cpitch__guarantee-body { text-align: left; }
 .slc-cpitch__guarantee-title { font-size: 24px; font-weight: 700; color: var(--shub-text-title); margin: 0 0 10px; }
 .slc-cpitch__guarantee-text { font-size: 16px; color: var(--shub-text-body); line-height: 1.65; margin: 0; }
 
@@ -480,7 +550,7 @@
 .slc-cpitch__faq-a { padding: 0 24px 22px; font-size: 15.5px; color: var(--shub-text-body); line-height: 1.65; }
 
 /* ── REQUISITOS ──────────────────────────────────────────────────────── */
-.slc-cpitch__reqs { display: flex; flex-direction: column; gap: 14px; max-width: var(--shub-wrap-narrow); margin: 0 auto; }
+.slc-cpitch__reqs { display: flex; flex-direction: column; gap: 14px; max-width: var(--shub-wrap-narrow); margin: 0; }
 .slc-cpitch__reqs li { display: flex; align-items: flex-start; gap: 14px; font-size: 16px; color: var(--shub-text-body); }
 .slc-cpitch__req-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--shub-accent); flex-shrink: 0; margin-top: 10px; }
 
@@ -503,7 +573,7 @@
         radial-gradient(ellipse 60% 60% at 75% 100%, rgba(var(--shub-secondary-rgb), 0.25), transparent 60%);
     pointer-events: none;
 }
-.slc-cpitch__final-inner { position: relative; z-index: 1; }
+.slc-cpitch__final-inner { position: relative; z-index: 1; text-align: center; }
 .slc-cpitch__final-title {
     font-size: clamp(34px, 5.4vw, 56px);
     font-weight: 900;
@@ -544,7 +614,7 @@
 
 /* ── RESPONSIVE ──────────────────────────────────────────────────────── */
 @media (max-width: 960px) {
-    .slc-cpitch__band-grid { grid-template-columns: repeat(2, 1fr); gap: 28px 16px; }
+    .slc-cpitch__band-grid { gap: 28px 32px; }
     .slc-cpitch__reviews-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
@@ -589,3 +659,21 @@
     .slc-cpitch__sticky-text .slc-cpitch__price-old { display: none; }
     .slc-cpitch__btn--md { padding: 12px 18px; font-size: 13px; }
 }
+
+/* ── DEFENSIVE LAYER: overrides contra Elementor / theme injections ─────
+ * Cuando la landing se embebe en un widget de Elementor, su CSS sube la
+ * specificity con `.elementor-widget-...`. Estas reglas duplicadas con
+ * `.elementor-widget` como prefijo ganan la cascade sin necesidad de
+ * `!important`. NO afectan landings que no usen Elementor. */
+.elementor-widget .slc-coursepitch .slc-cpitch__hero-inner,
+.elementor-widget .slc-coursepitch .slc-cpitch__final-inner { text-align: center; }
+.elementor-widget .slc-coursepitch .slc-cpitch__section-head { text-align: left; }
+.elementor-widget .slc-coursepitch .slc-cpitch__section-head--center { text-align: center; }
+.elementor-widget .slc-coursepitch .slc-cpitch__band-grid { justify-content: center; }
+.elementor-widget .slc-coursepitch .slc-cpitch__band-grid,
+.elementor-widget .slc-coursepitch .slc-cpitch__band-item,
+.elementor-widget .slc-coursepitch .slc-cpitch__band-num,
+.elementor-widget .slc-coursepitch .slc-cpitch__band-label { text-align: center; }
+.elementor-widget .slc-coursepitch p { margin: 0; }
+.elementor-widget .slc-coursepitch .slc-cpitch__prose p { margin-bottom: 18px; }
+.elementor-widget .slc-coursepitch .slc-cpitch__prose p:last-child { margin-bottom: 0; }

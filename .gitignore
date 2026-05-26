@@ -10,6 +10,7 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
+.claude/
 
 # Docker volumes (data persistente del WP local)
 .docker/data/
