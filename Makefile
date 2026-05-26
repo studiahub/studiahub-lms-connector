@@ -52,8 +52,33 @@ shell: ## Abre una shell dentro del container WP.
 	@$(COMPOSE) exec wp bash
 
 refresh: ## Bustea el cache de las landings (forzá recargar el payload).
-	@$(COMPOSE) exec wp bash -c "wp transient delete --all --allow-root || true; wp option delete \$$(wp option list --search='_transient_slc*' --field=option_name --allow-root) --allow-root 2>/dev/null || true"
+	@$(COMPOSE) exec db mysql -uwp -pwp wordpress -e "DELETE FROM wp_options WHERE option_name LIKE '\\_transient\\_slc%' OR option_name LIKE '\\_transient\\_timeout\\_slc%';" 2>/dev/null || true
 	@echo "✓ Cache bustado. Recargá el browser con Cmd+Shift+R."
+
+## ──────────────────────────────────────────────────────────────────────────
+## Mock toggle (para diseño / dev sin LMS real)
+## ──────────────────────────────────────────────────────────────────────────
+
+mock-on: ## Activa el mock JSON. La landing toma data fake de .docker/dev-mock/payload.json (no toca el LMS).
+	@if [ -f $(DOCKER_DIR)/dev-mock/payload.json.disabled ]; then \
+		mv $(DOCKER_DIR)/dev-mock/payload.json.disabled $(DOCKER_DIR)/dev-mock/payload.json; \
+	fi
+	@$(MAKE) -s refresh
+	@echo "✓ Mock activo. La landing lee de .docker/dev-mock/payload.json."
+
+mock-off: ## Desactiva el mock. La landing fetcha del LMS real (necesita el LMS Next.js corriendo en localhost:3000).
+	@if [ -f $(DOCKER_DIR)/dev-mock/payload.json ]; then \
+		mv $(DOCKER_DIR)/dev-mock/payload.json $(DOCKER_DIR)/dev-mock/payload.json.disabled; \
+	fi
+	@$(MAKE) -s refresh
+	@echo "✓ Mock desactivado. La landing va a fetchar del LMS real en localhost:3000."
+
+mock-status: ## Muestra si el mock está activo o no.
+	@if [ -f $(DOCKER_DIR)/dev-mock/payload.json ]; then \
+		echo "🟢 Mock ACTIVO — la landing lee de .docker/dev-mock/payload.json"; \
+	else \
+		echo "🔴 Mock DESACTIVADO — la landing fetcha del LMS real"; \
+	fi
 
 ## ──────────────────────────────────────────────────────────────────────────
 ## Cleanup
@@ -80,4 +105,4 @@ help: ## Muestra esta ayuda.
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
-.PHONY: setup up down restart logs shell refresh clean reset help
+.PHONY: setup up down restart logs shell refresh mock-on mock-off mock-status clean reset help

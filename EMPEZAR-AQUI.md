@@ -360,26 +360,151 @@ Si pide cambiar **textos del curso** (título, descripción, instructores, bonos
 >
 > Si querés probar tu diseño con otros textos, puedo editar `.docker/dev-mock/payload.json` que es la data fake que usamos para diseñar. Pero ese cambio queda solo en tu Mac, no afecta clientes reales."
 
-## Cómo Nadi sube su trabajo a GitHub
+## Cómo Nadi sube su trabajo a GitHub (PR flow detallado)
 
-Cuando ella diga "ya está, lo quiero mandar a Gon":
+> **IMPORTANTE**: Nadi trabaja en un FORK del repo de Gon. Sus cambios van:
+> 1. Primero a su fork en GitHub (`nadi-usuario/studiahub-lms-connector`)
+> 2. Después a un Pull Request al repo original (`studiahub/studiahub-lms-connector`)
+> 3. Gon revisa, comenta, mergea o pide cambios.
 
-1. Confirmale qué archivos cambió:
+### Cuándo es un buen momento para mandar PR
+
+- Cuando terminó una iteración completa de un cambio (no a cada tweak chico).
+- Cuando quiere que Gon vea el resultado y opine.
+- Cuando lleva varias horas sin guardar cambios → hacer un commit aunque sea WIP.
+
+**Idealmente** hacé varios commits chicos coherentes en lugar de uno grande con todo mezclado. Ejemplo:
+- ✅ Commit 1: "Hero más grande + colores morados pastel"
+- ✅ Commit 2: "Cards de bonos con más padding y borde sutil"
+- ❌ Commit gigante: "Varios cambios visuales"
+
+### Flow paso a paso (vos ejecutás, Nadi confirma)
+
+Cuando Nadi diga "quiero mandar mis cambios a Gon" o equivalente:
+
+#### Paso 1 — Mostrale qué cambió
+
+```bash
+cd ~/Documents/studiahub-lms-connector
+git status
+git diff --stat
+```
+
+Resumile en lenguaje natural qué archivos tocó (ej. "Cambiaste 2 archivos: el CSS del V2 y el HTML del shortcode V2").
+
+#### Paso 2 — Pedile un título corto del cambio
+
+Decile:
+
+> "Para subirlo a GitHub necesito un título corto que describa qué hiciste. Pensalo como un 'qué cambió' en 5-10 palabras. Por ejemplo: 'Hero más grande + colores morados pastel'. ¿Cómo lo querés titular?"
+
+#### Paso 3 — Commit + push a su fork
+
+Una vez que tiene el título, ejecutá (donde `<título>` es lo que ella dio):
+
+```bash
+cd ~/Documents/studiahub-lms-connector
+git add -A
+git commit -m "<título>"
+git push origin main
+```
+
+#### Paso 4 — Crear el Pull Request
+
+Pedile una descripción más larga (opcional pero útil):
+
+> "Antes de crear el Pull Request: ¿querés agregar alguna descripción más larga? Por ejemplo qué buscabas, qué probaste, alguna captura de antes/después, o alguna duda que tengas para Gon. Si no, dejo solo el título."
+
+Después ejecutá:
+
+```bash
+cd ~/Documents/studiahub-lms-connector
+gh pr create \
+  --title "<título>" \
+  --body "<descripción larga o '_Sin descripción extra._'>" \
+  --repo studiahub/studiahub-lms-connector \
+  --base main \
+  --head "$(gh api user --jq .login):main"
+```
+
+Esto crea el PR en el repo original de Gon. El comando devuelve un link tipo:
+```
+https://github.com/studiahub/studiahub-lms-connector/pull/42
+```
+
+#### Paso 5 — Avisarle a Nadi
+
+Pasale el link del PR y decile:
+
+> "¡Listo! Acá está tu Pull Request: <LINK>
+>
+> Avisale a Gon (WhatsApp / Slack / email) que mande review. Mientras tanto vos podés seguir trabajando — si Gon te pide cambios, los hacés en los mismos archivos, hacés otro `commit` + `push`, y el PR se actualiza solo automáticamente."
+
+### Si Gon pide cambios al PR
+
+Cuando Nadi diga "Gon me pidió cambios al PR" o equivalente:
+
+1. Hacé los cambios visuales que ella pida (mismo flow normal de Claude Code).
+2. Cuando confirme que está OK, ejecutá:
    ```bash
-   cd ~/Documents/studiahub-lms-connector && git status
+   cd ~/Documents/studiahub-lms-connector
+   git add -A
+   git commit -m "<ajustes pedidos por Gon: descripción corta>"
+   git push origin main
    ```
-2. Ofrecele hacer el commit + push + PR vos:
-   - Pedile un título corto del cambio (ej. "Hero más grande + colores morados pastel").
-   - Hacé:
-     ```bash
-     git add <archivos>
-     git commit -m "<título>"
-     git push origin main
-     gh pr create --title "<título>" --body "Cambios visuales en la landing V2 (pitch). Pendiente review de Gon." --base main --head "$GH_USER:main"
-     ```
-   - Pasale el link del PR que devuelve `gh pr create`.
+3. **No hace falta crear PR nuevo** — el push actualiza el PR existente automáticamente.
 
-Si ella prefiere usar GitHub Desktop (más visual), explicale los pasos GUI: Commit → Push origin → Create Pull Request.
+### Si Gon mergeó el PR
+
+Cuando Gon mergea, el código de Nadi pasa al `main` del repo original (`studiahub/...`). Para que Nadi tenga ese código actualizado en su Mac (importante si va a seguir trabajando), tiene que **sincronizar el fork**:
+
+```bash
+cd ~/Documents/studiahub-lms-connector
+git fetch upstream main 2>/dev/null || (git remote add upstream https://github.com/studiahub/studiahub-lms-connector.git && git fetch upstream main)
+git checkout main
+git merge upstream/main
+git push origin main
+```
+
+Decile a Nadi:
+
+> "Sincronicé tu copia local con los últimos cambios del repo original. Ya estás al día. Podés seguir iterando desde acá."
+
+### Resumen visual del flow
+
+```
+┌──────────────┐  commit+push   ┌────────────────┐
+│  Mac de Nadi │ ─────────────→ │  Fork de Nadi  │
+│  (clonó acá) │                │  en GitHub     │
+└──────────────┘                └────────┬───────┘
+                                         │ Pull Request
+                                         ▼
+                                ┌────────────────┐
+                                │  Repo original │
+                                │  studiahub/... │
+                                └────────┬───────┘
+                                         │ Gon mergea
+                                         ▼
+                                ┌────────────────┐
+                                │  main del repo │
+                                │  original      │
+                                └────────┬───────┘
+                                         │ sync fork
+                                         ▼
+                                ┌────────────────┐
+                                │  Fork de Nadi  │
+                                │  actualizado   │
+                                └────────────────┘
+```
+
+### Cosas que NUNCA hacés con git
+
+- ❌ `git push --force` o `git push -f` — puede destruir trabajo de Gon.
+- ❌ `git reset --hard origin/main` sin avisar — borra todos los cambios locales sin recuperación.
+- ❌ Mergear el PR vos. Solo Gon mergea.
+- ❌ Tocar branches que no sean `main`. Trabajamos siempre en `main` del fork.
+
+Si por accidente alguno de estos pasa, parate y pedile a Nadi que avise a Gon **inmediatamente** con captura.
 
 ## Comandos útiles del día a día
 
@@ -411,3 +536,66 @@ Decile que mande captura + descripción a Gon en estos casos:
   - V2 (en iteración): `[studiahub_course_pitch]` → `?slc_test_render=1&id=59&variant=pitch`
 - **Mock activo**: el mu-plugin `.docker/mu-plugins/zz-dev-mock-payload.php` intercepta el fetch al LMS y devuelve `.docker/dev-mock/payload.json`. Por eso Nadi puede trabajar sin tener el LMS Next.js corriendo.
 - **Branding**: el primaryColor (#7950F2 morado), secondaryColor (#FA5252), font Inter vienen del mock. En producción los configura cada cliente desde su admin del LMS.
+
+---
+
+# 📌 Apartado para Gon (no para Nadi ni para el agente de ella)
+
+> Notas para tu yo del futuro cuando retomes este repo y no te acuerdes del setup.
+
+## Toggle del mock JSON
+
+Si abrís el WP local de este repo (`make up`), por defecto está activo el mu-plugin de dev mock — la landing **NO** está fetchando del LMS real. Es por diseño (para que Nadi pueda trabajar sin LMS).
+
+### Si querés testear contra TU LMS real
+
+```bash
+make mock-off    # desactiva el mock + bustea cache
+```
+
+A partir de ahí la landing fetcha de tu LMS Next.js en `localhost:3000`. Tenés que tener `npm run dev` corriendo en el repo del LMS para que funcione.
+
+### Volver al mock (para diseño)
+
+```bash
+make mock-on
+```
+
+### Ver estado actual
+
+```bash
+make mock-status
+```
+
+## Commits a coordinar al pushear
+
+Cuando subas cambios al plugin que rompen el contrato del payload, **acordate** que tenés que pushear también el LMS y el cliente WP (si está en producción) tiene que actualizar el plugin. El payload es contrato entre dos repos:
+
+- `studiahub/studiahub-lms` (Next.js, expone `/api/wc/courses/:id/landing-payload`)
+- `studiahub/studiahub-lms-connector` (WP plugin, consume el payload)
+
+Si cambiás un campo del payload en el LMS sin actualizar el plugin → la landing se rompe en producción. Y al revés.
+
+## Para retomar el laburo de diseño con Nadi
+
+1. Revisar PRs abiertos en https://github.com/studiahub/studiahub-lms-connector/pulls
+2. Si hay uno de Nadi:
+   - Hacer checkout local: `gh pr checkout <numero>`
+   - Probar visualmente con `make up` + el link de la landing
+   - Si OK → mergear desde la web de GitHub
+   - Si pide cambios → comentar en el PR vía web (Nadi recibe notificación)
+3. Después de mergear → avisarle a Nadi que sincronice su fork (`git fetch upstream && git merge upstream/main && git push`)
+
+## Commands cheatsheet
+
+```bash
+make help          # lista todos los comandos
+make up            # arranca WP local
+make down          # apaga
+make refresh       # bustea cache
+make mock-on/off   # toggle del mock
+make logs          # logs en vivo
+make shell         # bash dentro del container WP
+make clean         # borra containers (data intacta)
+make reset         # ⚠️ DESTRUCTIVO: borra DB + containers
+```

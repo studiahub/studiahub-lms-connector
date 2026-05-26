@@ -49,8 +49,8 @@ add_filter('slc_landing_payload_override', function ($payload, $course_id) use (
 add_action('admin_notices', function () {
     if (!current_user_can('manage_options')) return;
     echo '<div class="notice notice-warning" style="border-left-color:#7950F2;">';
-    echo '<p><strong>SLC Dev Mock activo.</strong> El plugin está leyendo el payload de las landings desde ';
+    echo '<p><strong>🟢 SLC Dev Mock activo.</strong> El plugin está leyendo el payload de las landings desde ';
     echo '<code>.docker/dev-mock/payload.json</code> en lugar del LMS real. ';
-    echo 'Para desactivar, borrá <code>.docker/mu-plugins/zz-dev-mock-payload.php</code>.</p>';
+    echo 'Para apuntar al LMS real, corré <code>make mock-off</code> en la terminal.</p>';
     echo '</div>';
 });
