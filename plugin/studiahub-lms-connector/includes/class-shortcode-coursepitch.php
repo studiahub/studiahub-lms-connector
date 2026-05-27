@@ -363,6 +363,26 @@ final class Shortcode_CoursePitch {
             </section>
             <?php endif; ?>
 
+            <?php /* ── MATERIALES INCLUIDOS ─────────────────────────────── */ ?>
+            <?php if (!empty($materials)): ?>
+            <section class="slc-cpitch__section">
+                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
+                    <div class="slc-cpitch__section-head">
+                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('Recursos del curso', 'studiahub-lms-connector'); ?></span>
+                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Esto viene incluido en tu inscripción', 'studiahub-lms-connector'); ?></h2>
+                    </div>
+                    <div class="slc-cpitch__checks">
+                        <?php foreach ($materials as $item): ?>
+                            <div class="slc-cpitch__check">
+                                <span class="slc-cpitch__check-icon slc-cpitch__check-icon--material" aria-hidden="true">▸</span>
+                                <span><?php echo esc_html(is_array($item) ? ($item['text'] ?? '') : (string) $item); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </section>
+            <?php endif; ?>
+
             <?php /* ── BONOS (con VALOR muy visible) ───────────────────── */ ?>
             <?php if (!empty($bonuses)): ?>
             <section class="slc-cpitch__section slc-cpitch__bonuses-section">
