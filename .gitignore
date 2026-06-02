@@ -10,7 +10,9 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-.claude/
+.claude/*
+# Pero SÍ versionamos los subagents compartidos del proyecto (design-guardian, etc).
+!.claude/agents/
 
 # Docker volumes (data persistente del WP local)
 .docker/data/
