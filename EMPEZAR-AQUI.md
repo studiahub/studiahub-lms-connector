@@ -54,31 +54,49 @@ Cuando aparezca el chat de Claude Code, **copiá y pegá exactamente este texto*
 >
 > Este es tu playbook completo. Seguilo en orden estricto, ejecutando vos todo lo que puedas.
 
-## 🎨 Marco de calidad de diseño (obligatorio leer)
+## 🎨 Contexto de diseño (Nadi es la autoridad final)
 
-Antes de hacer cualquier cambio visual, **leé estos archivos sí o sí**:
+> **IMPORTANTE**: Nadi es **la diseñadora oficial** del proyecto. Las decisiones visuales las toma ella. Estos docs no son ley — son **baseline + referencia** de lo que existe hoy y lo que probamos antes. Si Nadi quiere divergir, dale.
 
-1. `docs/design-system.md` — el DS completo de la landing. Define paleta, tipografía, radios, spacing, componentes patrón, branding dinámico.
+Antes de hacer cualquier cambio visual, **leé estos archivos como contexto**:
+
+1. `docs/design-system.md` — el DS actual de la landing. Define paleta, tipografía, radios, spacing, componentes patrón.
 2. `docs/guia-secciones-pitch.md` — mapeo de qué clase CSS corresponde a cada bloque visual.
-3. `docs/feedback-historico.md` — lecciones acumuladas de iteraciones previas con Gon. Errores que ya identificamos y no queremos repetir.
+3. `docs/feedback-historico.md` — lecciones acumuladas de iteraciones previas. Contexto de qué probamos antes (puede que algunas cosas ya no apliquen — Nadi decide).
 
-**REGLAS NO NEGOCIABLES** al iterar diseño:
+### ✅ Reglas TÉCNICAS no negociables (si las rompés, se rompe el producto)
 
-- **Branding dinámico**: NUNCA hardcodees colores o fonts. Usá `var(--shub-accent)`, `var(--shub-secondary)`, `var(--shub-font)`. Las hex tipo `#7950F2` o `'Inter'` solo van como fallback dentro de `var()`. Si querés probar otro color, cambialo en `.docker/dev-mock/payload.json` (en `branding.primaryColor`).
-- **Tipografía**: respetar la escala del §3 del DS. H1 hero `clamp(36px, 6.4vw, 64px)` weight 900. H2 sección `clamp(28px, 3.5vw, 42px)` weight 800. Subtitles 18-22px weight 400. Body 16px. NO inventes tamaños fuera de la escala sin consultar.
-- **Spacing**: usá los tokens del DS (`--shub-title-gap`, `--shub-section-y`, etc.) y la escala 8/12/16/20/24/32/40/48. NO uses valores arbitrarios como `27px` o `13px`.
-- **Radius**: las cards usan 12/14/16. Las pills usan `var(--shub-radius-pill)`. NO mezcles fuera de la escala (10/12/14/16/18/22/999).
-- **Sombras**: usá las del DS (sutiles, no agresivas). NO inventes sombras nuevas.
-- **Alineación**: header del bloque (eyebrow + H2) y contenido deben tener la MISMA alineación. NUNCA "header centrado + content izquierda".
-- **Centrado solo donde corresponde**: hero, CTA banner, stats. El resto va left-aligned.
+Solo una, pero crítica:
 
-**Después de CADA cambio visual sustancial**, invocá al subagent `design-guardian` (definido en `.claude/agents/design-guardian.md`) para que valide:
+- **Branding dinámico**: NUNCA hardcodees colores o fonts en el CSS. Usá `var(--shub-accent)`, `var(--shub-secondary)`, `var(--shub-font)`. Los hex tipo `#7950F2` o `'Inter'` solo van como fallback dentro de `var()`. Si te saltás esto, los clientes pierden su branding personalizado en producción.
+- Si querés probar visualmente otro color/font, cambialo en `.docker/dev-mock/payload.json` (en `branding.primaryColor` / `branding.fontFamily`). El cambio queda local en tu Mac, no afecta a clientes.
+
+### 🎨 Convenciones visuales (las podemos cambiar si Nadi lo decide)
+
+Lo que sigue es lo que tenemos HOY. Si Nadi propone otra escala tipográfica, otros radios, otro spacing — **dale, hacelo**. No son ley:
+
+- Tipografía: H1 hero ~36-64px, H2 sección ~28-42px, body ~16px (escala actual).
+- Spacing: tokens del DS + escala 8/12/16/20/24/32/40/48.
+- Radius: 12/14/16 para cards, pill para chips.
+- Sombras del DS (sutiles).
+- Alineación: hoy header del bloque y contenido suelen ir alineados igual (los dos centrados o los dos a la izquierda), pero Nadi puede romper esto si tiene razón.
+
+### 🤝 Cuándo invocar al `@design-guardian`
+
+El subagent `design-guardian` (en `.claude/agents/design-guardian.md`) es un **asesor técnico opcional**, no un bloqueo. Su único veto real es la regla técnica de branding dinámico (CSS vars). En todo lo demás solo opina — Nadi decide si toma su feedback o no.
+
+Invocalo cuando:
+- Nadi te pide "che, ¿esto está alineado con lo que veníamos haciendo?"
+- Vos tenés duda si un cambio rompe la coherencia técnica (uso de vars, etc).
+- Antes de un commit grande, para que pase ojo rápido.
+
+NO lo invoques en cada microajuste — ralentiza el flow creativo.
 
 ```
-@design-guardian revisá los últimos cambios al CSS de `[archivo]` y decime si están alineados al design system.
+@design-guardian revisá los últimos cambios al CSS de `[archivo]`.
 ```
 
-Esperá su veredicto. Si dice APROBADO, seguimos. Si dice APROBADO CON AJUSTES o RECHAZADO, aplicá las correcciones **antes** de mostrarle el cambio a Nadi.
+Si el guardian dice "RECHAZADO" por algo de branding dinámico (CSS vars), eso sí es serio — corregilo. Si dice "RECHAZADO" o "AJUSTES" por convenciones visuales, **mostrale el feedback a Nadi y que ella decida**.
 
 ## Reglas absolutas
 

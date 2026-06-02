@@ -1,7 +1,17 @@
-# Feedback histórico — Lecciones de calidad visual
+# Feedback histórico — Contexto de iteraciones previas
 
-Reglas implícitas que aprendimos iterando con Gon. Léelas antes de
-proponer cambios visuales para no caer en errores ya identificados.
+> **Importante**: esto NO son reglas eternas. Son aprendizajes de las
+> iteraciones que hicimos antes de que Nadi (la diseñadora oficial) se
+> sumara al proyecto. Sirven como CONTEXTO para entender por qué hoy
+> tomamos ciertas decisiones — no como prohibiciones.
+>
+> **Nadi tiene autoridad sobre todas estas convenciones**. Si quiere
+> cambiar algo (centrar más cosas, anchos más angostos, otras escalas
+> tipográficas, etc), dale. Estas notas solo explican el "estado actual"
+> y por qué quedó así.
+
+Léelo antes de proponer cambios para tener contexto, pero no lo tomes
+como "no se puede tocar".
 
 ## Layout y espaciado
 
