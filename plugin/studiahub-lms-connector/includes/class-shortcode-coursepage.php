@@ -990,9 +990,10 @@ final class Shortcode_CoursePage {
             $title = trim((string) ($b['title'] ?? ''));
             if ($title === '') continue;
             $out[] = [
-                'title' => $title,
-                'desc'  => trim((string) ($b['desc'] ?? '')),
-                'value' => trim((string) ($b['value'] ?? '')),
+                'title'    => $title,
+                'desc'     => trim((string) ($b['desc'] ?? '')),
+                'value'    => trim((string) ($b['value'] ?? '')),
+                'imageUrl' => trim((string) ($b['imageUrl'] ?? '')),
             ];
         }
         return $out;

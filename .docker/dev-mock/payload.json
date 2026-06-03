@@ -54,12 +54,13 @@
     "Marketers junior que quieren saltar al siguiente nivel"
   ],
   "includedMaterials": [
-    "+ 40 plantillas de campañas en Meta Ads",
-    "Calculadora de ROI y CAC en Excel",
-    "Prompts de GPT para copywriting",
-    "Checklist de auditoría pre-launch",
-    "Acceso a la comunidad privada en Discord"
+    { "text": "+ 40 plantillas de campañas en Meta Ads", "icon": "fi-tr-copy-alt" },
+    { "text": "Calculadora de ROI y CAC en Excel",       "icon": "fi-tr-calculator" },
+    { "text": "Prompts de GPT para copywriting",         "icon": "fi-tr-comment-code" },
+    { "text": "Checklist de auditoría pre-launch",       "icon": "fi-tr-clipboard-list" },
+    { "text": "Acceso a la comunidad privada en Discord","icon": "fi-tr-users" }
   ],
+  "requirementsImageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80",
   "requirements": [
     "Tener una idea o negocio en marcha (no importa la etapa)",
     "Acceso a una cuenta de Meta Ads (podemos ayudarte a crearla)",
@@ -201,17 +202,20 @@
     {
       "title": "Auditoría 1-on-1 de tu cuenta",
       "desc": "Sesión privada de 30 min donde reviso tu cuenta de ads y te dejo un plan de acción concreto.",
-      "value": "USD 250"
+      "value": "USD 250",
+      "imageUrl": "https://picsum.photos/seed/bonus1/400/300"
     },
     {
       "title": "Pack de 20 anuncios listos para copiar",
       "desc": "Estructuras de copy + creativos en Canva con los mejores anuncios que armamos en agencia.",
-      "value": "USD 99"
+      "value": "USD 99",
+      "imageUrl": "https://picsum.photos/seed/bonus2/400/300"
     },
     {
       "title": "Acceso a la comunidad por 1 año",
       "desc": "Networking con otros marketers + AMAs mensuales con expertos invitados.",
-      "value": "USD 149"
+      "value": "USD 149",
+      "imageUrl": "https://picsum.photos/seed/bonus3/400/300"
     }
   ],
   "faq": [
@@ -248,5 +252,12 @@
   "guarantee": {
     "title": "7 días de garantía total",
     "text": "Si no te convence el curso en los primeros 7 días, te devolvemos el 100% del dinero. Sin preguntas, sin formularios eternos. Solo escribís un email y listo."
-  }
+  },
+  "paymentMethods": [
+    { "name": "Visa",            "logoUrl": "https://cdn.simpleicons.org/visa/1A1F71" },
+    { "name": "Mastercard",      "logoUrl": "https://cdn.simpleicons.org/mastercard/EB001B" },
+    { "name": "American Express","logoUrl": "https://cdn.simpleicons.org/americanexpress/2E77BC" },
+    { "name": "Mercado Pago",    "logoUrl": "https://cdn.simpleicons.org/mercadopago/00B1EA" },
+    { "name": "PayPal",          "logoUrl": "https://cdn.simpleicons.org/paypal/003087" }
+  ]
 }

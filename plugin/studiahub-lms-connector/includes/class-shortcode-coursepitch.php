@@ -40,9 +40,21 @@ final class Shortcode_CoursePitch {
     public static function register_styles(): void {
         if (!defined('SLC_VERSION')) return;
         wp_register_style(
+            'flaticon-uicons-thin-rounded',
+            'https://cdn-uicons.flaticon.com/2.6.0/uicons-thin-rounded/css/uicons-thin-rounded.css',
+            [],
+            '2.6.0'
+        );
+        wp_register_style(
+            'slc-playfair-quote',
+            'https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&text=%E2%80%9C&display=swap',
+            [],
+            null
+        );
+        wp_register_style(
             self::STYLE_HANDLE,
             SLC_PLUGIN_URL . 'assets/css/coursepitch.css',
-            [],
+            ['flaticon-uicons-thin-rounded', 'slc-playfair-quote'],
             SLC_VERSION
         );
     }
@@ -99,14 +111,16 @@ final class Shortcode_CoursePitch {
         $audience  = is_array($payload['targetAudience'] ?? null) ? $payload['targetAudience'] : [];
         $materials = is_array($payload['includedMaterials'] ?? null) ? $payload['includedMaterials'] : [];
         $reqs      = is_array($payload['requirements'] ?? null) ? $payload['requirements'] : [];
+        $reqs_img  = trim((string) ($payload['requirementsImageUrl'] ?? $payload['thumbnailUrl'] ?? ''));
 
         $modules_count = (int) ($payload['modulesCount'] ?? 0);
         $lessons_count = (int) ($payload['lessonsCount'] ?? 0);
         $total_min     = (int) ($payload['totalDurationMin'] ?? 0);
         $outline       = is_array($payload['outline'] ?? null) ? $payload['outline'] : [];
 
-        $reviews      = is_array($payload['reviews'] ?? null) ? $payload['reviews'] : [];
-        $review_stats = is_array($payload['reviewStats'] ?? null) ? $payload['reviewStats'] : [];
+        $reviews         = is_array($payload['reviews'] ?? null) ? $payload['reviews'] : [];
+        $review_stats    = is_array($payload['reviewStats'] ?? null) ? $payload['reviewStats'] : [];
+        $payment_methods = is_array($payload['paymentMethods'] ?? null) ? $payload['paymentMethods'] : [];
 
         if ($cta_label === '') {
             $cta_label = __('Quiero inscribirme', 'studiahub-lms-connector');
@@ -233,6 +247,26 @@ final class Shortcode_CoursePitch {
                 </div>
             </section>
 
+            <?php /* ── DESCRIPCIÓN LARGA ───────────────────────────────── */ ?>
+            <?php if ($long_desc !== ''): ?>
+            <section class="slc-cpitch__section slc-cpitch__section--soft">
+                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
+                    <div class="slc-cpitch__section-head">
+                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('La propuesta', 'studiahub-lms-connector'); ?></span>
+                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Por qué tomar este curso', 'studiahub-lms-connector'); ?></h2>
+                    </div>
+                    <div class="slc-cpitch__longdesc-grid">
+                        <?php if ($thumbnail_url !== ''): ?>
+                        <div class="slc-cpitch__longdesc-img-wrap">
+                            <img class="slc-cpitch__longdesc-img" src="<?php echo esc_url($thumbnail_url); ?>" alt="" loading="lazy" />
+                        </div>
+                        <?php endif; ?>
+                        <div class="slc-cpitch__prose"><?php echo wpautop(wp_kses_post($long_desc)); ?></div>
+                    </div>
+                </div>
+            </section>
+            <?php endif; ?>
+
             <?php /* ── HOOK / OUTCOMES (qué vas a lograr) ─────────────── */ ?>
             <?php if (!empty($outcomes)): ?>
             <section class="slc-cpitch__section">
@@ -267,22 +301,9 @@ final class Shortcode_CoursePitch {
             </section>
             <?php endif; ?>
 
-            <?php /* ── DESCRIPCIÓN LARGA ───────────────────────────────── */ ?>
-            <?php if ($long_desc !== ''): ?>
-            <section class="slc-cpitch__section slc-cpitch__section--soft">
-                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
-                    <div class="slc-cpitch__section-head">
-                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('La propuesta', 'studiahub-lms-connector'); ?></span>
-                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Por qué tomar este curso', 'studiahub-lms-connector'); ?></h2>
-                    </div>
-                    <div class="slc-cpitch__prose"><?php echo wpautop(wp_kses_post($long_desc)); ?></div>
-                </div>
-            </section>
-            <?php endif; ?>
-
             <?php /* ── PARA QUIÉN ES ───────────────────────────────────── */ ?>
             <?php if (!empty($audience)): ?>
-            <section class="slc-cpitch__section">
+            <section class="slc-cpitch__section slc-cpitch__section--soft">
                 <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
                         <span class="slc-cpitch__eyebrow"><?php esc_html_e('Para vos', 'studiahub-lms-connector'); ?></span>
@@ -291,10 +312,34 @@ final class Shortcode_CoursePitch {
                     <div class="slc-cpitch__personas">
                         <?php foreach ($audience as $item): ?>
                             <div class="slc-cpitch__persona">
-                                <span class="slc-cpitch__persona-mark" aria-hidden="true">→</span>
+                                <span class="slc-cpitch__persona-mark" aria-hidden="true">✓</span>
                                 <span><?php echo esc_html(is_array($item) ? ($item['text'] ?? '') : (string) $item); ?></span>
                             </div>
                         <?php endforeach; ?>
+                    </div>
+                </div>
+            </section>
+            <?php endif; ?>
+
+            <?php /* ── REQUISITOS ──────────────────────────────────────── */ ?>
+            <?php if (!empty($reqs)): ?>
+            <section class="slc-cpitch__section">
+                <div class="slc-cpitch__wrap slc-cpitch__reqs-grid">
+                    <?php if ($reqs_img !== ''): ?>
+                    <div class="slc-cpitch__reqs-img-wrap">
+                        <img class="slc-cpitch__reqs-img" src="<?php echo esc_url($reqs_img); ?>" alt="" loading="lazy" />
+                    </div>
+                    <?php endif; ?>
+                    <div class="slc-cpitch__reqs-body">
+                        <div class="slc-cpitch__section-head">
+                            <span class="slc-cpitch__eyebrow"><?php esc_html_e('Antes de empezar', 'studiahub-lms-connector'); ?></span>
+                            <h2 class="slc-cpitch__h2"><?php esc_html_e('Requisitos', 'studiahub-lms-connector'); ?></h2>
+                        </div>
+                        <ul class="slc-cpitch__reqs">
+                            <?php foreach ($reqs as $item): ?>
+                                <li><span class="slc-cpitch__req-dot" aria-hidden="true"></span><?php echo esc_html(is_array($item) ? ($item['text'] ?? '') : (string) $item); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
                     </div>
                 </div>
             </section>
@@ -363,61 +408,114 @@ final class Shortcode_CoursePitch {
             </section>
             <?php endif; ?>
 
-            <?php /* ── MATERIALES INCLUIDOS ─────────────────────────────── */ ?>
-            <?php if (!empty($materials)): ?>
-            <section class="slc-cpitch__section">
+            <?php /* ── RESEÑAS — infinite marquee dos filas ────────────── */ ?>
+            <?php if (!empty($reviews)): ?>
+            <?php
+                // Filtrar reseñas válidas
+                $valid_reviews = array_values(array_filter($reviews, function($r) {
+                    return (string)($r['author'] ?? '') !== '' && (int)($r['rating'] ?? 0) >= 1;
+                }));
+                // Aseguramos mínimo 6 para las dos filas; si hay menos, duplicamos
+                while (count($valid_reviews) < 6) {
+                    $valid_reviews = array_merge($valid_reviews, $valid_reviews);
+                }
+                $mid   = (int) ceil(count($valid_reviews) / 2);
+                $row1  = array_slice($valid_reviews, 0, $mid);
+                $row2  = array_slice($valid_reviews, $mid);
+                $stats_count = (int) ($review_stats['count'] ?? count($valid_reviews));
+                $stats_avg   = (float) ($review_stats['average'] ?? 0);
+            ?>
+            <section class="slc-cpitch__section slc-cpitch__reviews-section">
                 <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
-                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('Recursos del curso', 'studiahub-lms-connector'); ?></span>
-                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Esto viene incluido en tu inscripción', 'studiahub-lms-connector'); ?></h2>
-                    </div>
-                    <div class="slc-cpitch__checks">
-                        <?php foreach ($materials as $item): ?>
-                            <div class="slc-cpitch__check">
-                                <span class="slc-cpitch__check-icon slc-cpitch__check-icon--material" aria-hidden="true">▸</span>
-                                <span><?php echo esc_html(is_array($item) ? ($item['text'] ?? '') : (string) $item); ?></span>
-                            </div>
-                        <?php endforeach; ?>
+                        <?php if ($stats_count > 0 && $stats_avg > 0):
+                            // Estrellas con soporte de fracción (ej: 4,7 → 4 llenas + 1 al 70%)
+                            $star_full  = floor($stats_avg);
+                            $star_frac  = round(($stats_avg - $star_full) * 100); // porcentaje fracción
+                            $star_empty = 5 - $star_full - ($star_frac > 0 ? 1 : 0);
+                            $star_id    = 'slc-star-grad-' . substr(md5($stats_avg), 0, 6);
+                            $pts = '8,1.5 10,6 14.5,6.3 11,9.3 12.2,13.8 8,11.2 3.8,13.8 5,9.3 1.5,6.3 6,6';
+                            // Gradiente para la estrella parcial
+                            $stars_html = '<svg width="0" height="0" style="position:absolute;pointer-events:none"><defs>'
+                                . '<linearGradient id="' . $star_id . '" x1="0" x2="1" y1="0" y2="0">'
+                                . '<stop offset="' . $star_frac . '%" stop-color="#FAB005"/>'
+                                . '<stop offset="' . $star_frac . '%" stop-color="none"/>'
+                                . '</linearGradient></defs></svg>';
+                            // Llenas: fill dorado sólido, igual que stars_public
+                            for ($si = 0; $si < $star_full; $si++) {
+                                $stars_html .= '<svg viewBox="0 0 16 16" width="14" height="14" fill="#FAB005" stroke="#FAB005" stroke-width="1.3"><polygon points="' . $pts . '"/></svg>';
+                            }
+                            // Parcial: mismo estilo que llena pero con gradiente en el fill
+                            if ($star_frac > 0) {
+                                $stars_html .= '<svg viewBox="0 0 16 16" width="14" height="14" stroke="#FAB005" stroke-width="1.3">'
+                                    . '<polygon points="' . $pts . '" fill="url(#' . $star_id . ')"/>'
+                                    . '</svg>';
+                            }
+                            // Vacías: sin fill, solo contorno dorado — igual que stars_public empty
+                            for ($si = 0; $si < $star_empty; $si++) {
+                                $stars_html .= '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#FAB005" stroke-width="1.3"><polygon points="' . $pts . '"/></svg>';
+                            }
+                        ?>
+                        <div class="slc-cpitch__reviews-pill">
+                            <span class="slc-cpitch__reviews-big"><?php echo esc_html(number_format($stats_avg, 1, ',', '')); ?></span>
+                            <span class="slc-cpitch__stars" aria-hidden="true"><?php echo $stars_html; ?></span>
+                            <span class="slc-cpitch__reviews-count"><?php printf(esc_html(_n('basado en %d reseña', 'basado en %d reseñas', $stats_count, 'studiahub-lms-connector')), $stats_count); ?></span>
+                        </div>
+                        <?php endif; ?>
+                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Alumnos reales, resultados reales', 'studiahub-lms-connector'); ?></h2>
                     </div>
                 </div>
-            </section>
-            <?php endif; ?>
 
-            <?php /* ── BONOS (con VALOR muy visible) ───────────────────── */ ?>
-            <?php if (!empty($bonuses)): ?>
-            <section class="slc-cpitch__section slc-cpitch__bonuses-section">
-                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
-                    <div class="slc-cpitch__section-head">
-                        <span class="slc-cpitch__eyebrow slc-cpitch__eyebrow--accent"><?php esc_html_e('Bonos exclusivos', 'studiahub-lms-connector'); ?></span>
-                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Si te inscribís hoy, también te llevás:', 'studiahub-lms-connector'); ?></h2>
+                <?php
+                // Helper para renderizar una card
+                $render_review_card = function(array $r, bool $hidden = false) {
+                    $author  = (string) ($r['author'] ?? '');
+                    $rating  = (int)    ($r['rating'] ?? 0);
+                    $comment = (string) ($r['comment'] ?? '');
+                    $avatar  = (string) ($r['avatarUrl'] ?? '');
+                    $aria    = $hidden ? ' aria-hidden="true"' : '';
+                    ?>
+                    <div class="slc-cpitch__review"<?php echo $aria; ?>>
+                        <div class="slc-cpitch__review-quote" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 21.1 17.2" fill="currentColor"><path d="M1.2,15c-1-1.5-1.2-3.4-1.2-4.5C0,6.1,2.2,2.3,7,0l.6,1.2c-2.8,1.2-5.2,4-5.2,6.7s0,1,.2,1.4c.7-.5,1.6-.9,2.5-.9,2.4,0,4.4,1.6,4.4,4.4s-2,4.4-4.4,4.4-3.2-.9-4-2.2ZM12.7,15c-1-1.5-1.2-3.4-1.2-4.5,0-4.4,2.2-8.2,7-10.5l.6,1.2c-2.8,1.2-5.2,4-5.2,6.7s0,1,.2,1.4c.7-.5,1.6-.9,2.5-.9,2.4,0,4.4,1.6,4.4,4.4s-2,4.4-4.4,4.4-3.2-.9-4-2.2Z"/></svg></div>
+                        <?php if ($comment !== ''): ?>
+                            <p class="slc-cpitch__review-text"><?php echo esc_html($comment); ?></p>
+                        <?php endif; ?>
+                        <div class="slc-cpitch__review-author">
+                            <?php if ($avatar !== ''): ?>
+                                <img class="slc-cpitch__avatar slc-cpitch__avatar--img" src="<?php echo esc_url($avatar); ?>" alt="" width="36" height="36" loading="lazy" />
+                            <?php else: ?>
+                                <span class="slc-cpitch__avatar"><?php echo esc_html(mb_substr($author, 0, 1)); ?></span>
+                            <?php endif; ?>
+                            <span class="slc-cpitch__review-name"><?php echo esc_html($author); ?></span>
+                            <span class="slc-cpitch__review-stars" aria-hidden="true"><?php echo Shortcode_CoursePage::stars_public($rating); ?></span>
+                        </div>
                     </div>
-                    <div class="slc-cpitch__bonuses">
-                        <?php $total_value = 0; ?>
-                        <?php foreach ($bonuses as $bonus): ?>
-                            <div class="slc-cpitch__bonus">
-                                <div class="slc-cpitch__bonus-tag"><?php esc_html_e('BONO', 'studiahub-lms-connector'); ?></div>
-                                <div class="slc-cpitch__bonus-body">
-                                    <h3 class="slc-cpitch__bonus-title"><?php echo esc_html($bonus['title']); ?></h3>
-                                    <?php if (!empty($bonus['desc'])): ?>
-                                        <p class="slc-cpitch__bonus-desc"><?php echo esc_html($bonus['desc']); ?></p>
-                                    <?php endif; ?>
-                                </div>
-                                <?php if (!empty($bonus['value'])): ?>
-                                    <div class="slc-cpitch__bonus-value">
-                                        <span class="slc-cpitch__bonus-value-label"><?php esc_html_e('VALOR', 'studiahub-lms-connector'); ?></span>
-                                        <span class="slc-cpitch__bonus-value-num"><?php echo esc_html($bonus['value']); ?></span>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        <?php endforeach; ?>
+                    <?php
+                };
+                ?>
+
+                <!-- Fila 1: izquierda -->
+                <div class="slc-cpitch__marquee" data-direction="left">
+                    <div class="slc-cpitch__marquee-track">
+                        <?php foreach ($row1 as $r) { $render_review_card($r); } ?>
+                        <?php foreach ($row1 as $r) { $render_review_card($r, true); } ?>
                     </div>
                 </div>
+
+                <!-- Fila 2: derecha -->
+                <div class="slc-cpitch__marquee" data-direction="right">
+                    <div class="slc-cpitch__marquee-track">
+                        <?php foreach ($row2 as $r) { $render_review_card($r); } ?>
+                        <?php foreach ($row2 as $r) { $render_review_card($r, true); } ?>
+                    </div>
+                </div>
+
             </section>
             <?php endif; ?>
 
             <?php /* ── INSTRUCTORES ────────────────────────────────────── */ ?>
             <?php if (!empty($instructors)): ?>
-            <section class="slc-cpitch__section">
+            <section class="slc-cpitch__section slc-cpitch__section--soft">
                 <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
                         <span class="slc-cpitch__eyebrow"><?php esc_html_e('Quién enseña', 'studiahub-lms-connector'); ?></span>
@@ -457,53 +555,71 @@ final class Shortcode_CoursePitch {
             </section>
             <?php endif; ?>
 
-            <?php /* ── RESEÑAS (grid grande, destacadas) ───────────────── */ ?>
-            <?php if (!empty($reviews)): ?>
-            <section class="slc-cpitch__section slc-cpitch__section--soft">
+            <?php /* ── MATERIALES INCLUIDOS ─────────────────────────────── */ ?>
+            <?php if (!empty($materials)): ?>
+            <section class="slc-cpitch__section">
                 <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
-                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('Lo que dicen', 'studiahub-lms-connector'); ?></span>
-                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Alumnos reales, resultados reales', 'studiahub-lms-connector'); ?></h2>
+                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('Recursos del curso', 'studiahub-lms-connector'); ?></span>
+                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Esto viene incluido en tu inscripción', 'studiahub-lms-connector'); ?></h2>
                     </div>
-                    <?php
-                    $stats_count = (int) ($review_stats['count'] ?? count($reviews));
-                    $stats_avg   = (float) ($review_stats['average'] ?? 0);
-                    if ($stats_count > 0 && $stats_avg > 0):
-                    ?>
-                        <div class="slc-cpitch__reviews-hero">
-                            <div class="slc-cpitch__reviews-big"><?php echo esc_html(number_format($stats_avg, 1, ',', '')); ?></div>
-                            <div>
-                                <div class="slc-cpitch__stars" aria-hidden="true"><?php echo Shortcode_CoursePage::stars_public((int) round($stats_avg)); ?></div>
-                                <div class="slc-cpitch__reviews-count">
-                                    <?php printf(esc_html(_n('basado en %d reseña', 'basado en %d reseñas', $stats_count, 'studiahub-lms-connector')), $stats_count); ?>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-                    <div class="slc-cpitch__reviews-grid">
-                        <?php foreach (array_slice($reviews, 0, 6) as $r):
-                            $author  = (string) ($r['author'] ?? '');
-                            $rating  = (int) ($r['rating'] ?? 0);
-                            $comment = (string) ($r['comment'] ?? '');
-                            $avatar  = (string) ($r['avatarUrl'] ?? '');
-                            if ($author === '' || $rating < 1) continue;
+                    <div class="slc-cpitch__materials-list">
+                        <?php foreach ($materials as $item):
+                            $mat_text = is_array($item) ? ($item['text'] ?? '') : (string) $item;
+                            $mat_icon = is_array($item) ? trim((string) ($item['icon'] ?? '')) : '';
                         ?>
-                            <div class="slc-cpitch__review">
-                                <div class="slc-cpitch__review-quote" aria-hidden="true">"</div>
-                                <span class="slc-cpitch__stars" aria-hidden="true"><?php echo Shortcode_CoursePage::stars_public($rating); ?></span>
-                                <?php if ($comment !== ''): ?>
-                                    <p class="slc-cpitch__review-text"><?php echo esc_html($comment); ?></p>
-                                <?php endif; ?>
-                                <div class="slc-cpitch__review-author">
-                                    <?php if ($avatar !== ''): ?>
-                                        <img class="slc-cpitch__avatar slc-cpitch__avatar--img" src="<?php echo esc_url($avatar); ?>" alt="" width="42" height="42" loading="lazy" />
+                            <div class="slc-cpitch__material">
+                                <span class="slc-cpitch__material-icon" aria-hidden="true">
+                                    <?php if ($mat_icon !== ''): ?>
+                                        <i class="fi <?php echo esc_attr($mat_icon); ?>"></i>
                                     <?php else: ?>
-                                        <span class="slc-cpitch__avatar"><?php echo esc_html(mb_substr($author, 0, 1)); ?></span>
+                                        <i class="fi fi-tr-box-open"></i>
                                     <?php endif; ?>
-                                    <span class="slc-cpitch__review-name"><?php echo esc_html($author); ?></span>
+                                </span>
+                                <span class="slc-cpitch__material-text"><?php echo esc_html($mat_text); ?></span>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </section>
+            <?php endif; ?>
+
+            <?php /* ── BONOS (con VALOR muy visible) ───────────────────── */ ?>
+            <?php if (!empty($bonuses)): ?>
+            <section class="slc-cpitch__section slc-cpitch__bonuses-section">
+                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
+                    <div class="slc-cpitch__section-head">
+                        <span class="slc-cpitch__eyebrow slc-cpitch__eyebrow--accent"><?php esc_html_e('Bonos exclusivos', 'studiahub-lms-connector'); ?></span>
+                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Si te inscribís hoy, también te llevás:', 'studiahub-lms-connector'); ?></h2>
+                    </div>
+                    <div class="slc-cpitch__bonuses">
+                        <?php foreach ($bonuses as $bonus):
+                            $b_img = trim((string) ($bonus['imageUrl'] ?? ''));
+                        ?>
+                            <div class="slc-cpitch__bonus">
+                                <?php if ($b_img !== ''): ?>
+                                <div class="slc-cpitch__bonus-img-wrap">
+                                    <img class="slc-cpitch__bonus-img" src="<?php echo esc_url($b_img); ?>" alt="" loading="lazy" />
+                                </div>
+                                <?php endif; ?>
+                                <div class="slc-cpitch__bonus-body">
+                                    <h3 class="slc-cpitch__bonus-title"><?php echo esc_html($bonus['title']); ?></h3>
+                                    <?php if (!empty($bonus['desc'])): ?>
+                                        <p class="slc-cpitch__bonus-desc"><?php echo esc_html($bonus['desc']); ?></p>
+                                    <?php endif; ?>
+                                    <?php if (!empty($bonus['value'])): ?>
+                                        <div class="slc-cpitch__bonus-value">
+                                            <span class="slc-cpitch__bonus-value-label"><?php esc_html_e('Valor:', 'studiahub-lms-connector'); ?></span>
+                                            <span class="slc-cpitch__bonus-value-num"><?php echo esc_html($bonus['value']); ?></span>
+                                            <span class="slc-cpitch__bonus-free"><?php esc_html_e('Incluido gratis', 'studiahub-lms-connector'); ?></span>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>
+                    </div>
+                    <div class="slc-cpitch__bonuses-cta">
+                        <a class="slc-cpitch__btn slc-cpitch__btn--lg" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label ?: __('Quiero inscribirme', 'studiahub-lms-connector')); ?></a>
                     </div>
                 </div>
             </section>
@@ -530,9 +646,67 @@ final class Shortcode_CoursePitch {
             </section>
             <?php endif; ?>
 
+            <?php /* ── CTA FINAL + PAGO SEGURO ─────────────────────────── */ ?>
+            <section class="slc-cpitch__final">
+                <div class="slc-cpitch__wrap slc-cpitch__final-inner">
+                    <span class="slc-cpitch__eyebrow slc-cpitch__eyebrow--on-dark"><?php esc_html_e('Última oportunidad', 'studiahub-lms-connector'); ?></span>
+                    <h2 class="slc-cpitch__final-title"><?php esc_html_e('Inscribite ahora y empezá hoy', 'studiahub-lms-connector'); ?></h2>
+                    <div class="slc-cpitch__final-price">
+                        <?php if ($offer['original'] !== ''): ?>
+                            <span class="slc-cpitch__price-old slc-cpitch__price-old--lg"><?php echo esc_html($offer['original']); ?></span>
+                        <?php endif; ?>
+                        <span class="slc-cpitch__final-now"><?php echo esc_html($offer['current']); ?></span>
+                        <?php if ($offer['installments'] !== ''): ?>
+                            <span class="slc-cpitch__final-inst"><?php echo esc_html($offer['installments']); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <a class="slc-cpitch__btn slc-cpitch__btn--xl slc-cpitch__btn--on-dark" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
+                    <?php if ($offer['deadline'] !== ''): ?>
+                        <div class="slc-cpitch__deadline slc-cpitch__deadline--center">
+                            <span class="slc-cpitch__deadline-dot" aria-hidden="true"></span>
+                            <?php echo esc_html($offer['deadline']); ?>
+                        </div>
+                    <?php endif; ?>
+                    <?php
+                    $trust_parts = [];
+                    if ($guarantee !== null) $trust_parts[] = $guarantee['short'];
+                    if ($social['students_label'] !== '') $trust_parts[] = $social['students_label'];
+                    if ($tenant_name !== '') $trust_parts[] = sprintf(__('Curso oficial de %s', 'studiahub-lms-connector'), $tenant_name);
+                    if (!empty($trust_parts)):
+                    ?>
+                        <div class="slc-cpitch__final-trust"><?php echo esc_html(implode(' · ', $trust_parts)); ?></div>
+                    <?php endif; ?>
+                    <?php if (!empty($payment_methods)): ?>
+                    <div class="slc-cpitch__final-payment">
+                        <span class="slc-cpitch__final-payment-label">🔒 <?php esc_html_e('Pago seguro', 'studiahub-lms-connector'); ?></span>
+                        <div class="slc-cpitch__payment-logos">
+                            <?php foreach ($payment_methods as $method):
+                                $pm_name = trim((string) ($method['name'] ?? ''));
+                                $pm_url  = trim((string) ($method['logoUrl'] ?? ''));
+                                if ($pm_name === '' && $pm_url === '') continue;
+                            ?>
+                                <span class="slc-cpitch__payment-item">
+                                    <?php if ($pm_url !== ''): ?>
+                                        <img
+                                            class="slc-cpitch__payment-logo slc-cpitch__payment-logo--light"
+                                            src="<?php echo esc_url($pm_url); ?>"
+                                            alt="<?php echo esc_attr($pm_name); ?>"
+                                            loading="lazy"
+                                            onerror="this.parentElement.querySelector('.slc-cpitch__payment-name').style.display='inline'; this.style.display='none';"
+                                        />
+                                    <?php endif; ?>
+                                    <span class="slc-cpitch__payment-name slc-cpitch__payment-name--light" <?php if ($pm_url !== '') echo 'style="display:none"'; ?>><?php echo esc_html($pm_name); ?></span>
+                                </span>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            </section>
+
             <?php /* ── FAQ ─────────────────────────────────────────────── */ ?>
             <?php if (!empty($faq)): ?>
-            <section class="slc-cpitch__section slc-cpitch__section--soft">
+            <section class="slc-cpitch__section slc-cpitch__section--soft slc-cpitch__faq-section">
                 <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
                         <span class="slc-cpitch__eyebrow"><?php esc_html_e('Dudas', 'studiahub-lms-connector'); ?></span>
@@ -552,57 +726,6 @@ final class Shortcode_CoursePitch {
                 </div>
             </section>
             <?php endif; ?>
-
-            <?php /* ── REQUISITOS ──────────────────────────────────────── */ ?>
-            <?php if (!empty($reqs)): ?>
-            <section class="slc-cpitch__section">
-                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
-                    <div class="slc-cpitch__section-head">
-                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('Antes de empezar', 'studiahub-lms-connector'); ?></span>
-                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Requisitos', 'studiahub-lms-connector'); ?></h2>
-                    </div>
-                    <ul class="slc-cpitch__reqs">
-                        <?php foreach ($reqs as $item): ?>
-                            <li><span class="slc-cpitch__req-dot" aria-hidden="true"></span><?php echo esc_html(is_array($item) ? ($item['text'] ?? '') : (string) $item); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            </section>
-            <?php endif; ?>
-
-            <?php /* ── CTA FINAL gigante ───────────────────────────────── */ ?>
-            <section class="slc-cpitch__final">
-                <div class="slc-cpitch__wrap slc-cpitch__final-inner">
-                    <span class="slc-cpitch__eyebrow slc-cpitch__eyebrow--on-dark"><?php esc_html_e('Última oportunidad', 'studiahub-lms-connector'); ?></span>
-                    <h2 class="slc-cpitch__final-title"><?php esc_html_e('Inscribite ahora y empezá hoy', 'studiahub-lms-connector'); ?></h2>
-                    <p class="slc-cpitch__final-sub"><?php echo esc_html($subtitle !== '' ? $subtitle : $title); ?></p>
-                    <div class="slc-cpitch__final-price">
-                        <?php if ($offer['original'] !== ''): ?>
-                            <span class="slc-cpitch__price-old slc-cpitch__price-old--lg"><?php echo esc_html($offer['original']); ?></span>
-                        <?php endif; ?>
-                        <span class="slc-cpitch__final-now"><?php echo esc_html($offer['current']); ?></span>
-                    </div>
-                    <?php if ($offer['installments'] !== ''): ?>
-                        <div class="slc-cpitch__final-inst"><?php echo esc_html($offer['installments']); ?></div>
-                    <?php endif; ?>
-                    <a class="slc-cpitch__btn slc-cpitch__btn--xl slc-cpitch__btn--on-dark" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
-                    <?php if ($offer['deadline'] !== ''): ?>
-                        <div class="slc-cpitch__deadline slc-cpitch__deadline--center">
-                            <span class="slc-cpitch__deadline-dot" aria-hidden="true"></span>
-                            <?php echo esc_html($offer['deadline']); ?>
-                        </div>
-                    <?php endif; ?>
-                    <?php
-                    $trust_parts = [];
-                    if ($guarantee !== null) $trust_parts[] = $guarantee['short'];
-                    if ($social['students_label'] !== '') $trust_parts[] = $social['students_label'];
-                    if ($tenant_name !== '') $trust_parts[] = sprintf(__('Curso oficial de %s', 'studiahub-lms-connector'), $tenant_name);
-                    if (!empty($trust_parts)):
-                    ?>
-                        <div class="slc-cpitch__final-trust"><?php echo esc_html(implode(' · ', $trust_parts)); ?></div>
-                    <?php endif; ?>
-                </div>
-            </section>
 
             <?php /* ── STICKY CTA (aparece al hacer scroll) ────────────── */ ?>
             <div class="slc-cpitch__sticky" data-slc-sticky>
