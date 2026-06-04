@@ -19,7 +19,7 @@
   "ctaLabel": "Quiero inscribirme",
   "highlightBadge": "Actualizado 2026",
   "category": "Marketing",
-  "courseType": "on_demand",
+  "courseType": "hybrid",
   "level": "Intermedio",
   "language": "Español",
   "durationHours": 19,
@@ -41,11 +41,11 @@
     }
   ],
   "learningOutcomes": [
-    "Crear campañas de Meta Ads que conviertan desde el día 1",
-    "Diseñar embudos de venta automatizados con tasas de conversión > 3%",
-    "Medir, analizar y optimizar campañas con herramientas pro",
-    "Construir audiencias custom de alta intención de compra",
-    "Implementar estrategias de email marketing que generan retorno"
+    { "title": "Campañas que convierten", "desc": "Creá anuncios en Meta Ads que generan ventas reales desde el primer día.", "icon": "fi-tr-bullseye-arrow" },
+    { "title": "Embudos automatizados", "desc": "Diseñá flujos de venta que trabajan solos con tasas de conversión superiores al 3%.", "icon": "fi-tr-filter" },
+    { "title": "Analítica avanzada", "desc": "Medí, analizá y optimizá cada campaña con herramientas profesionales.", "icon": "fi-tr-chart-line-up" },
+    { "title": "Audiencias de alto impacto", "desc": "Construí segmentos custom y lookalike con alta intención de compra.", "icon": "fi-tr-user-circle" },
+    { "title": "Email marketing efectivo", "desc": "Implementá estrategias de email que generan retorno real sobre la inversión.", "icon": "fi-tr-envelope-open" }
   ],
   "targetAudience": [
     "Emprendedores que quieren vender más sin depender de su networking",
@@ -70,6 +70,9 @@
   "modulesCount": 5,
   "lessonsCount": 32,
   "totalDurationMin": 1140,
+  "liveSessionsCount": 5,
+  "courseStartAt": "2026-06-12T19:00:00-03:00",
+  "courseStartLabel": "El curso comienza en",
   "outline": [
     {
       "title": "Módulo 1: Fundamentos de Marketing Digital",
@@ -84,13 +87,14 @@
     },
     {
       "title": "Módulo 2: Meta Ads desde cero a pro",
+      "isLive": true,
       "durationMin": 300,
       "lessons": [
-        { "title": "Estructura de cuenta correcta", "type": "VIDEO", "durationMin": 28, "free": false },
-        { "title": "Audiencias custom y lookalike", "type": "VIDEO", "durationMin": 45, "free": false },
-        { "title": "Creativos que convierten", "type": "VIDEO", "durationMin": 52, "free": false },
-        { "title": "Píxel y eventos de conversión", "type": "VIDEO", "durationMin": 38, "free": false },
-        { "title": "Optimización y escalado", "type": "VIDEO", "durationMin": 60, "free": false }
+        { "title": "Estructura de cuenta correcta", "type": "VIDEO", "liveAt": "2026-06-12T18:00:00-03:00", "free": false },
+        { "title": "Audiencias custom y lookalike", "type": "VIDEO", "liveAt": "2026-06-19T18:00:00-03:00", "free": false },
+        { "title": "Creativos que convierten", "type": "VIDEO", "liveAt": "2026-06-26T18:00:00-03:00", "free": false },
+        { "title": "Píxel y eventos de conversión", "type": "VIDEO", "liveAt": "2026-07-03T18:00:00-03:00", "free": false },
+        { "title": "Optimización y escalado", "type": "VIDEO", "liveAt": "2026-07-10T18:00:00-03:00", "free": false }
       ]
     },
     {
@@ -242,10 +246,9 @@
   ],
   "socialProof": {
     "studentsCount": 234,
-    "studentsLabel": "+200 alumnos activos",
+    "studentsLabel": "+200",
     "stats": [
-      { "num": "98%", "label": "lo recomiendan" },
-      { "num": "4.8★", "label": "valoración promedio" },
+      { "num": "98%",      "label": "lo recomiendan"        },
       { "num": "12 meses", "label": "de acceso garantizado" }
     ]
   },
