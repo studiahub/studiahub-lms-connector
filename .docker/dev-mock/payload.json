@@ -19,7 +19,7 @@
   "ctaLabel": "Quiero inscribirme",
   "highlightBadge": "Actualizado 2026",
   "category": "Marketing",
-  "courseType": "on_demand",
+  "courseType": "hybrid",
   "level": "Intermedio",
   "language": "Español",
   "durationHours": 19,
@@ -41,11 +41,11 @@
     }
   ],
   "learningOutcomes": [
-    "Crear campañas de Meta Ads que conviertan desde el día 1",
-    "Diseñar embudos de venta automatizados con tasas de conversión > 3%",
-    "Medir, analizar y optimizar campañas con herramientas pro",
-    "Construir audiencias custom de alta intención de compra",
-    "Implementar estrategias de email marketing que generan retorno"
+    { "title": "Campañas que convierten", "desc": "Creá anuncios en Meta Ads que generan ventas reales desde el primer día.", "icon": "fi-tr-bullseye-arrow" },
+    { "title": "Embudos automatizados", "desc": "Diseñá flujos de venta que trabajan solos con tasas de conversión superiores al 3%.", "icon": "fi-tr-filter" },
+    { "title": "Analítica avanzada", "desc": "Medí, analizá y optimizá cada campaña con herramientas profesionales.", "icon": "fi-tr-chart-line-up" },
+    { "title": "Audiencias de alto impacto", "desc": "Construí segmentos custom y lookalike con alta intención de compra.", "icon": "fi-tr-user-circle" },
+    { "title": "Email marketing efectivo", "desc": "Implementá estrategias de email que generan retorno real sobre la inversión.", "icon": "fi-tr-envelope-open" }
   ],
   "targetAudience": [
     "Emprendedores que quieren vender más sin depender de su networking",
@@ -54,12 +54,13 @@
     "Marketers junior que quieren saltar al siguiente nivel"
   ],
   "includedMaterials": [
-    "+ 40 plantillas de campañas en Meta Ads",
-    "Calculadora de ROI y CAC en Excel",
-    "Prompts de GPT para copywriting",
-    "Checklist de auditoría pre-launch",
-    "Acceso a la comunidad privada en Discord"
+    { "text": "+ 40 plantillas de campañas en Meta Ads", "icon": "fi-tr-copy-alt" },
+    { "text": "Calculadora de ROI y CAC en Excel",       "icon": "fi-tr-calculator" },
+    { "text": "Prompts de GPT para copywriting",         "icon": "fi-tr-comment-code" },
+    { "text": "Checklist de auditoría pre-launch",       "icon": "fi-tr-clipboard-list" },
+    { "text": "Acceso a la comunidad privada en Discord","icon": "fi-tr-users" }
   ],
+  "requirementsImageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&q=80",
   "requirements": [
     "Tener una idea o negocio en marcha (no importa la etapa)",
     "Acceso a una cuenta de Meta Ads (podemos ayudarte a crearla)",
@@ -69,6 +70,9 @@
   "modulesCount": 5,
   "lessonsCount": 32,
   "totalDurationMin": 1140,
+  "liveSessionsCount": 5,
+  "courseStartAt": "2026-06-12T19:00:00-03:00",
+  "courseStartLabel": "El curso comienza en",
   "outline": [
     {
       "title": "Módulo 1: Fundamentos de Marketing Digital",
@@ -83,13 +87,14 @@
     },
     {
       "title": "Módulo 2: Meta Ads desde cero a pro",
+      "isLive": true,
       "durationMin": 300,
       "lessons": [
-        { "title": "Estructura de cuenta correcta", "type": "VIDEO", "durationMin": 28, "free": false },
-        { "title": "Audiencias custom y lookalike", "type": "VIDEO", "durationMin": 45, "free": false },
-        { "title": "Creativos que convierten", "type": "VIDEO", "durationMin": 52, "free": false },
-        { "title": "Píxel y eventos de conversión", "type": "VIDEO", "durationMin": 38, "free": false },
-        { "title": "Optimización y escalado", "type": "VIDEO", "durationMin": 60, "free": false }
+        { "title": "Estructura de cuenta correcta", "type": "VIDEO", "liveAt": "2026-06-12T18:00:00-03:00", "free": false },
+        { "title": "Audiencias custom y lookalike", "type": "VIDEO", "liveAt": "2026-06-19T18:00:00-03:00", "free": false },
+        { "title": "Creativos que convierten", "type": "VIDEO", "liveAt": "2026-06-26T18:00:00-03:00", "free": false },
+        { "title": "Píxel y eventos de conversión", "type": "VIDEO", "liveAt": "2026-07-03T18:00:00-03:00", "free": false },
+        { "title": "Optimización y escalado", "type": "VIDEO", "liveAt": "2026-07-10T18:00:00-03:00", "free": false }
       ]
     },
     {
@@ -201,17 +206,20 @@
     {
       "title": "Auditoría 1-on-1 de tu cuenta",
       "desc": "Sesión privada de 30 min donde reviso tu cuenta de ads y te dejo un plan de acción concreto.",
-      "value": "USD 250"
+      "value": "USD 250",
+      "imageUrl": "https://picsum.photos/seed/bonus1/400/300"
     },
     {
       "title": "Pack de 20 anuncios listos para copiar",
       "desc": "Estructuras de copy + creativos en Canva con los mejores anuncios que armamos en agencia.",
-      "value": "USD 99"
+      "value": "USD 99",
+      "imageUrl": "https://picsum.photos/seed/bonus2/400/300"
     },
     {
       "title": "Acceso a la comunidad por 1 año",
       "desc": "Networking con otros marketers + AMAs mensuales con expertos invitados.",
-      "value": "USD 149"
+      "value": "USD 149",
+      "imageUrl": "https://picsum.photos/seed/bonus3/400/300"
     }
   ],
   "faq": [
@@ -238,15 +246,21 @@
   ],
   "socialProof": {
     "studentsCount": 234,
-    "studentsLabel": "+200 alumnos activos",
+    "studentsLabel": "+200",
     "stats": [
-      { "num": "98%", "label": "lo recomiendan" },
-      { "num": "4.8★", "label": "valoración promedio" },
+      { "num": "98%",      "label": "lo recomiendan"        },
       { "num": "12 meses", "label": "de acceso garantizado" }
     ]
   },
   "guarantee": {
     "title": "7 días de garantía total",
     "text": "Si no te convence el curso en los primeros 7 días, te devolvemos el 100% del dinero. Sin preguntas, sin formularios eternos. Solo escribís un email y listo."
-  }
+  },
+  "paymentMethods": [
+    { "name": "Visa",            "logoUrl": "https://cdn.simpleicons.org/visa/1A1F71" },
+    { "name": "Mastercard",      "logoUrl": "https://cdn.simpleicons.org/mastercard/EB001B" },
+    { "name": "American Express","logoUrl": "https://cdn.simpleicons.org/americanexpress/2E77BC" },
+    { "name": "Mercado Pago",    "logoUrl": "https://cdn.simpleicons.org/mercadopago/00B1EA" },
+    { "name": "PayPal",          "logoUrl": "https://cdn.simpleicons.org/paypal/003087" }
+  ]
 }

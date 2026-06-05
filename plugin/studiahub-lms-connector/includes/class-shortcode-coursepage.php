@@ -909,12 +909,14 @@ final class Shortcode_CoursePage {
                     ? $students_override
                     : '+' . number_format_i18n($students_count),
                 'label' => __('Alumnos inscriptos', 'studiahub-lms-connector'),
+                'icon'  => 'fi-tr-users',
             ];
         }
         if ($rating !== null) {
             $bar[] = [
                 'num'   => number_format($rating, 1, ',', '') . ' ★',
                 'label' => __('Valoración promedio', 'studiahub-lms-connector'),
+                'icon'  => '',
             ];
         }
         $custom_stats = is_array($sp['stats'] ?? null) ? $sp['stats'] : [];
@@ -923,7 +925,11 @@ final class Shortcode_CoursePage {
             $num   = trim((string) ($stat['num'] ?? ''));
             $label = trim((string) ($stat['label'] ?? ''));
             if ($num === '' || $label === '') continue;
-            $bar[] = ['num' => $num, 'label' => $label];
+            $bar[] = [
+                'num'   => $num,
+                'label' => $label,
+                'icon'  => trim((string) ($stat['icon'] ?? '')),
+            ];
         }
 
         return [
@@ -990,9 +996,10 @@ final class Shortcode_CoursePage {
             $title = trim((string) ($b['title'] ?? ''));
             if ($title === '') continue;
             $out[] = [
-                'title' => $title,
-                'desc'  => trim((string) ($b['desc'] ?? '')),
-                'value' => trim((string) ($b['value'] ?? '')),
+                'title'    => $title,
+                'desc'     => trim((string) ($b['desc'] ?? '')),
+                'value'    => trim((string) ($b['value'] ?? '')),
+                'imageUrl' => trim((string) ($b['imageUrl'] ?? '')),
             ];
         }
         return $out;

@@ -24,9 +24,8 @@ add_action('template_redirect', function () {
 <?php wp_head(); ?>
 <style>
 body { margin: 0; padding: 0; background: #fff; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.slc-test-bar { position: fixed; top: 0; left: 0; right: 0; background: #0F172A; color: #fff; padding: 8px 16px; font-size: 12px; z-index: 99999; }
+.slc-test-bar { position: static; background: #0F172A; color: #fff; padding: 8px 16px; font-size: 12px; }
 .slc-test-bar a { color: #FAB005; margin-left: 12px; }
-.slc-test-content { padding-top: 36px; }
 </style>
 </head><body>
 <div class="slc-test-bar">SLC test render — shortcode: <code><?php echo esc_html($sc); ?></code>
