@@ -324,9 +324,12 @@
     width: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
-    border-radius: var(--shub-radius-lg);
+    /* !important para que el radio se aplique siempre, sin importar la imagen
+       cargada ni el tema del cliente (algunos pisan el border-radius de <img>). */
+    border-radius: var(--shub-radius-lg) !important;
     display: block;
     box-shadow: 0 32px 80px -20px rgba(15,23,42,0.22);
+    overflow: hidden;
 }
 
 /* Cajitas flotantes */
