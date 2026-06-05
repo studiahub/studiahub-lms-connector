@@ -901,7 +901,7 @@ final class Shortcode_CoursePage {
             $students_label = '';
         }
 
-        // Stats para la barra: 1) alumnos real, 2) rating real, 3-4) custom.
+        // Stats para la barra: 1) alumnos real, 2) rating real, 3-5) custom (máx 3).
         $bar = [];
         if ($students_count > 0 || $students_override !== '') {
             $bar[] = [
@@ -920,7 +920,7 @@ final class Shortcode_CoursePage {
             ];
         }
         $custom_stats = is_array($sp['stats'] ?? null) ? $sp['stats'] : [];
-        foreach (array_slice($custom_stats, 0, 2) as $stat) {
+        foreach (array_slice($custom_stats, 0, 3) as $stat) {
             if (!is_array($stat)) continue;
             $num   = trim((string) ($stat['num'] ?? ''));
             $label = trim((string) ($stat['label'] ?? ''));

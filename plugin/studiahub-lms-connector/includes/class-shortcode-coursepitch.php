@@ -274,30 +274,32 @@ final class Shortcode_CoursePitch {
                 <div class="slc-cpitch__wrap">
 
                     <?php if ($long_desc !== ''): ?>
-                    <div class="slc-cpitch__section-head">
-                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('La propuesta', 'studiahub-lms-connector'); ?></span>
-                        <h2 class="slc-cpitch__h2"><?php esc_html_e('Por qué tomar este curso', 'studiahub-lms-connector'); ?></h2>
-                    </div>
-                    <div class="slc-cpitch__longdesc-grid">
-                        <?php if ($trailer !== null || $thumbnail_url !== ''): ?>
-                        <div class="slc-cpitch__longdesc-img-wrap">
-                            <?php if ($trailer !== null):
-                                $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
-                            ?>
-                                <div class="slc-cpitch__trailer-facade slc-cpitch__longdesc-trailer"
-                                     data-embed="<?php echo esc_attr($trailer['embed']); ?>"
-                                     <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
-                                     role="button" tabindex="0"
-                                     aria-label="<?php esc_attr_e('Reproducir trailer', 'studiahub-lms-connector'); ?>">
-                                    <span class="slc-cpitch__play" aria-hidden="true">
-                                        <svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.55)"/><polygon points="26,20 26,44 46,32" fill="#fff"/></svg>
-                                    </span>
-                                </div>
-                            <?php else: ?>
-                                <img class="slc-cpitch__longdesc-img" src="<?php echo esc_url($thumbnail_url); ?>" alt="" loading="lazy" />
+                    <div class="slc-cpitch__longdesc-grid<?php echo ($trailer === null && $thumbnail_url === '') ? ' slc-cpitch__longdesc-grid--no-media' : ''; ?>">
+                        <div class="slc-cpitch__longdesc-left">
+                            <div class="slc-cpitch__section-head">
+                                <span class="slc-cpitch__eyebrow"><?php esc_html_e('La propuesta', 'studiahub-lms-connector'); ?></span>
+                                <h2 class="slc-cpitch__h2"><?php esc_html_e('Por qué tomar este curso', 'studiahub-lms-connector'); ?></h2>
+                            </div>
+                            <?php if ($trailer !== null || $thumbnail_url !== ''): ?>
+                            <div class="slc-cpitch__longdesc-img-wrap">
+                                <?php if ($trailer !== null):
+                                    $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
+                                ?>
+                                    <div class="slc-cpitch__trailer-facade slc-cpitch__longdesc-trailer"
+                                         data-embed="<?php echo esc_attr($trailer['embed']); ?>"
+                                         <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
+                                         role="button" tabindex="0"
+                                         aria-label="<?php esc_attr_e('Reproducir trailer', 'studiahub-lms-connector'); ?>">
+                                        <span class="slc-cpitch__play" aria-hidden="true">
+                                            <svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="32" fill="rgba(0,0,0,0.55)"/><polygon points="26,20 26,44 46,32" fill="#fff"/></svg>
+                                        </span>
+                                    </div>
+                                <?php else: ?>
+                                    <img class="slc-cpitch__longdesc-img" src="<?php echo esc_url($thumbnail_url); ?>" alt="" loading="lazy" />
+                                <?php endif; ?>
+                            </div>
                             <?php endif; ?>
                         </div>
-                        <?php endif; ?>
                         <div class="slc-cpitch__prose"><?php echo wpautop(wp_kses_post($long_desc)); ?></div>
                     </div>
                     <?php endif; ?>
@@ -356,8 +358,8 @@ final class Shortcode_CoursePitch {
             <section class="slc-cpitch__section slc-cpitch__section--audience">
                 <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
-                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('Para vos', 'studiahub-lms-connector'); ?></span>
-                        <h2 class="slc-cpitch__h2"><?php esc_html_e('¿Es para vos?', 'studiahub-lms-connector'); ?></h2>
+                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('¿Es para vos?', 'studiahub-lms-connector'); ?></span>
+                        <h2 class="slc-cpitch__h2"><?php esc_html_e('A quién está dirigido', 'studiahub-lms-connector'); ?></h2>
                     </div>
                     <div class="slc-cpitch__personas" data-stagger-reveal>
                         <?php foreach ($audience as $item): ?>

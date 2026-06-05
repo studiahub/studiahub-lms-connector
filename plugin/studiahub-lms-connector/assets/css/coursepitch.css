@@ -591,10 +591,13 @@
 .slc-cpitch__band::before { display: none; }
 .slc-cpitch__band-grid {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: center;
     position: relative;
     z-index: 1;
+    /* Más ancha que el wrap normal (1200px) para que entren hasta 5 stats en
+       una sola línea. Pisa el max-width de .slc-cpitch__wrap. */
+    max-width: min(1440px, 94vw);
 }
 /* Cada stat es una celda con padding generoso y separador vertical */
 .slc-cpitch__band-item {
@@ -603,7 +606,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 28px 40px;
+    padding: 28px 24px;
     position: relative;
     gap: 6px;
 }
@@ -653,12 +656,27 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 48px;
-    align-items: center;
+    align-items: start;
+}
+/* Sin video ni imagen → el texto ocupa todo el ancho del contenedor. */
+.slc-cpitch__longdesc-grid--no-media {
+    grid-template-columns: 1fr;
 }
 .slc-cpitch__longdesc-img-wrap {
     border-radius: var(--shub-radius-lg);
     overflow: hidden;
     aspect-ratio: 16 / 10;
+}
+/* Columna izquierda (título + video): queda fija mientras el texto scrollea.
+   top deja lugar a la barra sticky del countdown cuando existe. */
+.slc-cpitch__longdesc-left {
+    position: sticky;
+    top: 100px;
+    align-self: start;
+}
+/* Sin media → 1 columna, el bloque izquierdo (solo título) no es sticky. */
+.slc-cpitch__longdesc-grid--no-media .slc-cpitch__longdesc-left {
+    position: static;
 }
 .slc-cpitch__longdesc-img {
     width: 100%;
@@ -685,7 +703,9 @@
 }
 @media (max-width: 960px) {
     .slc-cpitch__longdesc-grid { grid-template-columns: 1fr; gap: 32px; }
+    /* En mobile las columnas se apilan: sin sticky. */
     .slc-cpitch__longdesc-img-wrap { aspect-ratio: 16 / 7; }
+    .slc-cpitch__longdesc-left { position: static; }
 }
 .slc-cpitch__prose { font-size: 16.5px; color: var(--shub-text-body); line-height: 1.75; }
 .slc-cpitch__prose p { margin-bottom: 18px; }
@@ -1587,7 +1607,7 @@
     .slc-cpitch__reqs-img-wrap { aspect-ratio: 16 / 7; }
     .slc-cpitch__hero-grid { grid-template-columns: 1fr; gap: 40px; }
     .slc-cpitch__hero-title { max-width: none; }
-    .slc-cpitch__band-grid { gap: 28px 32px; }
+    .slc-cpitch__band-grid { gap: 28px 32px; flex-wrap: wrap; }
     .slc-cpitch__reviews-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
