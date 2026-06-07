@@ -1007,6 +1007,17 @@
     width: 340px;
     flex-shrink: 0;
 }
+/* Grid estático cuando hay pocas reseñas (sin marquee): centrado, sin repetir. */
+.slc-cpitch__reviews-static {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+.slc-cpitch__reviews-static .slc-cpitch__review {
+    flex: 0 1 340px;
+    max-width: 340px;
+}
 .slc-cpitch__review {
     position: relative;
     display: flex;
@@ -1230,6 +1241,20 @@
     display: block;
     margin-top: 4px;
 }
+.slc-cpitch__pricing-offer-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    padding: 7px 14px;
+    background: rgba(232, 89, 12, 0.10);
+    border-radius: var(--shub-radius-pill);
+    font-size: 13.5px;
+    color: #C2410C;
+    font-weight: 600;
+}
+.slc-cpitch__pricing-offer-timer strong { font-weight: 800; }
+.slc-cpitch__pricing-offer-timer--live strong { font-variant-numeric: tabular-nums; letter-spacing: 0.3px; }
 
 /* CTA */
 .slc-cpitch__pricing-cta {
@@ -1241,6 +1266,12 @@
     padding: 16px 24px;
     letter-spacing: 0.02em;
     margin: 0 36px 20px;
+}
+.slc-cpitch__pricing-cta--closed {
+    background: var(--shub-bg-soft) !important;
+    color: var(--shub-text-muted) !important;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* Logos de pago */

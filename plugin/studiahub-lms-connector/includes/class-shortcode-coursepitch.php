@@ -149,6 +149,21 @@ final class Shortcode_CoursePitch {
         // pricing / social proof / etc.
         $social    = Shortcode_CoursePage::data_social_proof_public($payload);
         $offer     = Shortcode_CoursePage::data_offer_pricing_public($payload, $price_disp);
+        // Countdown de oferta (offerDeadlineAt solo viaja si la oferta está
+        // vigente) + cierre de inscripciones (salesClosed → botón deshabilitado).
+        $offer_deadline_iso   = trim((string) ($payload['offerDeadlineAt'] ?? ''));
+        $offer_deadline_label = '';
+        $offer_imminent       = false; // a < 48hs pasamos a countdown vivo (JS)
+        if ($offer_deadline_iso !== '') {
+            $odl_ts = strtotime($offer_deadline_iso);
+            $now_ts = function_exists('current_time') ? (int) current_time('timestamp') : time();
+            if ($odl_ts && $odl_ts > $now_ts) {
+                $remaining = $odl_ts - $now_ts;
+                $offer_imminent = $remaining < 48 * 3600;
+                $offer_deadline_label = self::format_relative_es($remaining);
+            }
+        }
+        $sales_closed = !empty($payload['salesClosed']);
         $bonuses   = Shortcode_CoursePage::data_bonuses_public($payload);
         $guarantee = Shortcode_CoursePage::data_guarantee_public($payload);
         $faq       = Shortcode_CoursePage::data_faq_public($payload);
@@ -481,20 +496,26 @@ final class Shortcode_CoursePitch {
             </section>
             <?php endif; ?>
 
-            <?php /* ── RESEÑAS — infinite marquee dos filas ────────────── */ ?>
-            <?php if (!empty($reviews)): ?>
+            <?php /* ── RESEÑAS — se ocultan con menos de 3 (prueba social floja) ── */ ?>
             <?php
-                // Filtrar reseñas válidas
-                $valid_reviews = array_values(array_filter($reviews, function($r) {
+                $valid_reviews = is_array($reviews) ? array_values(array_filter($reviews, function($r) {
                     return (string)($r['author'] ?? '') !== '' && (int)($r['rating'] ?? 0) >= 1;
-                }));
-                // Aseguramos mínimo 6 para las dos filas; si hay menos, duplicamos
-                while (count($valid_reviews) < 6) {
-                    $valid_reviews = array_merge($valid_reviews, $valid_reviews);
+                })) : [];
+            ?>
+            <?php if (count($valid_reviews) >= 3): ?>
+            <?php
+                // Pocas (3-5) → grid estático; muchas (6+) → marquee de 2 filas
+                // (con pocas, el marquee duplica y se ve repetido y feo).
+                $real_count  = count($valid_reviews);
+                $use_marquee = $real_count >= 6;
+                if ($use_marquee) {
+                    while (count($valid_reviews) < 6) {
+                        $valid_reviews = array_merge($valid_reviews, $valid_reviews);
+                    }
+                    $mid  = (int) ceil(count($valid_reviews) / 2);
+                    $row1 = array_slice($valid_reviews, 0, $mid);
+                    $row2 = array_slice($valid_reviews, $mid);
                 }
-                $mid   = (int) ceil(count($valid_reviews) / 2);
-                $row1  = array_slice($valid_reviews, 0, $mid);
-                $row2  = array_slice($valid_reviews, $mid);
                 $stats_count = (int) ($review_stats['count'] ?? count($valid_reviews));
                 $stats_avg   = (float) ($review_stats['average'] ?? 0);
             ?>
@@ -567,6 +588,7 @@ final class Shortcode_CoursePitch {
                 };
                 ?>
 
+                <?php if ($use_marquee): ?>
                 <!-- Fila 1: izquierda -->
                 <div class="slc-cpitch__marquee" data-direction="left">
                     <div class="slc-cpitch__marquee-track">
@@ -582,6 +604,14 @@ final class Shortcode_CoursePitch {
                         <?php foreach ($row2 as $r) { $render_review_card($r, true); } ?>
                     </div>
                 </div>
+                <?php else: ?>
+                <!-- Pocas reseñas: grid estático centrado, sin repetir. -->
+                <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
+                    <div class="slc-cpitch__reviews-static">
+                        <?php foreach ($valid_reviews as $r) { $render_review_card($r); } ?>
+                    </div>
+                </div>
+                <?php endif; ?>
 
             </section>
             <?php endif; ?>
@@ -623,11 +653,23 @@ final class Shortcode_CoursePitch {
                             <?php if ($offer['installments'] !== ''): ?>
                                 <span class="slc-cpitch__pricing-inst"><?php echo esc_html($offer['installments']); ?></span>
                             <?php endif; ?>
+                            <?php if ($offer_deadline_label !== ''): ?>
+                                <div class="slc-cpitch__pricing-offer-timer<?php echo $offer_imminent ? ' slc-cpitch__pricing-offer-timer--live' : ''; ?>"<?php if ($offer_imminent): ?> data-slc-offer-target="<?php echo esc_attr($offer_deadline_iso); ?>"<?php endif; ?>>
+                                    <span aria-hidden="true">⏰</span>
+                                    <span><?php esc_html_e('La oferta termina en', 'studiahub-lms-connector'); ?> <strong data-slc-offer-timer><?php echo esc_html($offer_deadline_label); ?></strong></span>
+                                </div>
+                            <?php endif; ?>
                         </div>
 
+                        <?php if ($sales_closed): ?>
+                        <span class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta slc-cpitch__pricing-cta--closed" aria-disabled="true">
+                            <?php esc_html_e('Inscripciones cerradas', 'studiahub-lms-connector'); ?>
+                        </span>
+                        <?php else: ?>
                         <a class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta" href="<?php echo esc_url($checkout_url); ?>">
                             <?php echo esc_html($cta_label ?: __('Quiero inscribirme', 'studiahub-lms-connector')); ?> →
                         </a>
+                        <?php endif; ?>
 
                         <?php if (!empty($payment_methods)): ?>
                         <div class="slc-cpitch__pricing-logos">
@@ -819,6 +861,32 @@ final class Shortcode_CoursePitch {
                 elS.textContent = pad(s % 60);
             };
             bar.hidden = false;
+            tick();
+            interval = setInterval(tick, 1000);
+        })();
+        </script>
+        <?php endif; ?>
+        <?php if ($offer_imminent): ?>
+        <script>
+        (function(){
+            // Countdown vivo de la oferta — solo en las últimas 48hs.
+            var el = document.querySelector('.slc-coursepitch .slc-cpitch__pricing-offer-timer[data-slc-offer-target]');
+            if (!el) return;
+            var target = new Date(el.getAttribute('data-slc-offer-target')).getTime();
+            if (isNaN(target)) return;
+            var out = el.querySelector('[data-slc-offer-timer]');
+            if (!out) return;
+            var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+            var interval = null;
+            var tick = function(){
+                var diff = target - Date.now();
+                if (diff <= 0) { out.textContent = 'unos instantes'; if (interval) clearInterval(interval); return; }
+                var s = Math.floor(diff / 1000);
+                var d = Math.floor(s / 86400); s -= d * 86400;
+                var h = Math.floor(s / 3600); s -= h * 3600;
+                var m = Math.floor(s / 60); s -= m * 60;
+                out.textContent = (d > 0 ? d + 'd ' : '') + pad(h) + 'h ' + pad(m) + 'm ' + pad(s) + 's';
+            };
             tick();
             interval = setInterval(tick, 1000);
         })();
@@ -1033,6 +1101,28 @@ final class Shortcode_CoursePitch {
         $min   = $dt->format('i');
         $time  = ($min === '00') ? $hora . 'hs' : $hora . ':' . $min . 'hs';
         return $dia . ' ' . $mes . ' · ' . $time . ' (ARG)';
+    }
+
+    /**
+     * Tiempo restante en español, sin depender del locale de WP (human_time_diff
+     * devuelve "2 weeks" si el sitio está en inglés). Semanas → días → horas →
+     * minutos, mostrando siempre la unidad más grande que aplica.
+     */
+    private static function format_relative_es(int $seconds): string {
+        if ($seconds >= 7 * 86400) {
+            $n = (int) round($seconds / (7 * 86400));
+            return $n . ' ' . ($n === 1 ? 'semana' : 'semanas');
+        }
+        if ($seconds >= 86400) {
+            $n = (int) round($seconds / 86400);
+            return $n . ' ' . ($n === 1 ? 'día' : 'días');
+        }
+        if ($seconds >= 3600) {
+            $n = (int) round($seconds / 3600);
+            return $n . ' ' . ($n === 1 ? 'hora' : 'horas');
+        }
+        $n = max(1, (int) round($seconds / 60));
+        return $n . ' ' . ($n === 1 ? 'minuto' : 'minutos');
     }
 
     private static function icon(string $name): string {
