@@ -875,15 +875,20 @@
     transform: translateY(-2px);
     background: rgba(255,255,255,0.09);
 }
-/* Foto izquierda — altura fija, cubre el espacio */
+/* Foto izquierda — cubre el contenedor si la card es baja; si el texto la
+ * estira mucho, la imagen frena en max-height y queda centrada (margin auto)
+ * en lugar de deformarse a lo largo. */
 .slc-cpitch__bonus-img-wrap {
     overflow: hidden;
     min-height: 160px;
+    display: flex;
 }
 .slc-cpitch__bonus-img {
     width: 100%;
     height: 100%;
+    max-height: 300px;
     object-fit: cover;
+    margin: auto;
     display: block;
     transition: transform 300ms ease;
 }
@@ -897,8 +902,8 @@
     column-gap: 32px;
     align-items: center;
 }
-.slc-cpitch__bonus-title { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px; grid-column: 1; grid-row: 1; }
-.slc-cpitch__bonus-desc { font-size: 14px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.55; grid-column: 1; grid-row: 2; }
+.slc-cpitch__bonus-title { font-size: 17px; font-weight: 700; color: #fff; margin: 0 0 6px; grid-column: 1; grid-row: 1; min-width: 0; overflow-wrap: anywhere; }
+.slc-cpitch__bonus-desc { font-size: 14px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.55; grid-column: 1; grid-row: 2; min-width: 0; overflow-wrap: anywhere; }
 /* Valor: columna derecha, ocupa las dos filas, centrado verticalmente */
 .slc-cpitch__bonus-value {
     grid-column: 2;
@@ -1367,14 +1372,14 @@
 .slc-cpitch__bonuses--light .slc-cpitch__bonus-value { border-left-color: var(--shub-border); }
 
 /* Grid de features incluidas */
-.slc-cpitch__pricing-features { max-width: 720px; margin: 0 auto; }
+.slc-cpitch__pricing-features { max-width: var(--shub-wrap-narrow); margin: 44px auto 0; }
 .slc-cpitch__pricing-features-label {
     font-size: 15px;
     font-weight: 700;
     letter-spacing: 1.4px;
     color: var(--shub-accent);
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 30px;
 }
 .slc-cpitch__pricing-features-grid {
     display: grid;
@@ -1720,3 +1725,4 @@
 .elementor-widget .slc-coursepitch p { margin: 0; }
 .elementor-widget .slc-coursepitch .slc-cpitch__prose p { margin-bottom: 18px; }
 .elementor-widget .slc-coursepitch .slc-cpitch__prose p:last-child { margin-bottom: 0; }
+.elementor-widget .slc-coursepitch .slc-cpitch__pricing-features-label { margin: 0 0 30px; }

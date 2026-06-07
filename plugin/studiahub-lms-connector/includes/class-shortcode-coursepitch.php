@@ -744,7 +744,7 @@ final class Shortcode_CoursePitch {
             <section class="slc-cpitch__section">
                 <div class="slc-cpitch__wrap slc-cpitch__wrap--narrow">
                     <div class="slc-cpitch__section-head">
-                        <span class="slc-cpitch__eyebrow"><?php esc_html_e('Instructores', 'studiahub-lms-connector'); ?></span>
+                        <span class="slc-cpitch__eyebrow"><?php echo esc_html(count($instructors) === 1 ? __('Docente', 'studiahub-lms-connector') : __('Docentes', 'studiahub-lms-connector')); ?></span>
                     </div>
                     <div class="slc-cpitch__instructors">
                         <?php foreach ($instructors as $ins): ?>
