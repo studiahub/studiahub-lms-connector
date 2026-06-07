@@ -464,7 +464,7 @@ final class Shortcode_CoursePitch {
                                                 <?php else: ?>
                                                     <span class="slc-cpitch__lesson-icon" aria-hidden="true"><?php echo Shortcode_CoursePage::lesson_icon_public($lesson['type'] ?? null); ?></span>
                                                 <?php endif; ?>
-                                                <span><?php echo esc_html($lesson['title'] ?? ''); ?></span>
+                                                <span><?php echo esc_html($lesson['title'] ?? ''); ?><?php if ($lesson_live !== '' && !$is_live): ?> <span class="slc-cpitch__live-badge slc-cpitch__live-badge--sm"><span class="slc-cpitch__live-dot" aria-hidden="true"></span><?php esc_html_e('EN VIVO', 'studiahub-lms-connector'); ?></span><?php endif; ?></span>
                                                 <?php if ($lesson_live !== ''): ?>
                                                     <span class="slc-cpitch__lesson-dur slc-cpitch__lesson-date"><?php echo esc_html(self::format_live_date($lesson_live)); ?></span>
                                                 <?php elseif (!empty($lesson['durationMin'])): ?>

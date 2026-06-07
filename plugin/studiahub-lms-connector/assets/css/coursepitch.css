@@ -812,6 +812,18 @@
     box-shadow: 0 0 0 0 rgba(22, 199, 132, 0.6);
     animation: slc-live-pulse 1.4s ease-out infinite;
 }
+/* Badge en vivo a nivel lección — más compacto que el del módulo. */
+.slc-cpitch__live-badge--sm {
+    font-size: 10px;
+    gap: 5px;
+    margin-left: 8px;
+    letter-spacing: 0.4px;
+    padding: 2px 8px 2px 6px;
+}
+.slc-cpitch__live-badge--sm .slc-cpitch__live-dot {
+    width: 6px;
+    height: 6px;
+}
 @keyframes slc-live-pulse {
     0%   { box-shadow: 0 0 0 0 rgba(22, 199, 132, 0.6); opacity: 1; }
     70%  { box-shadow: 0 0 0 6px rgba(22, 199, 132, 0); opacity: 0.85; }
