@@ -43,6 +43,7 @@ final class Plugin {
         Settings::register_hooks();
         REST_Health::register_hooks();
         REST_Course_Sync::register_hooks();
+        Multicurrency::register_hooks();
         REST_Categories::register_hooks();
         REST_Products::register_hooks();
         REST_Orders::register_hooks();

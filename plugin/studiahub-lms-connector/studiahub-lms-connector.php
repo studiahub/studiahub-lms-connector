@@ -3,7 +3,7 @@
  * Plugin Name:       StudiaHub LMS Connector
  * Plugin URI:        https://github.com/studiahub/studiahub-lms-connector
  * Description:       Conecta WooCommerce con StudiaHub LMS. Renderiza la landing del curso ([studiahub_course_page] refinado + [studiahub_course_pitch] estilo DTC) en vivo desde el LMS, sin ACFs. Branding del tenant inyectado dinámicamente.
- * Version:           0.9.13
+ * Version:           0.9.16
  * Author:            StudiaHub
  * Author URI:        https://studiahub.com
  * License:           MIT
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SLC_VERSION', '0.9.13');
+define('SLC_VERSION', '0.9.16');
 define('SLC_PLUGIN_FILE', __FILE__);
 define('SLC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SLC_PLUGIN_URL', plugin_dir_url(__FILE__));
