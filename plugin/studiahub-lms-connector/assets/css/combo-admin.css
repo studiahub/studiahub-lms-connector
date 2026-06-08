@@ -1,0 +1,162 @@
+/**
+ * Combo picker — UI en el metabox "StudiaHub LMS" del editor de producto WC.
+ *
+ * Vive en el wp-admin (no en la landing pública), así que sigue el look nativo
+ * de WordPress admin, no el design-system de las landings (esos CSS vars del
+ * tenant son para los shortcodes). Prefijo .slc-combo* para no chocar con WC.
+ *
+ * El acento usa el purple del DS de StudiaHub (#7950F2) como guiño de marca,
+ * que acá es un valor fijo del admin (no depende del tenant).
+ */
+
+.slc-combo {
+  --slc-accent: #7950f2;
+  --slc-accent-soft: rgba(121, 80, 242, 0.1);
+  --slc-border: #dcdcde;
+  font-size: 13px;
+}
+
+.slc-combo__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.slc-combo__toggle input {
+  margin-top: 2px;
+}
+
+.slc-combo__hint {
+  color: #646970;
+  font-size: 12px;
+  margin: 6px 0 0;
+  line-height: 1.5;
+}
+
+.slc-combo__picker[hidden] {
+  display: none;
+}
+
+.slc-combo__picker {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--slc-border);
+}
+
+.slc-combo__label {
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+/* Estado de carga / error / vacío */
+.slc-combo__status {
+  color: #646970;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 8px 0;
+}
+
+.slc-combo__status--error {
+  color: #b32d2e;
+}
+
+.slc-combo__notice {
+  background: #fcf9e8;
+  border-left: 3px solid #dba617;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 10px;
+  color: #614b00;
+}
+
+.slc-combo__retry {
+  margin-top: 6px;
+}
+
+/* Buscador */
+.slc-combo__search {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+/* Lista de cursos (checkboxes) */
+.slc-combo__list {
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid var(--slc-border);
+  border-radius: 6px;
+  background: #fff;
+  padding: 4px;
+}
+
+.slc-combo__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  line-height: 1.35;
+  transition: background 120ms ease;
+}
+
+.slc-combo__item:hover {
+  background: #f6f7f7;
+}
+
+.slc-combo__item input {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.slc-combo__item--checked {
+  background: var(--slc-accent-soft);
+}
+
+.slc-combo__item--checked:hover {
+  background: var(--slc-accent-soft);
+}
+
+.slc-combo__item-title {
+  font-weight: 500;
+  color: #1d2327;
+}
+
+.slc-combo__item--hidden {
+  display: none;
+}
+
+.slc-combo__empty-search {
+  color: #646970;
+  font-size: 12px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+/* Contador de seleccionados */
+.slc-combo__count {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--slc-accent);
+  font-weight: 600;
+}
+
+.slc-combo__count--zero {
+  color: #b32d2e;
+}
+
+.slc-combo__js-needed {
+  color: #646970;
+  font-size: 12px;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Cuando el JS está activo escondemos el aviso de "activá JS" */
+.slc-combo.is-hydrated .slc-combo__js-needed {
+  display: none;
+}
