@@ -649,7 +649,9 @@ final class Shortcode_CoursePitch {
                             <?php if ($offer['original'] !== ''): ?>
                                 <span class="slc-cpitch__pricing-original"><?php esc_html_e('Precio regular:', 'studiahub-lms-connector'); ?> <s><?php echo esc_html($offer['original']); ?></s></span>
                             <?php endif; ?>
+                            <?php if ($offer['current'] !== ''): ?>
                             <div class="slc-cpitch__pricing-now"><?php echo esc_html($offer['current']); ?></div>
+                            <?php endif; ?>
                             <?php if ($offer['installments'] !== ''): ?>
                                 <span class="slc-cpitch__pricing-inst"><?php echo esc_html($offer['installments']); ?></span>
                             <?php endif; ?>
