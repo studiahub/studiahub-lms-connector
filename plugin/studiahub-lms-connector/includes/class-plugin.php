@@ -25,6 +25,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-auth.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-health.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-course-sync.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-multicurrency.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-categories.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-products.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-orders.php';

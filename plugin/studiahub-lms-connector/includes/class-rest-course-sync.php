@@ -200,6 +200,21 @@ final class REST_Course_Sync {
     private static function set_lms_meta(int $product_id, array $course): void {
         update_post_meta($product_id, '_lms_course_id', (string) $course['lmsId']);
         update_post_meta($product_id, '_lms_access_days', (int) ($course['accessDays'] ?? 0));
+
+        // Multimoneda: guardamos los precios por moneda que empuja el LMS como un
+        // postmeta propio. El bridge (class-multicurrency) los aplica al precio del
+        // producto según la moneda activa del switcher (WOOCS/Booster). Controlamos
+        // nosotros el formato → no dependemos de los meta keys internos de cada plugin.
+        // Shape: [{ "code": "USD", "regular": "99", "sale": "79"|null }]
+        if (!empty($course['pricesByCurrency']) && is_array($course['pricesByCurrency'])) {
+            update_post_meta($product_id, '_studiahub_prices', wp_json_encode(array_values($course['pricesByCurrency'])));
+        } else {
+            delete_post_meta($product_id, '_studiahub_prices');
+        }
+
+        // Empujar los precios por moneda al switcher (WOOCS / Booster) para que el
+        // checkout cobre el precio fijo de cada moneda en vez de convertir por tasa.
+        Multicurrency::push_prices($product_id, $course['pricesByCurrency'] ?? null);
     }
 
     private static function assign_category(int $product_id, string $name, bool $append): void {
