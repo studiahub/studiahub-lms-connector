@@ -1147,8 +1147,13 @@ final class Shortcode_CoursePage {
             ];
         }
 
+        // SIN JSON_UNESCAPED_SLASHES a propósito: ese flag deja pasar "</script>"
+        // crudo si un campo del payload (título, descripción corta, nombre/cargo
+        // de instructor) lo contiene → cierra el bloque y ejecuta HTML = XSS
+        // almacenado en la landing pública. El escape por defecto de "/" a "\/"
+        // neutraliza el cierre y es JSON-LD igual de válido para Google.
         return '<script type="application/ld+json">'
-             . wp_json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+             . wp_json_encode($data, JSON_UNESCAPED_UNICODE)
              . '</script>';
     }
 
