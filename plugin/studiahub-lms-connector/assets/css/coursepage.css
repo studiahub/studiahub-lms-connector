@@ -42,7 +42,7 @@
     --shub-wrap-narrow: 920px;
     --shub-title-gap: 40px; /* aire entre h2 y su contenido */
 
-    font-family: var(--shub-font, inherit);
+    font-family: var(--e-global-typography-text-font-family, var(--shub-font, inherit)) !important;
     color: var(--shub-text-body);
     line-height: 1.65;
     width: 100%;
@@ -78,6 +78,16 @@
 :where(.slc-coursepage) ul,
 :where(.slc-coursepage) ol { list-style: none; }
 .slc-coursepage a { text-decoration: none; }
+
+/* ── TIPOGRAFÍA: cuerpo = Text de Elementor, títulos = Accent de Elementor ──
+ * (mismo criterio que coursepitch) La landing hereda la tipografía global del
+ * sitio. Títulos (h1–h6) con la Accent font + su peso; fallback a la font del
+ * LMS / tema. !important para ganarle al theme-style del tema. */
+.slc-coursepage h1, .slc-coursepage h2, .slc-coursepage h3,
+.slc-coursepage h4, .slc-coursepage h5, .slc-coursepage h6 {
+    font-family: var(--e-global-typography-accent-font-family, var(--shub-font, inherit)) !important;
+    font-weight: var(--e-global-typography-accent-font-weight, 700) !important;
+}
 
 .slc-cp__wrap { max-width: var(--shub-wrap); margin: 0 auto; padding: 0 32px; width: 100%; }
 .slc-cp__wrap--narrow { max-width: var(--shub-wrap-narrow); }

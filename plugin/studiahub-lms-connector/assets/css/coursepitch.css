@@ -36,7 +36,7 @@
     --shub-title-gap: 52px;
     --shub-border-subtle: #EDF2F7;
 
-    font-family: var(--shub-font, inherit);
+    font-family: var(--e-global-typography-text-font-family, var(--shub-font, inherit)) !important;
     color: var(--shub-text-body);
     line-height: 1.65;
     width: 100%;
@@ -75,6 +75,18 @@
 .slc-coursepitch a { text-decoration: none; }
 /* Default text-align del wrapper para que ningún hijo herede left/center del theme */
 .slc-coursepitch { text-align: left; }
+
+/* ── TIPOGRAFÍA: cuerpo = Text de Elementor, títulos = Accent de Elementor ──
+ * La landing hereda la tipografía global del sitio (Elementor → Site Settings →
+ * Typography). Los títulos (h1–h6) toman la Accent font con su peso, así no
+ * quedan con un bold hardcodeado. Fallback: la font del branding del LMS
+ * (--shub-font) y, si no hay, la del tema. !important para ganarle al
+ * theme-style del tema sobre los headings. */
+.slc-coursepitch h1, .slc-coursepitch h2, .slc-coursepitch h3,
+.slc-coursepitch h4, .slc-coursepitch h5, .slc-coursepitch h6 {
+    font-family: var(--e-global-typography-accent-font-family, var(--shub-font, inherit)) !important;
+    font-weight: var(--e-global-typography-accent-font-weight, 700) !important;
+}
 
 .slc-cpitch__wrap { max-width: var(--shub-wrap); margin: 0 auto; padding: 0 32px; width: 100%; }
 .slc-cpitch__wrap--narrow { max-width: var(--shub-wrap-narrow); }
@@ -1513,7 +1525,7 @@
     gap: 16px 40px;
 }
 .slc-cpitch__payment-label {
-    font-family: var(--shub-font, inherit);
+    font-family: var(--e-global-typography-text-font-family, var(--shub-font, inherit)) !important;
     font-size: 15px;
     font-weight: 600;
     color: var(--shub-text-body);
@@ -1540,7 +1552,7 @@
     opacity: 1;
 }
 .slc-cpitch__payment-name {
-    font-family: var(--shub-font, inherit);
+    font-family: var(--e-global-typography-text-font-family, var(--shub-font, inherit)) !important;
     font-size: 13px;
     font-weight: 700;
     color: var(--shub-text-body);
