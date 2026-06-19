@@ -407,14 +407,14 @@
 .slc-cpitch__btn {
     display: inline-block;
     background: var(--shub-cta-grad);
-    color: #fff;
+    color: var(--shub-on-cta, #fff);
     font-weight: 700;
     text-align: center;
     border-radius: 14px;
     box-shadow: 0 16px 36px -10px rgba(var(--shub-accent-rgb), 0.6);
     transition: transform 150ms ease, box-shadow 150ms ease;
 }
-.slc-cpitch__btn:hover { transform: translateY(-2px); box-shadow: 0 22px 44px -12px rgba(var(--shub-accent-rgb), 0.7); color: #fff; }
+.slc-cpitch__btn:hover { transform: translateY(-2px); box-shadow: 0 22px 44px -12px rgba(var(--shub-accent-rgb), 0.7); color: var(--shub-on-cta, #fff); }
 .slc-cpitch__btn--xl { font-size: 18px; padding: 20px 44px; min-width: 280px; }
 .slc-cpitch__btn--lg { font-size: 16px; padding: 16px 40px; }
 .slc-cpitch__bonuses-cta { display: flex; justify-content: center; margin-top: 40px; }

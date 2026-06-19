@@ -108,19 +108,9 @@ final class REST_Pair {
         delete_option(Settings::OPT_WEBHOOK_SECRET);
         delete_option(Settings::OPT_LMS_URL);
 
-        // Borrar el WC webhook (si existe).
-        if (class_exists('\\WC_Data_Store') && class_exists('\\WC_Webhook')) {
-            $data_store = \WC_Data_Store::load('webhook');
-            $ids        = $data_store->search_webhooks(['limit' => -1]);
-            foreach ($ids as $id) {
-                $webhook = new \WC_Webhook((int) $id);
-                if ($webhook->get_topic() === 'order.updated') {
-                    $delivery = $webhook->get_delivery_url();
-                    if (strpos($delivery, '/api/webhooks/woocommerce') !== false) {
-                        $webhook->delete(true);
-                    }
-                }
-            }
+        // Borrar los WC webhooks del LMS (todos los topics).
+        if (class_exists('\\SLC\\WebhookBootstrap')) {
+            WebhookBootstrap::delete_all_for_lms();
         }
 
         return new \WP_REST_Response(['ok' => true], 200);

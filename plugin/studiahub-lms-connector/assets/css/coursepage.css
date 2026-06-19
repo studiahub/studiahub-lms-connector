@@ -204,7 +204,7 @@
     display: block;
     text-align: center;
     background: var(--shub-cta-grad);
-    color: #fff;
+    color: var(--shub-on-cta, #fff);
     font-weight: 700;
     font-size: 16px;
     padding: 16px 24px;

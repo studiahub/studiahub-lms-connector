@@ -12,29 +12,24 @@ Para cualquier WordPress en producción (hosting compartido, VPS, etc.).
 
 - WordPress ≥ 6.8
 - PHP ≥ 8.1
-- WooCommerce ≥ 8.0 instalado y activo
-- Advanced Custom Fields ≥ 6.0 instalado y activo (free es suficiente)
+- WooCommerce ≥ 8.0 instalado y activo (única dependencia de plugin del connector)
 - Permalinks configurados en `/%postname%/` (Settings → Permalinks → Post name)
 
 ### Pasos
 
 1. Descargar el `.zip` del release más reciente desde [Releases](https://github.com/studiahub/studiahub-lms-connector/releases).
 2. WP Admin → Plugins → Añadir nuevo → Subir plugin → seleccionar el `.zip` → Instalar ahora → Activar plugin.
-3. Si falta WooCommerce o ACF, el plugin no se va a activar y va a mostrar un error con la lista de dependencias faltantes. Instalar las que falten y reintentar.
-4. WP Admin → Settings → StudiaHub LMS:
-   - Generar la **API key** (botón "Generar"). Va a aparecer una sola vez — copiala y guardala en lugar seguro.
-   - Pegar la **URL del LMS** (ej: `https://academia.cliente.com`).
-   - Anotar el **webhook secret** que se muestra (lo necesitás en el siguiente paso).
-5. Configurar el webhook nativo de WooCommerce:
-   - WP Admin → WooCommerce → Settings → Advanced → Webhooks → Add webhook
-   - **Name:** StudiaHub LMS
-   - **Status:** Active
-   - **Topic:** Order created (crear uno por cada topic relevante: created, updated, refunded)
-   - **Delivery URL:** `<URL del LMS>/api/webhooks/woocommerce`
-   - **Secret:** el webhook secret del paso 4
-   - **API Version:** WP REST API Integration v3
-   - Save
-6. En el panel admin del LMS (Settings del tenant), pegar la API key + URL de WC. Probar conexión → debería retornar OK.
+3. Si falta WooCommerce, el plugin no se va a activar y va a mostrar un error pidiéndolo. Instalarlo/activarlo y reintentar.
+4. WP Admin → Settings → Permalinks → dejarlo en **Post name** (`/%postname%/`) y guardar. Necesario para que respondan las rutas REST del connector.
+5. **Conectar al LMS (automático, OAuth-style).** No hace falta generar API keys ni configurar webhooks a mano — lo resuelve el flujo de conexión:
+   - En el admin del **LMS**, ir a **WooCommerce** (`/admin/woocommerce`), pegar la URL pública de este WordPress (ej: `https://tienda.cliente.com`) y clickear **Conectar WordPress**.
+   - El LMS te redirige a una pantalla de autorización dentro del WP ("Conectar al LMS"). Necesitás estar logueado como admin del WP. Verificá que el LMS y la URL sean los correctos y clickeá **✓ Sí, conectar**.
+   - El WP genera las credenciales, se las pasa al LMS por un canal seguro (back-channel POST — nunca viajan por la URL del navegador) y **registra automáticamente el webhook de WooCommerce** (topics `order.created` y `order.updated`) apuntando a `<URL del LMS>/api/webhooks/woocommerce`.
+   - Volvés al LMS ya conectado. En **WP Admin → Settings → StudiaHub LMS** vas a ver "● Conectado" y el estado del webhook.
+
+Para **desconectar**: hacelo desde el admin del LMS (le avisa al WP y borra el webhook) o desde **WP Admin → Settings → StudiaHub LMS → Desconectar** (limpia el lado WP y desactiva el webhook). Para **reconectar**, repetí el paso 5.
+
+> El webhook se mantiene solo: si lo borrás desde WC, se vuelve a crear al recargar el admin del WP mientras la conexión siga activa.
 
 ---
 
@@ -61,7 +56,9 @@ docker compose up -d
 docker compose --profile init run --rm wpcli
 ```
 
-El script `wp-init.sh` instala WordPress, configura permalinks, instala WooCommerce + ACF + activa el plugin. Es **idempotente**: corre 2 veces no rompe nada.
+El script `wp-init.sh` instala WordPress, configura permalinks, instala y activa WooCommerce, y activa el plugin. Es **idempotente**: correrlo 2 veces no rompe nada.
+
+> Nota: el script todavía instala ACF por compatibilidad histórica, pero el plugin **ya no lo usa** (la landing se renderiza en vivo desde el LMS). Es seguro ignorarlo.
 
 Al terminar vas a ver:
 
@@ -104,7 +101,11 @@ El folder `plugin/studiahub-lms-connector/` está montado como volumen al WP con
 
 ### Cómo se conecta al LMS local
 
-El WP container puede llegar al LMS corriendo en `localhost:3000` del host usando `http://host.docker.internal:3000`. Esto está configurado via `extra_hosts` en `docker-compose.yml`. Cuando configures el webhook de WC, usar esa URL para que llegue al LMS local.
+El WP container llega al LMS corriendo en `localhost:3000` del host usando `http://host.docker.internal:3000` (configurado via `extra_hosts` en `docker-compose.yml`).
+
+Para parear en dev, iniciá la conexión **desde el LMS local** apuntando al WP del Docker (`http://localhost:8080`). El flujo OAuth registra el webhook automáticamente; el delivery URL se computa desde la URL del LMS, así que el LMS tiene que identificarse como `http://host.docker.internal:3000` para que el webhook salga del container y le pegue. La pantalla de autorización permite el par `localhost` ↔ `host.docker.internal` justamente para este caso de dev.
+
+> Para trabajar el diseño de la landing sin LMS corriendo, el mu-plugin de dev en `.docker/mu-plugins` puede inyectar un payload mockeado (`.docker/dev-mock`) via el filter `slc_landing_payload_override`.
 
 ---
 
@@ -114,7 +115,7 @@ El WP container puede llegar al LMS corriendo en `localhost:3000` del host usand
 
 Mensaje típico: `StudiaHub LMS Connector requiere los siguientes plugins activos: WooCommerce`.
 
-Solución: instalar y activar primero WooCommerce y/o ACF, después activar este plugin.
+Solución: instalar y activar WooCommerce (es la única dependencia), después activar este plugin.
 
 ### "404 al llamar /wp-json/studiahub/v1/health"
 
@@ -125,11 +126,11 @@ Causas comunes:
 
 ### "401 Unauthorized desde el LMS"
 
-La API key del header `Authorization: Bearer ...` no coincide con la guardada en WP. Regenerar desde Settings → StudiaHub LMS y volver a pegar en el LMS.
+El bearer token (`Authorization: Bearer ...`) no coincide con el secret guardado en WP — pasa si la conexión se rompió o se regeneraron credenciales de un solo lado. Solución: **reconectar** desde el admin del LMS (vuelve a correr el pairing y regenera el secret en ambos lados). No hay regeneración manual de API key.
 
 ### "El webhook de WC no llega al LMS local (Docker)"
 
-Si el LMS está en `localhost:3000` y el WP en Docker, el WP no puede llegar a `localhost` (es loopback del container). Usar `http://host.docker.internal:3000/api/webhooks/woocommerce` como Delivery URL del webhook.
+Si el LMS está en `localhost:3000` y el WP en Docker, el WP no puede llegar a `localhost` (es loopback del container). El delivery URL del webhook se computa desde la URL del LMS guardada en el pairing, así que el LMS tiene que identificarse como `http://host.docker.internal:3000` para que el webhook resuelva a `http://host.docker.internal:3000/api/webhooks/woocommerce`. Si quedó mal, reconectá con la URL correcta.
 
 ### "Cambios en el plugin no se ven reflejados (Docker)"
 

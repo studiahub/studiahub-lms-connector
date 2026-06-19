@@ -1,10 +1,10 @@
 === StudiaHub LMS Connector ===
 Contributors: studiahub
-Tags: lms, woocommerce, e-learning, acf
+Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.6.0
+Stable tag: 0.12.0
 License: MIT
 
 Conecta WooCommerce con StudiaHub LMS para sync unidireccional de cursos y procesamiento de webhooks de compra.
@@ -13,23 +13,34 @@ Conecta WooCommerce con StudiaHub LMS para sync unidireccional de cursos y proce
 
 Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 
-* Registra ACFs fijos en productos WC con los datos del curso (read-only en la UI).
-* Expone endpoint REST `POST /wp-json/studiahub/v1/course-sync` para que el LMS pushee productos.
-* Expone endpoint REST `GET /wp-json/studiahub/v1/health` para test de conexión.
-* Página de settings para generar API key y ver URL del webhook a configurar en WC.
+* Renderiza la landing del curso en vivo desde el LMS con los shortcodes `[studiahub_course_page]` y `[studiahub_course_pitch]` (estilo DTC), sin ACFs. El branding del tenant se inyecta dinámicamente.
+* Sincroniza cursos del LMS como productos WC via `POST /wp-json/studiahub/v1/course-sync` (incluye pricing multi-moneda).
+* Conexión automática (OAuth-style) con el LMS: registra el webhook de compras (`order.created` + `order.updated`) sin configuración manual.
+* Expone `GET /wp-json/studiahub/v1/health` para test de conexión.
 
 == Installation ==
 
 1. Subir el .zip desde Plugins → Añadir nuevo → Subir plugin.
-2. Activar.
-3. Si falta WooCommerce o ACF, activar esos primero.
-4. Settings → StudiaHub LMS → generar API key.
-5. Pegar la API key en el panel admin del LMS (Settings del tenant).
+2. Activar (requiere WooCommerce activo — es la única dependencia).
+3. Settings → Permalinks → Post name, y guardar.
+4. Conectar desde el admin del LMS (WooCommerce → Conectar WordPress): el flujo OAuth autoriza en el WP y registra el webhook automáticamente. No hay que generar API keys ni webhooks a mano.
+
+Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.12.0 =
+* Branding: colores de texto de la landing configurables desde el LMS (títulos, cuerpo y botones). El payload del tenant ahora puede traer `titleColor` (títulos, precios y nombres), `bodyColor` (cuerpo de texto y párrafos) y `buttonTextColor` (label de los CTA de compra), aplicables en ambos shortcodes (`[studiahub_course_page]` y `[studiahub_course_pitch]`). Con los defaults (títulos `#0F172A` / cuerpo `#475569` / botón `#FFFFFF`) el render no cambia.
+
+= 0.11.0 =
+* Webhook: se registra `order.created` además de `order.updated`, para cubrir gateways que crean la orden ya completada. Entrega síncrona al LMS.
+* Conexión OAuth-style automática: pairing desde el LMS (pantalla de autorización + back-channel `/exchange`), generación de credenciales y registro del webhook sin pasos manuales. Endpoint `/disconnect` para cerrar la conexión.
+* La landing se renderiza en vivo desde el LMS (`landing-payload` con transient de 15 min + stale-while-revalidate). Se elimina la dependencia de ACF: la única dependencia de plugin es WooCommerce.
+* Shortcode `[studiahub_course_pitch]` estilo DTC (countdown de oferta, combos, social proof) y refinamientos de `[studiahub_course_page]`.
+* Multi-moneda: oferta y precios por moneda sincronizados desde el LMS.
 
 = 0.6.0 =
 * Shortcode `[studiahub_course_page]` ahora lee TODA la data de marketing del payload del LMS (pricing de oferta, bonuses, garantía, FAQ, social proof real). Se eliminan los hardcodes — cada sección oculta si no hay data. Reseñas: se quita el fallback fake; si el curso no tiene reseñas aprobadas, la sección no se renderiza. Agrega `aggregateRating` al JSON-LD cuando hay reviews reales.
 
 = 0.1.0 =
-* Versión inicial. Bootstrap del plugin con verificación de dependencias (WC + ACF).
+* Versión inicial. Bootstrap del plugin con verificación de dependencias.
