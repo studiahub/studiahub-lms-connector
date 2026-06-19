@@ -57,6 +57,32 @@ final class Shortcode_CoursePitch {
             ['flaticon-uicons-thin-rounded', 'slc-playfair-quote'],
             SLC_VERSION
         );
+
+        // Anti-FOUC: encolamos en el <head> si la página ya trae el shortcode
+        // (el enqueue de render() corre tarde y WP lo manda al footer → flash).
+        // Arrastra las deps (iconos + font). render() queda como fallback.
+        if (self::current_page_has_shortcode()) {
+            wp_enqueue_style(self::STYLE_HANDLE);
+        }
+    }
+
+    /**
+     * ¿La página actual contiene el shortcode? Cubre contenido clásico/Gutenberg
+     * y Elementor (postmeta `_elementor_data`).
+     */
+    private static function current_page_has_shortcode(): bool {
+        if (!is_singular()) {
+            return false;
+        }
+        $post = get_post();
+        if (!$post instanceof \WP_Post) {
+            return false;
+        }
+        if (has_shortcode((string) $post->post_content, self::SHORTCODE_TAG)) {
+            return true;
+        }
+        $elementor = get_post_meta($post->ID, '_elementor_data', true);
+        return is_string($elementor) && $elementor !== '' && strpos($elementor, self::SHORTCODE_TAG) !== false;
     }
 
     public static function render($atts): string {

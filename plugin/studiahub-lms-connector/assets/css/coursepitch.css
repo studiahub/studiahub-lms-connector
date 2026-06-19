@@ -1174,7 +1174,7 @@
 }
 .slc-cpitch__pricing-hero-img {
     width: 100%;
-    aspect-ratio: 16 / 7;
+    aspect-ratio: 16 / 10;
     overflow: hidden;
 }
 .slc-cpitch__pricing-hero-img img {
@@ -1762,4 +1762,17 @@
 .slc-coursepitch .slc-cpitch__btn.slc-cpitch__pricing-cta--closed {
     background: var(--shub-bg-soft) !important;
     color: var(--shub-text-muted) !important;
+}
+
+/* ── DEFENSIVE LAYER: aspect-ratio de la foto del hero contra el tema ────
+ * Algunos temas (Hello Elementor entre ellos) resetean el aspect-ratio/height
+ * de las <img> a nivel global (`.elementor-kit-XXX img`, specificity 0,1,1).
+ * Eso le gana al `.slc-cpitch__hero-photo` pelado (0,1,0): la foto pierde el
+ * 4/3, toma su ratio natural (apaisado) y descoloca las cajitas flotantes en
+ * pantallas anchas. Lo blindamos scopeado bajo `.slc-coursepitch` (0,2,0) +
+ * !important — mismo motivo por el que el border-radius ya va con !important. */
+.slc-coursepitch .slc-cpitch__hero-photo {
+    aspect-ratio: 4 / 3 !important;
+    height: auto !important;
+    object-fit: cover !important;
 }

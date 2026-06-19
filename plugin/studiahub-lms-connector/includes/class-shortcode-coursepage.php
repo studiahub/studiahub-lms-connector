@@ -65,6 +65,35 @@ final class Shortcode_CoursePage {
             [],
             SLC_VERSION
         );
+
+        // Anti-FOUC: si la página actual ya contiene el shortcode, encolamos el
+        // CSS acá (wp_enqueue_scripts → va al <head>). El enqueue dentro de
+        // render() corre en the_content (después de wp_head) y WP lo manda al
+        // footer, produciendo un flash de contenido sin estilo. El enqueue de
+        // render() queda como fallback por si la detección no aplica.
+        if (self::current_page_has_shortcode()) {
+            wp_enqueue_style(self::STYLE_HANDLE);
+        }
+    }
+
+    /**
+     * ¿La página que se está por renderizar contiene el shortcode? Cubre el
+     * contenido clásico/Gutenberg y el data de Elementor (donde el shortcode
+     * vive en el postmeta `_elementor_data`).
+     */
+    private static function current_page_has_shortcode(): bool {
+        if (!is_singular()) {
+            return false;
+        }
+        $post = get_post();
+        if (!$post instanceof \WP_Post) {
+            return false;
+        }
+        if (has_shortcode((string) $post->post_content, self::SHORTCODE_TAG)) {
+            return true;
+        }
+        $elementor = get_post_meta($post->ID, '_elementor_data', true);
+        return is_string($elementor) && $elementor !== '' && strpos($elementor, self::SHORTCODE_TAG) !== false;
     }
 
     public static function render($atts): string {
