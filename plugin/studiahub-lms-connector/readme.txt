@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.13.1
+Stable tag: 0.13.2
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.13.2 =
+* Fix: los botones de compra e inscripción ya no toman los colores por defecto de Elementor. Se refuerza el color y el fondo de todos los CTA (en `[studiahub_course_page]` y `[studiahub_course_pitch]`) con una capa defensiva scopeada bajo el wrapper del plugin, para que el branding del tenant gane sobre el kit global de Elementor. Cada variante (degradé, invertida, outline y cerrada) conserva su color.
 
 = 0.13.1 =
 * Descripción del plugin más clara y orientada al beneficio en el listado de plugins. Sin cambios funcionales.

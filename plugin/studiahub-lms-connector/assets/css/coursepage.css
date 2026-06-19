@@ -627,3 +627,22 @@ details[open] > .slc-cp__faq-q .slc-cp__chevron { transform: rotate(45deg); marg
 .elementor-widget .slc-coursepage .slc-cp__herobig-proof { margin: 0 auto 36px; }
 .elementor-widget .slc-coursepage .slc-cp__herobig-trailer { margin: 0 auto 44px; }
 .elementor-widget .slc-coursepage .slc-cp__herobig-meta { justify-content: center; margin: 0; padding: 0; }
+
+/* ── DEFENSIVE LAYER: color/fondo de los CTA contra Elementor ───────────
+ * Los botones de compra/inscripción son <a>. Elementor aplica el color de
+ * link de su kit global (`.elementor-kit-XXX a`, specificity 0,1,1) que le
+ * gana al `.slc-cp__cta` pelado (0,1,0): el botón sale con el color de
+ * Elementor en vez del branding del tenant. Re-forzamos color y fondo
+ * scopeados bajo `.slc-coursepage` (que SIEMPRE envuelve al botón, esté o no
+ * dentro de un widget de Elementor) + !important — es el caso crítico donde
+ * de verdad competimos. La variante invertida va con mayor specificity para
+ * ganar de forma determinista. */
+.slc-coursepage .slc-cp__cta {
+    background: var(--shub-cta-grad) !important;
+    color: var(--shub-on-cta, #fff) !important;
+}
+/* CTA final: botón claro sobre la band de color (invertido). */
+.slc-coursepage .slc-cp__final .slc-cp__cta--lg {
+    background: #fff !important;
+    color: var(--shub-accent-dark) !important;
+}

@@ -1726,3 +1726,40 @@
 .elementor-widget .slc-coursepitch .slc-cpitch__prose p { margin-bottom: 18px; }
 .elementor-widget .slc-coursepitch .slc-cpitch__prose p:last-child { margin-bottom: 0; }
 .elementor-widget .slc-coursepitch .slc-cpitch__pricing-features-label { margin: 0 0 30px; }
+
+/* ── DEFENSIVE LAYER: color/fondo de los CTA contra Elementor ───────────
+ * Mismo motivo que en coursepage.css: los botones son <a> y Elementor pisa su
+ * color con el link-color del kit global. Re-forzamos color y fondo scopeados
+ * bajo `.slc-coursepitch` + !important. Las variantes (claro invertido,
+ * outline y cerrado) van con mayor specificity para ganarle a la regla base
+ * de forma determinista (sin depender del orden). */
+.slc-coursepitch .slc-cpitch__btn {
+    background: var(--shub-cta-grad) !important;
+    color: var(--shub-on-cta, #fff) !important;
+}
+/* Variantes claras (invertidas sobre fondo de color/oscuro). */
+.slc-coursepitch .slc-cpitch__btn.slc-cpitch__btn--on-dark,
+.slc-coursepitch .slc-cpitch__bonuses-section .slc-cpitch__btn {
+    background: #fff !important;
+    color: var(--shub-accent-dark) !important;
+}
+/* Topbar CTA (no es .slc-cpitch__btn): botón claro sobre la barra de color. */
+.slc-coursepitch .slc-cpitch__topbar-cta {
+    background: #fff !important;
+    color: var(--shub-accent-dark) !important;
+}
+/* Botón secundario outline: transparente con texto de marca; preservamos su
+ * cambio de fondo en hover (por eso el override explícito del :hover). */
+.slc-coursepitch .slc-cpitch__btn.slc-cpitch__btn--outline {
+    background: transparent !important;
+    color: var(--shub-text-title) !important;
+}
+.slc-coursepitch .slc-cpitch__btn.slc-cpitch__btn--outline:hover {
+    background: var(--shub-bg-soft) !important;
+}
+/* Pricing cerrado (deshabilitado): gris, no degradé. Más específico que la
+ * base porque el <span> también lleva `.slc-cpitch__btn`. */
+.slc-coursepitch .slc-cpitch__btn.slc-cpitch__pricing-cta--closed {
+    background: var(--shub-bg-soft) !important;
+    color: var(--shub-text-muted) !important;
+}
