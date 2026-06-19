@@ -1167,6 +1167,9 @@ final class Shortcode_CoursePage {
     public static function build_brand_style(array $branding): string {
         $primary   = self::sanitize_hex($branding['primaryColor'] ?? '', '#7950F2');
         $secondary = self::sanitize_hex($branding['secondaryColor'] ?? '', $primary);
+        $title     = self::sanitize_hex($branding['titleColor'] ?? '', '#0F172A');
+        $body      = self::sanitize_hex($branding['bodyColor'] ?? '', '#475569');
+        $on_cta    = self::sanitize_hex($branding['buttonTextColor'] ?? '', '#FFFFFF');
         $font      = trim((string) ($branding['fontFamily'] ?? 'default'));
 
         $primary_rgb   = self::hex_to_rgb_str($primary);
@@ -1183,6 +1186,9 @@ final class Shortcode_CoursePage {
             '--shub-cta-grad: linear-gradient(135deg, ' . $primary . ' 0%, ' . $primary_dark . ' 100%)',
             '--shub-hero-grad: linear-gradient(135deg, rgba(' . $primary_rgb . ',0.06) 0%, rgba(' . $secondary_rgb . ',0.10) 60%, rgba(' . $primary_rgb . ',0.04) 100%)',
             '--shub-avatar-grad: linear-gradient(135deg, ' . $secondary . ', ' . $primary . ')',
+            '--shub-text-title: '   . $title,
+            '--shub-text-body: '    . $body,
+            '--shub-on-cta: '       . $on_cta,
         ];
 
         if ($font !== '' && $font !== 'default') {
