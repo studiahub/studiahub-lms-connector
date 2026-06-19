@@ -10,14 +10,19 @@ Thumbs.db
 .vscode/
 .idea/
 *.swp
-.claude/*
-# Pero SÍ versionamos los subagents compartidos del proyecto (design-guardian, etc).
-!.claude/agents/
+.claude/
 
 # Docker volumes (data persistente del WP local)
 .docker/data/
 .docker/wp-data/
 .docker/db-data/
+
+# Docs internos del equipo (no van al repo público — se comparten aparte)
+/EMPEZAR-AQUI.md
+/docs/onboarding-diseno.md
+/docs/feedback-historico.md
+/docs/design-system.md
+/docs/guia-secciones-pitch.md
 
 # Secrets / env
 .env
