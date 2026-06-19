@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.13.5
+Stable tag: 0.13.6
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.13.6 =
+* FAQ: las respuestas con HTML del LMS (`faq[].a`) ahora muestran su formato — listas con viñetas/numeración, párrafos y enlaces. El reset global de listas del plugin (`:where(...) ul,ol { list-style:none }`) las dejaba sin viñetas; se restaura el estilo dentro de `.faq-a` en ambos shortcodes.
 
 = 0.13.5 =
 * Hero (`[studiahub_course_pitch]`): se quita el `overflow:hidden` del contenedor de la foto, que recortaba las cajitas flotantes (Videos/Pdf's/Certificado). El recorte y redondeo de la foto los hace ahora la propia `<img>` (corrige un efecto secundario de 0.13.4).

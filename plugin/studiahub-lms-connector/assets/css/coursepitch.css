@@ -1470,6 +1470,17 @@
 .slc-cpitch__faq-q { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 24px; cursor: pointer; user-select: none; font-size: 16.5px; font-weight: 600; color: var(--shub-text-title); }
 .slc-cpitch__faq-q::-webkit-details-marker { display: none; }
 .slc-cpitch__faq-a { padding: 0 24px 22px; font-size: 15.5px; color: var(--shub-text-body); line-height: 1.65; }
+/* Contenido HTML del FAQ (faq[].a viene del LMS con formato): restauramos el
+   estilo de listas/párrafos que el reset general (:where) deja sin viñetas. */
+.slc-cpitch__faq-a p { margin: 0 0 12px; }
+.slc-cpitch__faq-a p:last-child { margin-bottom: 0; }
+.slc-cpitch__faq-a ul, .slc-cpitch__faq-a ol { margin: 0 0 12px; padding-left: 1.4em; }
+.slc-cpitch__faq-a ul { list-style: disc; }
+.slc-cpitch__faq-a ol { list-style: decimal; }
+.slc-cpitch__faq-a li { margin: 0 0 6px; }
+.slc-cpitch__faq-a li:last-child { margin-bottom: 0; }
+.slc-cpitch__faq-a a { color: var(--shub-accent); text-decoration: underline; }
+.slc-cpitch__faq-a strong, .slc-cpitch__faq-a b { font-weight: 700; }
 
 /* ── REQUISITOS ──────────────────────────────────────────────────────── */
 /* Grid 2 columnas: foto izq + texto der */

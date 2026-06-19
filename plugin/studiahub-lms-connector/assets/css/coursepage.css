@@ -413,6 +413,17 @@ details[open] > .slc-cp__faq-q .slc-cp__chevron { transform: rotate(45deg); marg
 .slc-cp__faq-q { list-style: none; display: flex; align-items: center; gap: 14px; padding: 20px 22px; cursor: pointer; user-select: none; font-size: 16px; font-weight: 600; color: var(--shub-text-title); }
 .slc-cp__faq-q::-webkit-details-marker { display: none; }
 .slc-cp__faq-a { padding: 0 22px 20px 50px; font-size: 15px; color: var(--shub-text-body); line-height: 1.65; }
+/* Contenido HTML del FAQ (faq[].a viene del LMS con formato): restauramos el
+   estilo de listas/párrafos que el reset general (:where) deja sin viñetas. */
+.slc-cp__faq-a p { margin: 0 0 12px; }
+.slc-cp__faq-a p:last-child { margin-bottom: 0; }
+.slc-cp__faq-a ul, .slc-cp__faq-a ol { margin: 0 0 12px; padding-left: 1.4em; }
+.slc-cp__faq-a ul { list-style: disc; }
+.slc-cp__faq-a ol { list-style: decimal; }
+.slc-cp__faq-a li { margin: 0 0 6px; }
+.slc-cp__faq-a li:last-child { margin-bottom: 0; }
+.slc-cp__faq-a a { color: var(--shub-accent); text-decoration: underline; }
+.slc-cp__faq-a strong, .slc-cp__faq-a b { font-weight: 700; }
 
 /* ── REQUISITOS ── */
 .slc-cp__reqs { display: flex; flex-direction: column; gap: 14px; }

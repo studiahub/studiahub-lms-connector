@@ -3,7 +3,7 @@
  * Plugin Name:       StudiaHub LMS Connector
  * Plugin URI:        https://github.com/studiahub/studiahub-lms-connector
  * Description:       Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
- * Version:           0.13.5
+ * Version:           0.13.6
  * Author:            StudiaHub
  * Author URI:        https://studiahub.com
  * License:           MIT
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SLC_VERSION', '0.13.5');
+define('SLC_VERSION', '0.13.6');
 define('SLC_PLUGIN_FILE', __FILE__);
 define('SLC_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SLC_PLUGIN_URL', plugin_dir_url(__FILE__));
