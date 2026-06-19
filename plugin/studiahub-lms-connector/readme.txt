@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.13.4
+Stable tag: 0.13.5
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,11 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.13.5 =
+* Hero (`[studiahub_course_pitch]`): se quita el `overflow:hidden` del contenedor de la foto, que recortaba las cajitas flotantes (Videos/Pdf's/Certificado). El recorte y redondeo de la foto los hace ahora la propia `<img>` (corrige un efecto secundario de 0.13.4).
+* Sección "Por qué tomar este curso" (`[studiahub_course_pitch]`): el slot de imagen usa `landingImageUrl` del payload cuando no hay trailer; si tampoco hay `landingImageUrl`, no se muestra media (ya no repite la portada). El slot solo existe en este shortcode.
+* FAQ: la respuesta se renderiza con `wp_kses_post` para soportar HTML del LMS (`faq[].a`). Las FAQ de texto plano siguen funcionando. Aplica a ambos shortcodes.
 
 = 0.13.4 =
 * Hero (`[studiahub_course_pitch]`): el `aspect-ratio` de la foto del hero se mueve al contenedor `<div>` (en vez de la `<img>`), para que sea inmune al reset de `aspect-ratio` que aplican algunos temas (Hello Elementor) a las imágenes. El intento de 0.13.3 (blindar la `<img>` con `!important`) no alcanzaba cuando el tema gana por specificity. Verificado contra un reset agresivo del tema.

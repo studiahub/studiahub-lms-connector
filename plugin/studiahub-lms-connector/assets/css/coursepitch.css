@@ -321,10 +321,11 @@
     max-width: 520px;
     /* El aspect-ratio vive ACÁ, en el <div> contenedor — inmune al reset de
        aspect-ratio que algunos temas (Hello Elementor) aplican a las <img>.
-       La foto solo llena este contenedor. */
+       La foto solo llena este contenedor. SIN overflow:hidden: las cajitas
+       flotantes se posicionan por fuera del wrap (offsets negativos) y deben
+       poder sobresalir. El recorte (object-fit) y el redondeo (border-radius)
+       los hace la propia <img>. */
     aspect-ratio: 4 / 3;
-    overflow: hidden;
-    border-radius: var(--shub-radius-lg);
 }
 .slc-cpitch__hero-photo {
     width: 100%;

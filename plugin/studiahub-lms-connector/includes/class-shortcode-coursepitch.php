@@ -124,6 +124,7 @@ final class Shortcode_CoursePitch {
         $cta_label   = trim((string) ($payload['ctaLabel'] ?? ''));
         $trailer_url = trim((string) ($payload['trailerUrl'] ?? ''));
         $thumbnail_url = trim((string) ($payload['thumbnailUrl'] ?? ''));
+        $landing_image_url = trim((string) ($payload['landingImageUrl'] ?? ''));
         $tenant_name = trim((string) ($payload['tenantName'] ?? ''));
         $live_count   = (int) ($payload['liveSessionsCount'] ?? 0);
         // Barra superior: fecha de inicio del curso (countdown a la apertura).
@@ -322,16 +323,16 @@ final class Shortcode_CoursePitch {
                 <div class="slc-cpitch__wrap">
 
                     <?php if ($long_desc !== ''): ?>
-                    <div class="slc-cpitch__longdesc-grid<?php echo ($trailer === null && $thumbnail_url === '') ? ' slc-cpitch__longdesc-grid--no-media' : ''; ?>">
+                    <div class="slc-cpitch__longdesc-grid<?php echo ($trailer === null && $landing_image_url === '') ? ' slc-cpitch__longdesc-grid--no-media' : ''; ?>">
                         <div class="slc-cpitch__longdesc-left">
                             <div class="slc-cpitch__section-head">
                                 <span class="slc-cpitch__eyebrow"><?php esc_html_e('La propuesta', 'studiahub-lms-connector'); ?></span>
                                 <h2 class="slc-cpitch__h2"><?php esc_html_e('Por qué tomar este curso', 'studiahub-lms-connector'); ?></h2>
                             </div>
-                            <?php if ($trailer !== null || $thumbnail_url !== ''): ?>
+                            <?php if ($trailer !== null || $landing_image_url !== ''): ?>
                             <div class="slc-cpitch__longdesc-img-wrap">
                                 <?php if ($trailer !== null):
-                                    $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $thumbnail_url;
+                                    $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $landing_image_url;
                                 ?>
                                     <div class="slc-cpitch__trailer-facade slc-cpitch__longdesc-trailer"
                                          data-embed="<?php echo esc_attr($trailer['embed']); ?>"
@@ -343,7 +344,7 @@ final class Shortcode_CoursePitch {
                                         </span>
                                     </div>
                                 <?php else: ?>
-                                    <img class="slc-cpitch__longdesc-img" src="<?php echo esc_url($thumbnail_url); ?>" alt="" loading="lazy" />
+                                    <img class="slc-cpitch__longdesc-img" src="<?php echo esc_url($landing_image_url); ?>" alt="" loading="lazy" />
                                 <?php endif; ?>
                             </div>
                             <?php endif; ?>
@@ -829,7 +830,7 @@ final class Shortcode_CoursePitch {
                                     <span><?php echo esc_html($qa['q']); ?></span>
                                     <span class="slc-cpitch__chevron" aria-hidden="true"></span>
                                 </summary>
-                                <div class="slc-cpitch__faq-a"><?php echo esc_html($qa['a']); ?></div>
+                                <div class="slc-cpitch__faq-a"><?php echo wp_kses_post($qa['a']); ?></div>
                             </details>
                         <?php endforeach; ?>
                     </div>

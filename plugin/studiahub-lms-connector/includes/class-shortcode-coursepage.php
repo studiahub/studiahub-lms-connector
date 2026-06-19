@@ -691,7 +691,7 @@ final class Shortcode_CoursePage {
                                     <span class="slc-cp__chevron" aria-hidden="true"></span>
                                     <span><?php echo esc_html($qa['q']); ?></span>
                                 </summary>
-                                <div class="slc-cp__faq-a"><?php echo esc_html($qa['a']); ?></div>
+                                <div class="slc-cp__faq-a"><?php echo wp_kses_post($qa['a']); ?></div>
                             </details>
                         <?php endforeach; ?>
                     </div>
