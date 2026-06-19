@@ -319,18 +319,16 @@
     position: relative;
     width: 100%;
     max-width: 520px;
-    /* El aspect-ratio vive ACÁ, en el <div> contenedor — inmune al reset de
-       aspect-ratio que algunos temas (Hello Elementor) aplican a las <img>.
-       La foto solo llena este contenedor. SIN overflow:hidden: las cajitas
-       flotantes se posicionan por fuera del wrap (offsets negativos) y deben
-       poder sobresalir. El recorte (object-fit) y el redondeo (border-radius)
-       los hace la propia <img>. */
-    aspect-ratio: 4 / 3;
+    /* SIN aspect-ratio forzado: el wrap envuelve la imagen a su tamaño natural.
+       Forzar un ratio (ej. 4/3) escalaba/recortaba la foto del tenant —que puede
+       tener otra proporción (la del genograma es ~3/2)— y se veía pixelada. Al
+       no forzar ratio, la imagen se muestra nítida y el wrap coincide con ella,
+       así las cajitas flotantes (ancladas al wrap) quedan en su lugar. */
 }
 .slc-cpitch__hero-photo {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    /* border-radius con !important: el tema del cliente resetea estilos de <img>. */
     border-radius: var(--shub-radius-lg) !important;
     display: block;
     box-shadow: 0 32px 80px -20px rgba(15,23,42,0.22);
@@ -1779,10 +1777,7 @@
     color: var(--shub-text-muted) !important;
 }
 
-/* ── DEFENSIVE LAYER: foto del hero contra el reset de <img> del tema ────
- * El aspect-ratio lo lleva el WRAP (.slc-cpitch__hero-photo-wrap, un <div>),
- * inmune al reset de aspect-ratio que algunos temas (Hello Elementor) aplican
- * a las <img> globalmente. Acá reforzamos el ratio del wrap y que la foto LLENE
- * el wrap aunque el tema fuerce height:auto en las <img>. Scope + !important. */
-.slc-coursepitch .slc-cpitch__hero-photo-wrap { aspect-ratio: 4 / 3 !important; }
-.slc-coursepitch .slc-cpitch__hero-photo { height: 100% !important; width: 100% !important; object-fit: cover !important; }
+/* El hero-photo ya no necesita capa defensiva de aspect-ratio: la imagen va a
+ * su tamaño natural (height:auto, que es justo lo que el tema espera de las
+ * <img>), así que no hay ratio ni height forzados que el tema pueda pisar. El
+ * border-radius sí va con !important (arriba) porque el tema resetea <img>. */
