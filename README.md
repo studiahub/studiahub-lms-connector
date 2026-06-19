@@ -2,7 +2,7 @@
 
 Plugin de WordPress que conecta WooCommerce con [StudiaHub LMS](https://github.com/studiahub/studiahub-lms) para sincronización unidireccional de cursos como productos WC y procesamiento de webhooks de compra.
 
-> **Versión actual:** 0.12.0.
+> **Versión actual:** 0.13.0.
 
 ---
 
@@ -13,6 +13,7 @@ Plugin de WordPress que conecta WooCommerce con [StudiaHub LMS](https://github.c
 - Conexión automática (OAuth-style) con el LMS: el pairing genera las credenciales y **registra el webhook de compras solo**, sin configuración manual.
 - Procesa compras via webhook de WooCommerce (topics `order.created` + `order.updated`, entrega síncrona) que pega al LMS para crear el enrollment.
 - Expone `GET /wp-json/studiahub/v1/health` para test de conexión desde el LMS.
+- **Se auto-actualiza** desde las [Releases](https://github.com/studiahub/studiahub-lms-connector/releases) de este repo (vía Plugin Update Checker): cada WP detecta versiones nuevas y las instala solo con el cron, igual que un plugin del repo oficial. Desactivable por sitio con `define('SLC_AUTO_UPDATE', false)` en `wp-config.php`.
 
 ## Arquitectura
 
@@ -28,6 +29,16 @@ Ver [docs/INSTALL.md](docs/INSTALL.md) para:
 - A) Instalar en un WP real (zip + activar + conectar desde el LMS)
 - B) Levantar entorno de desarrollo con Docker
 - C) Troubleshooting
+
+## Publicar una actualización (release)
+
+Cada WP con el plugin se actualiza solo cuando se publica una **GitHub Release** nueva. Para sacar una versión:
+
+1. Bumpeá la versión en `plugin/studiahub-lms-connector/studiahub-lms-connector.php` (header `Version:` **y** la constante `SLC_VERSION`), el `Stable tag:` de `readme.txt`, y agregá la entrada al changelog.
+2. Commiteá y pusheá a `main`.
+3. Corré `bin/release.sh` — empaqueta el `.zip` y crea el tag + la Release adjuntando el `.zip` como **asset** (imprescindible: el plugin no vive en la raíz del repo, así que el zipball automático de GitHub instalaría la estructura mal).
+
+> La primera versión con auto-update (0.13.0) hay que instalarla **a mano una última vez** en cada WP que tenga ≤ 0.12.0; las versiones viejas no traen el sistema de updates. De ahí en adelante, automático.
 
 ## Requisitos
 
