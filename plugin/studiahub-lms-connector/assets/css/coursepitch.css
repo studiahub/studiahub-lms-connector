@@ -319,17 +319,20 @@
     position: relative;
     width: 100%;
     max-width: 520px;
+    /* El aspect-ratio vive ACÁ, en el <div> contenedor — inmune al reset de
+       aspect-ratio que algunos temas (Hello Elementor) aplican a las <img>.
+       La foto solo llena este contenedor. */
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: var(--shub-radius-lg);
 }
 .slc-cpitch__hero-photo {
     width: 100%;
-    aspect-ratio: 4 / 3;
+    height: 100%;
     object-fit: cover;
-    /* !important para que el radio se aplique siempre, sin importar la imagen
-       cargada ni el tema del cliente (algunos pisan el border-radius de <img>). */
     border-radius: var(--shub-radius-lg) !important;
     display: block;
     box-shadow: 0 32px 80px -20px rgba(15,23,42,0.22);
-    overflow: hidden;
 }
 
 /* Cajitas flotantes */
@@ -1764,15 +1767,10 @@
     color: var(--shub-text-muted) !important;
 }
 
-/* ── DEFENSIVE LAYER: aspect-ratio de la foto del hero contra el tema ────
- * Algunos temas (Hello Elementor entre ellos) resetean el aspect-ratio/height
- * de las <img> a nivel global (`.elementor-kit-XXX img`, specificity 0,1,1).
- * Eso le gana al `.slc-cpitch__hero-photo` pelado (0,1,0): la foto pierde el
- * 4/3, toma su ratio natural (apaisado) y descoloca las cajitas flotantes en
- * pantallas anchas. Lo blindamos scopeado bajo `.slc-coursepitch` (0,2,0) +
- * !important — mismo motivo por el que el border-radius ya va con !important. */
-.slc-coursepitch .slc-cpitch__hero-photo {
-    aspect-ratio: 4 / 3 !important;
-    height: auto !important;
-    object-fit: cover !important;
-}
+/* ── DEFENSIVE LAYER: foto del hero contra el reset de <img> del tema ────
+ * El aspect-ratio lo lleva el WRAP (.slc-cpitch__hero-photo-wrap, un <div>),
+ * inmune al reset de aspect-ratio que algunos temas (Hello Elementor) aplican
+ * a las <img> globalmente. Acá reforzamos el ratio del wrap y que la foto LLENE
+ * el wrap aunque el tema fuerce height:auto en las <img>. Scope + !important. */
+.slc-coursepitch .slc-cpitch__hero-photo-wrap { aspect-ratio: 4 / 3 !important; }
+.slc-coursepitch .slc-cpitch__hero-photo { height: 100% !important; width: 100% !important; object-fit: cover !important; }

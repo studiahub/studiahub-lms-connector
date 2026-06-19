@@ -85,6 +85,13 @@ final class Shortcode_CoursePage {
         if (!is_singular()) {
             return false;
         }
+        // Las landings del LMS son productos WC. Con Elementor Theme Builder el
+        // shortcode vive en una plantilla (post aparte) que no es detectable
+        // desde el producto, así que encolamos el CSS en el <head> en toda
+        // página de producto para evitar el FOUC.
+        if (function_exists('is_product') && is_product()) {
+            return true;
+        }
         $post = get_post();
         if (!$post instanceof \WP_Post) {
             return false;

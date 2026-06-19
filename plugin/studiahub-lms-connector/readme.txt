@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.13.3
+Stable tag: 0.13.4
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,10 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.13.4 =
+* Hero (`[studiahub_course_pitch]`): el `aspect-ratio` de la foto del hero se mueve al contenedor `<div>` (en vez de la `<img>`), para que sea inmune al reset de `aspect-ratio` que aplican algunos temas (Hello Elementor) a las imágenes. El intento de 0.13.3 (blindar la `<img>` con `!important`) no alcanzaba cuando el tema gana por specificity. Verificado contra un reset agresivo del tema.
+* FOUC: el CSS se encola en el `<head>` también cuando la página es un producto de WooCommerce (`is_product()`), no solo cuando el shortcode está en el contenido del post. Necesario porque con Elementor Theme Builder el shortcode vive en una plantilla (post aparte) que no es detectable desde el producto.
 
 = 0.13.3 =
 * FOUC: el CSS de las landings se encola en el `<head>` (antes se cargaba tarde, desde el render del shortcode, y producía un flash de contenido sin estilo al cargar la página). Detecta el shortcode tanto en contenido clásico/Gutenberg como en Elementor (`_elementor_data`).
