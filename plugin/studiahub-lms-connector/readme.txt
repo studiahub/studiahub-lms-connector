@@ -4,10 +4,10 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.13.0
+Stable tag: 0.13.1
 License: MIT
 
-Conecta WooCommerce con StudiaHub LMS para sync unidireccional de cursos y procesamiento de webhooks de compra.
+Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
 
 == Description ==
 
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.13.1 =
+* Descripción del plugin más clara y orientada al beneficio en el listado de plugins. Sin cambios funcionales.
 
 = 0.13.0 =
 * Auto-actualización desde GitHub Releases (Plugin Update Checker). El plugin avisa de versiones nuevas en el admin y se auto-instala via el cron de cada WP, sin intervención manual. Se puede desactivar por sitio con `define('SLC_AUTO_UPDATE', false)` en wp-config.php. Nota: esta versión hay que instalarla a mano una última vez; a partir de acá las actualizaciones son automáticas.
