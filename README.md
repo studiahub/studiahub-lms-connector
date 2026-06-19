@@ -2,7 +2,7 @@
 
 Plugin de WordPress que conecta WooCommerce con [StudiaHub LMS](https://github.com/studiahub/studiahub-lms) para sincronización unidireccional de cursos como productos WC y procesamiento de webhooks de compra.
 
-> **Versión actual:** 0.13.0.
+> **Última versión:** ver [Releases](https://github.com/studiahub/studiahub-lms-connector/releases/latest). El plugin se auto-actualiza en cada WP.
 
 ---
 
