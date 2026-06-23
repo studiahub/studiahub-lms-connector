@@ -32,10 +32,19 @@ El plugin expone **dos** shortcodes. Cada uno renderiza la **landing completa** 
 
 Cada shortcode hace `GET /api/wc/courses/:id/landing-payload` al LMS y renderiza ese payload (cacheado en un transient: ~15 min fresh + stale-while-revalidate de 7 días). Detalle:
 
-- **Branding del tenant** (colores de marca y de texto, tipografía) → se inyecta como CSS vars en el wrapper de la landing.
+- **Branding del tenant** (colores de marca y de texto) → se inyecta como CSS vars en el wrapper de la landing.
 - **Imagen del hero / portada** → `thumbnailUrl` del payload (se muestra a su proporción natural).
 - **Imagen de "Por qué tomar este curso"** → `landingImageUrl` del payload (si no hay, no se muestra media en ese slot).
 - **FAQ** → `faq[]` del payload; la respuesta (`faq[].a`) admite **HTML** (listas, negritas, enlaces).
 - Precios, instructores, temario, social proof, etc. → del mismo payload.
+
+## Tipografía
+
+La landing **hereda la tipografía global de Elementor** (Site Settings → Typography), **no** del LMS:
+
+- **Cuerpo** → la font **Text** de Elementor (`--e-global-typography-text-font-family`).
+- **Títulos** (h1–h6) → la font **Accent** de Elementor (familia **y** peso — por eso no quedan con un bold fijo).
+
+Así cada sitio toma su propia tipografía automáticamente. Si el sitio no usa Elementor, cae a la `fontFamily` del branding del LMS y, en último caso, a la del tema. **Configurá las fonts en Elementor, no en el LMS.**
 
 Contrato completo del payload: [repo del LMS](https://github.com/studiahub/studiahub-lms).
