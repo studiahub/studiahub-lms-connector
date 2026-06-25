@@ -26,6 +26,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-health.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-course-sync.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-multicurrency.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-enroll.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-categories.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-products.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-orders.php';
@@ -47,6 +48,7 @@ final class Plugin {
         REST_Health::register_hooks();
         REST_Course_Sync::register_hooks();
         Multicurrency::register_hooks();
+        Enroll::register_hooks();
         REST_Categories::register_hooks();
         REST_Products::register_hooks();
         REST_Orders::register_hooks();

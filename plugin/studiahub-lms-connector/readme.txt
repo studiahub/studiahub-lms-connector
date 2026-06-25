@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.14.0
+Stable tag: 0.14.1
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.14.1 =
+* Checkout: el botón de inscripción ahora agrega el curso vía un endpoint propio y redirige al checkout limpio, en vez de usar `?add-to-cart=` en la URL. Soluciona el error "no se puede agregar otro producto al carrito" al recargar el checkout o al cambiar de moneda en el switcher. Permite acumular varios cursos en el carrito sin duplicar.
 
 = 0.14.0 =
 * Tipografía: la landing hereda la tipografía global de **Elementor** (Site Settings → Typography). El cuerpo usa la **Text** font y los títulos (h1–h6) la **Accent** font (familia **y** peso), así cada sitio toma su propia tipografía automáticamente. Los títulos dejan de usar un peso bold hardcodeado. Si el sitio no usa Elementor, cae a la font del branding del LMS (o la del tema). Aplica a ambos shortcodes.

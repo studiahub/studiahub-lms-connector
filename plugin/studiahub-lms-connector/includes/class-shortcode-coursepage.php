@@ -791,10 +791,9 @@ final class Shortcode_CoursePage {
     }
 
     private static function checkout_url(int $product_id): string {
-        if (function_exists('wc_get_checkout_url')) {
-            return add_query_arg('add-to-cart', $product_id, wc_get_checkout_url());
-        }
-        return '#';
+        // Endpoint propio: agrega el curso y redirige al checkout limpio, sin el
+        // ?add-to-cart= que se rompe al recargar o cambiar de moneda. Ver Enroll.
+        return Enroll::url($product_id);
     }
 
     private static function wc_price_fallback(int $product_id): string {
