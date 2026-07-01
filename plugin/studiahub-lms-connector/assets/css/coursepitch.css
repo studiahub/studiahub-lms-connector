@@ -724,6 +724,18 @@
 .slc-cpitch__prose { font-size: 16.5px; color: var(--shub-text-body); line-height: 1.75; }
 .slc-cpitch__prose p { margin-bottom: 18px; }
 .slc-cpitch__prose p:last-child { margin-bottom: 0; }
+/* Restauramos los marcadores dentro de la descripción larga: el reset global
+ * (`:where(.slc-coursepitch) ul,ol { list-style: none }`) los apaga en toda la
+ * landing, pero la prosa del admin sí escribe listas con bullets/números y hay
+ * que respetarlas. `:where()` tiene specificity 0, así que estos selectores
+ * ganan sin !important. */
+.slc-cpitch__prose ul,
+.slc-cpitch__prose ol { margin: 0 0 18px; padding-left: 1.5em; }
+.slc-cpitch__prose ul { list-style: disc; }
+.slc-cpitch__prose ol { list-style: decimal; }
+.slc-cpitch__prose li { margin-bottom: 6px; }
+.slc-cpitch__prose ul:last-child,
+.slc-cpitch__prose ol:last-child { margin-bottom: 0; }
 
 /* ── PERSONAS (para quién es) — left-aligned ─────────────────────── */
 .slc-cpitch__personas { max-width: var(--shub-wrap-narrow); margin: 0; display: flex; flex-direction: column; gap: 12px; }

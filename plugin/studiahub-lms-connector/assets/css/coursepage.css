@@ -322,10 +322,21 @@ details[open] > .slc-cp__faq-q .slc-cp__chevron { transform: rotate(45deg); marg
 .slc-cp__instructor-role { font-size: 14px; color: var(--shub-accent); font-weight: 600; margin: 4px 0 14px; }
 .slc-cp__instructor-bio { font-size: 15.5px; color: var(--shub-text-body); line-height: 1.7; }
 
-/* ── PROSE (descripción larga, alineada a la izquierda) ── */
+/* ── PROSE (descripción general y programa detallado, alineada a la izquierda) ── */
 .slc-cp__prose { font-size: 16px; color: var(--shub-text-body); line-height: 1.75; }
 .slc-cp__prose p { margin-bottom: 18px; }
 .slc-cp__prose p:last-child { margin-bottom: 0; }
+/* El reset global (línea ~64-79) quita marcadores e indentación de las listas.
+ * Los restauramos dentro del prose para que los bullets/numeración del editor
+ * rico se vean en la landing igual que en el preview del admin. */
+.slc-cp__prose ul,
+.slc-cp__prose ol { margin: 0 0 18px; padding-left: 24px; }
+.slc-cp__prose ul { list-style: disc; }
+.slc-cp__prose ol { list-style: decimal; }
+.slc-cp__prose li { margin-bottom: 8px; }
+.slc-cp__prose ul:last-child,
+.slc-cp__prose ol:last-child,
+.slc-cp__prose li:last-child { margin-bottom: 0; }
 
 /* ── BONOS ── */
 .slc-cp__bonuses { display: flex; flex-direction: column; gap: 14px; }

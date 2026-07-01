@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.14.1
+Stable tag: 0.14.2
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.14.2 =
+* Descripción larga: los bullets y la numeración del editor rico ahora se ven en la landing. El reset global de listas apagaba los marcadores dentro de la descripción del curso (`[studiahub_course_pitch]` y `[studiahub_course_page]`); se restauran solo dentro de la prosa.
 
 = 0.14.1 =
 * Checkout: el botón de inscripción ahora agrega el curso vía un endpoint propio y redirige al checkout limpio, en vez de usar `?add-to-cart=` en la URL. Soluciona el error "no se puede agregar otro producto al carrito" al recargar el checkout o al cambiar de moneda en el switcher. Permite acumular varios cursos en el carrito sin duplicar.
