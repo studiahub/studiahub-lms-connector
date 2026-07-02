@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.14.2
+Stable tag: 0.14.3
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.14.3 =
+* Landing (pitch): la fecha de inicio ("Inicia 12 de agosto") ahora aparece arriba del título aunque el curso no tenga reseñas ni alumnos. Antes vivía dentro del bloque de social proof y se salteaba en cursos nuevos, aunque el countdown de la barra superior sí funcionara.
 
 = 0.14.2 =
 * Descripción larga: los bullets y la numeración del editor rico ahora se ven en la landing. El reset global de listas apagaba los marcadores dentro de la descripción del curso (`[studiahub_course_pitch]` y `[studiahub_course_page]`); se restauran solo dentro de la prosa.

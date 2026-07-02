@@ -246,14 +246,17 @@ final class Shortcode_CoursePitch {
                     <!-- Columna izquierda: texto + botones -->
                     <div class="slc-cpitch__hero-main">
 
-                        <?php if ($social['rating'] !== null || $social['students_label'] !== ''): ?>
+                        <?php /* La fecha de inicio se muestra aunque el curso no tenga rating ni
+                                 alumnos: antes vivía dentro de este bloque y se salteaba junto con
+                                 el social proof (curso nuevo = sin reseñas → sin fecha en el título). */ ?>
+                        <?php if ($social['rating'] !== null || $social['students_label'] !== '' || $start_date_fmt !== ''): ?>
                         <div class="slc-cpitch__hero-proof">
                             <?php if ($social['rating'] !== null): ?>
                                 <span class="slc-cpitch__stars" aria-hidden="true"><?php echo Shortcode_CoursePage::stars_public($social['rating']); ?></span>
                                 <strong><?php echo esc_html(number_format((float)$social['rating'], 1, ',', '')); ?></strong>
                             <?php endif; ?>
                             <?php if ($start_date_fmt !== ''): ?>
-                                <span class="slc-cpitch__proof-sep">·</span>
+                                <?php if ($social['rating'] !== null): ?><span class="slc-cpitch__proof-sep">·</span><?php endif; ?>
                                 <span class="slc-cpitch__proof-date"><span class="slc-cpitch__proof-cal" aria-hidden="true"><?php echo self::icon('calendar'); ?></span><?php printf(esc_html__('Inicia %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?></span>
                             <?php endif; ?>
                         </div>

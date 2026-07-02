@@ -1,5 +1,12 @@
 {
-  "_comment": "Mock payload de un curso 'realista' usado por el mu-plugin de dev (.docker/mu-plugins/zz-dev-mock-payload.php). Permite trabajar el diseño de las landings sin necesitar el LMS corriendo. Editá libremente los valores para probar variantes (curso sin trailer, sin reseñas, con muchos bonos, etc.).",
+  "_comment": "Mock payload de un curso 'realista' usado por el mu-plugin de dev (.docker/mu-plugins/zz-dev-mock-payload.php) para trabajar el diseño de las landings SIN el LMS corriendo. Activá/desactivá con 'make mock-on' / 'make mock-off'. Contiene TODOS los campos que los shortcodes ([studiahub_course_page] y [studiahub_course_pitch]) saben renderizar — editá los valores para probar variantes. Ver el índice de campos y toggles en '_editing' abajo.",
+  "_editing": {
+    "fechas": "courseStartAt / offerDeadlineAt / outline[].lessons[].liveAt están en el FUTURO a propósito, para ver el countdown de la barra superior y el timer de oferta activos. Si estás leyendo esto en 2026+ y ya quedaron viejas, corrélas hacia adelante. offerDeadlineAt a < 48hs del ahora activa el countdown 'vivo' en JS.",
+    "sin_reseñas": "Vaciá 'reviews' a [] y poné reviewStats {count:0, average:0} para simular un curso nuevo (así se ve el bug que arreglamos: la fecha en el título debe seguir apareciendo).",
+    "inscripciones_cerradas": "Poné salesClosed:true para ver el botón 'Inscripciones cerradas' deshabilitado.",
+    "sin_trailer": "Borrá trailerUrl para ver el bloque 'Por qué' usando landingImageUrl como imagen.",
+    "branding": "primaryColor/secondaryColor se inyectan como CSS vars; fontFamily se ignora en dev si no está en Google Fonts."
+  },
   "lmsId": "demo-course-001",
   "branding": {
     "primaryColor": "#7950F2",
@@ -13,6 +20,7 @@
   "shortDescription": "Aprendé a planificar, ejecutar y medir campañas de performance marketing como un profesional.",
   "longDescription": "<p>Este curso integral te lleva desde los fundamentos del marketing digital hasta las estrategias más avanzadas de growth.</p><p>Vas a dominar Meta Ads, Google Ads, embudos de conversión, email marketing y analítica con datos reales de empresas.</p><p>Pensado para emprendedores, freelancers y profesionales que quieren dejar de \"tirar plata\" en ads y empezar a vender de verdad.</p>",
   "thumbnailUrl": "https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200&q=80",
+  "landingImageUrl": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&q=80",
   "trailerUrl": "https://www.youtube.com/watch?v=imYffDezqbg",
   "price": 10000,
   "priceDisplay": "USD 1.000 / ARS 1.400.000",
@@ -24,6 +32,7 @@
   "language": "Español",
   "durationHours": 19,
   "hasCertificate": true,
+  "salesClosed": false,
   "instructors": [
     {
       "id": "u1",
@@ -71,7 +80,7 @@
   "lessonsCount": 32,
   "totalDurationMin": 1140,
   "liveSessionsCount": 5,
-  "courseStartAt": "2026-06-12T19:00:00-03:00",
+  "courseStartAt": "2026-09-15T19:00:00-03:00",
   "courseStartLabel": "El curso comienza en",
   "outline": [
     {
@@ -90,11 +99,11 @@
       "isLive": true,
       "durationMin": 300,
       "lessons": [
-        { "title": "Estructura de cuenta correcta", "type": "VIDEO", "liveAt": "2026-06-12T18:00:00-03:00", "free": false },
-        { "title": "Audiencias custom y lookalike", "type": "VIDEO", "liveAt": "2026-06-19T18:00:00-03:00", "free": false },
-        { "title": "Creativos que convierten", "type": "VIDEO", "liveAt": "2026-06-26T18:00:00-03:00", "free": false },
-        { "title": "Píxel y eventos de conversión", "type": "VIDEO", "liveAt": "2026-07-03T18:00:00-03:00", "free": false },
-        { "title": "Optimización y escalado", "type": "VIDEO", "liveAt": "2026-07-10T18:00:00-03:00", "free": false }
+        { "title": "Estructura de cuenta correcta", "type": "VIDEO", "liveAt": "2026-09-15T18:00:00-03:00", "free": false },
+        { "title": "Audiencias custom y lookalike", "type": "VIDEO", "liveAt": "2026-09-22T18:00:00-03:00", "free": false },
+        { "title": "Creativos que convierten", "type": "VIDEO", "liveAt": "2026-09-29T18:00:00-03:00", "free": false },
+        { "title": "Píxel y eventos de conversión", "type": "VIDEO", "liveAt": "2026-10-06T18:00:00-03:00", "free": false },
+        { "title": "Optimización y escalado", "type": "VIDEO", "liveAt": "2026-10-13T18:00:00-03:00", "free": false }
       ]
     },
     {
@@ -125,11 +134,11 @@
       ]
     }
   ],
-  "_reviews_format_note": "Formato canónico del payload: author (string ya formateado), avatarUrl, rating, comment, createdAt. NO usar { user: { firstName, lastName } } — ese es el formato de la DB, no del payload.",
+  "_reviews_format_note": "Formato canónico del payload: author (string ya formateado), avatarUrl, rating, comment, createdAt. NO usar { user: { firstName, lastName } } — ese es el formato de la DB, no del payload. Al menos una review con avatarUrl seteado para ejercitar la variante con foto.",
   "reviews": [
     {
       "author": "Carolina M.",
-      "avatarUrl": null,
+      "avatarUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&q=80",
       "rating": 5,
       "comment": "Espectacular el curso. Recuperé la inversión en la primera campaña que armé después del módulo 2. Recomendadísimo.",
       "createdAt": "2026-04-15T14:30:00Z"
@@ -201,7 +210,7 @@
   "reviewStats": { "count": 10, "average": 4.7 },
   "compareAtPrice": "USD 1.499 / ARS 2.100.000",
   "installmentsLabel": "o 12 cuotas sin interés",
-  "offerDeadlineAt": "2026-06-15T23:59:59Z",
+  "offerDeadlineAt": "2026-08-15T23:59:59Z",
   "bonuses": [
     {
       "title": "Auditoría 1-on-1 de tu cuenta",
@@ -248,8 +257,8 @@
     "studentsCount": 234,
     "studentsLabel": "+200",
     "stats": [
-      { "num": "98%",      "label": "lo recomiendan"        },
-      { "num": "12 meses", "label": "de acceso garantizado" }
+      { "num": "98%",      "label": "lo recomiendan",        "icon": "fi-tr-thumbs-up" },
+      { "num": "12 meses", "label": "de acceso garantizado", "icon": "fi-tr-calendar-clock" }
     ]
   },
   "guarantee": {
