@@ -7,6 +7,8 @@ Plugin de WordPress que conecta WooCommerce con el StudiaHub LMS. Renderiza la *
 - `[studiahub_course_page]` — variante "refinada".
 - `[studiahub_course_pitch]` — variante DTC / conversión (hero grande, countdown, CTA).
 
+🟢 **La landing oficial en producción es `[studiahub_course_pitch]`** (la variante DTC/pitch con countdown y cajitas flotantes). Es la que corren TODOS los tenants. Todo cambio de landing va sobre el **pitch** ([class-shortcode-coursepitch.php](plugin/studiahub-lms-connector/includes/class-shortcode-coursepitch.php)) salvo que se pida lo contrario. `[studiahub_course_page]` es una variante secundaria que hoy **no está en uso** — no la toques a menos que te lo indiquen. Detalle en [docs/shortcodes.md](docs/shortcodes.md).
+
 El plugin se **auto-actualiza** en cada WP vía GitHub Releases. **Un release impacta a TODOS los clientes a la vez** — cuidado con lo que se mergea a `main`.
 
 ## Cómo llega un cambio a los WordPress
