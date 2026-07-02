@@ -1,6 +1,6 @@
 # CLAUDE.md — StudiaHub LMS Connector
 
-Contexto para cualquier agente que abra este repo. Leé también el [README](README.md) (arquitectura, release) y [docs/INSTALL.md](docs/INSTALL.md) (setup Docker).
+Contexto para cualquier agente que abra este repo. Leé también el [README](README.md) (arquitectura, release), [docs/INSTALL.md](docs/INSTALL.md) (setup Docker) y **[docs/LANDING-PAYLOAD.md](docs/LANDING-PAYLOAD.md) — el diccionario de TODAS las variables dinámicas que la landing recibe del LMS** (nombres exactos, tipos, qué renderiza cada una). Leelo antes de tocar cualquier cosa de la landing.
 
 ## Qué es
 Plugin de WordPress que conecta WooCommerce con el StudiaHub LMS. Renderiza la **landing del curso en vivo** desde el LMS con dos shortcodes:
