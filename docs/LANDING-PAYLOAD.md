@@ -5,8 +5,8 @@ Este documento lista **todos los campos dinámicos** que las landings reciben de
 ## De dónde sale esta data
 - La landing se renderiza en vivo desde el LMS: `GET {LMS}/api/wc/courses/:id/landing-payload` (ver [class-landing-fetch.php](../plugin/studiahub-lms-connector/includes/class-landing-fetch.php)). El plugin **no transforma** el JSON: lee las claves tal cual llegan.
 - Los dos shortcodes consumen el mismo payload:
-  - `[studiahub_course_page]` → [class-shortcode-coursepage.php](../plugin/studiahub-lms-connector/includes/class-shortcode-coursepage.php)
-  - `[studiahub_course_pitch]` → [class-shortcode-coursepitch.php](../plugin/studiahub-lms-connector/includes/class-shortcode-coursepitch.php)
+  - 🟢 `[studiahub_course_pitch]` → [class-shortcode-coursepitch.php](../plugin/studiahub-lms-connector/includes/class-shortcode-coursepitch.php) — **la landing OFICIAL en producción. Trabajá sobre esta.**
+  - ⚪ `[studiahub_course_page]` → [class-shortcode-coursepage.php](../plugin/studiahub-lms-connector/includes/class-shortcode-coursepage.php) — variante secundaria, hoy no en uso.
 - **Fuente de verdad de esta tabla = esos dos archivos** (lo que el plugin realmente lee y renderiza). Este repo no tiene el LMS; si dudás de si el LMS manda un campo, confirmalo en el repo del LMS.
 - En dev, esta misma estructura se mockea en [.docker/dev-mock/payload.json.disabled](../.docker/dev-mock/payload.json.disabled) (`make mock-on`). Preview: `http://localhost:8080/?slc_test_render=1&variant=pitch&id=<ID_producto>`.
 

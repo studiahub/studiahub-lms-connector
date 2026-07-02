@@ -2,12 +2,14 @@
 
 El plugin expone **dos** shortcodes. Cada uno renderiza la **landing completa** de un curso (hero, descripción, temario, instructores, precios, FAQ, etc.) trayendo todo el contenido **en vivo desde el LMS** (el `landing-payload` del tenant).
 
+> 🟢 **La landing oficial en uso es `[studiahub_course_pitch]`.** Es la que corren los tenants en producción. Cualquier cambio de diseño/funcional de la landing va sobre el **pitch** salvo que se pida explícitamente lo contrario. `[studiahub_course_page]` es una variante **secundaria** que hoy NO está en uso — no la toques a menos que te lo indiquen puntualmente.
+
 > **No usan ACF.** El contenido se administra en el LMS, no en WordPress. (El modelo viejo basado en ACFs `sh_course_*` y shortcodes por sección quedó obsoleto.)
 
-| Shortcode | Estilo |
-|-----------|--------|
-| `[studiahub_course_page]`  | Landing "página de curso" (refinada). |
-| `[studiahub_course_pitch]` | Landing estilo DTC / pitch: hero grande con foto + cajitas, countdown de oferta, social proof, combos, garantía. |
+| Shortcode | Estado | Estilo |
+|-----------|--------|--------|
+| `[studiahub_course_pitch]` | 🟢 **Oficial / en producción** | Landing estilo DTC / pitch: hero grande con foto + cajitas, countdown de inicio, social proof, combos, garantía. |
+| `[studiahub_course_page]`  | ⚪ Secundaria (no en uso) | Landing "página de curso" (refinada). |
 
 ## Atributo
 
