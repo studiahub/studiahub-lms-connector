@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.14.5
+Stable tag: 0.14.6
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,10 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.14.6 =
+* Landing (pitch): el chip de fecha de inicio se unificó en el hero, el plan de estudio y la pricing card — mismo estilo (pill con el tono clarito del color del cliente) y misma etiqueta "Inicia: <fecha>". En la pricing card, la fecha va arriba del nombre del curso.
+* Landing (pitch): ícono de check unificado en el checklist de la pricing card, en las cajitas flotantes del hero y en la sección "¿A quién está dirigido?".
 
 = 0.14.5 =
 * Landing (pitch): en la card de precio, el título del curso, la fecha de inicio y los items del checklist ahora quedan centrados (antes alineados a la izquierda).
