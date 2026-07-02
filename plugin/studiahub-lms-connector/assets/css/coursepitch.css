@@ -1242,13 +1242,14 @@
     color: var(--shub-text-title);
     letter-spacing: -0.02em;
     line-height: 1.2;
-    text-align: left;
+    text-align: center;
     margin: 0;
     padding: 28px 36px 0;
 }
 .slc-cpitch__pricing-start {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 7px;
     margin: 0;
     padding: 8px 36px 0;
@@ -1262,6 +1263,7 @@
 .slc-cpitch__pricing-checklist {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 12px;
     margin: 0 0 28px;
     padding: 18px 36px 0;
