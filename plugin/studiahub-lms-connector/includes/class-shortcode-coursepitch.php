@@ -257,7 +257,7 @@ final class Shortcode_CoursePitch {
                             <?php endif; ?>
                             <?php if ($start_date_fmt !== ''): ?>
                                 <?php if ($social['rating'] !== null): ?><span class="slc-cpitch__proof-sep">·</span><?php endif; ?>
-                                <span class="slc-cpitch__proof-date"><span class="slc-cpitch__proof-cal" aria-hidden="true"><?php echo self::icon('calendar'); ?></span><?php printf(esc_html__('Inicia %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?></span>
+                                <span class="slc-cpitch__proof-date"><span class="slc-cpitch__proof-cal" aria-hidden="true"><?php echo self::icon('calendar'); ?></span><?php printf(esc_html__('Inicia: %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?></span>
                             <?php endif; ?>
                         </div>
                         <?php endif; ?>
@@ -298,18 +298,13 @@ final class Shortcode_CoursePitch {
 
                             <?php foreach (array_values($float_mats) as $fi => $mat):
                                 $mat_text = is_array($mat) ? ($mat['text'] ?? '') : (string)$mat;
-                                $mat_icon = is_array($mat) ? trim((string)($mat['icon'] ?? '')) : '';
                                 if ($mat_text === '') continue;
                                 $mat_text_short = mb_strlen($mat_text) > 38 ? mb_substr($mat_text, 0, 36) . '…' : $mat_text;
                             ?>
                             <div class="slc-cpitch__hero-float <?php echo esc_attr($float_positions[$fi] ?? ''); ?>" aria-hidden="true">
-                                <?php if ($mat_icon !== ''): ?>
                                 <span class="slc-cpitch__hero-float-icon">
-                                    <i class="fi <?php echo esc_attr($mat_icon); ?>"></i>
+                                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.319,4.431,8.5,18.249a1,1,0,0,1-1.417,0L1.739,12.9a1,1,0,0,0-1.417,0h0a1,1,0,0,0,0,1.417l5.346,5.345a3.008,3.008,0,0,0,4.25,0L23.736,5.847a1,1,0,0,0,0-1.416h0A1,1,0,0,0,22.319,4.431Z"/></svg>
                                 </span>
-                                <?php else: ?>
-                                <span class="slc-cpitch__hero-float-icon">✓</span>
-                                <?php endif; ?>
                                 <span class="slc-cpitch__hero-float-text"><?php echo esc_html($mat_text_short); ?></span>
                             </div>
                             <?php endforeach; ?>
@@ -415,7 +410,7 @@ final class Shortcode_CoursePitch {
                     <div class="slc-cpitch__personas" data-stagger-reveal>
                         <?php foreach ($audience as $item): ?>
                             <div class="slc-cpitch__persona slc-reveal-item">
-                                <span class="slc-cpitch__persona-mark" aria-hidden="true">✓</span>
+                                <span class="slc-cpitch__persona-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.319,4.431,8.5,18.249a1,1,0,0,1-1.417,0L1.739,12.9a1,1,0,0,0-1.417,0h0a1,1,0,0,0,0,1.417l5.346,5.345a3.008,3.008,0,0,0,4.25,0L23.736,5.847a1,1,0,0,0,0-1.416h0A1,1,0,0,0,22.319,4.431Z"/></svg></span>
                                 <span><?php echo esc_html(is_array($item) ? ($item['text'] ?? '') : (string) $item); ?></span>
                             </div>
                         <?php endforeach; ?>
@@ -460,7 +455,7 @@ final class Shortcode_CoursePitch {
                         <?php if ($start_date_fmt !== ''): ?>
                         <span class="slc-cpitch__meta-chip slc-cpitch__meta-chip--date">
                             <span class="slc-cpitch__meta-icon" aria-hidden="true"><?php echo self::icon('calendar'); ?></span>
-                            <?php printf(esc_html__('Inicia %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?>
+                            <?php printf(esc_html__('Inicia: %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?>
                         </span>
                         <?php endif; ?>
                         <span class="slc-cpitch__meta-chip">
@@ -665,11 +660,11 @@ final class Shortcode_CoursePitch {
                         </div>
                         <?php endif; ?>
 
-                        <h3 class="slc-cpitch__pricing-course-title"><?php echo esc_html($title); ?></h3>
-
                         <?php if ($start_date_fmt !== ''): ?>
-                        <p class="slc-cpitch__pricing-start"><span class="slc-cpitch__pricing-start-ico" aria-hidden="true"><?php echo self::icon('calendar'); ?></span><?php printf(esc_html__('Comienza el %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?></p>
+                        <p class="slc-cpitch__pricing-start"><span class="slc-cpitch__pricing-start-ico" aria-hidden="true"><?php echo self::icon('calendar'); ?></span><?php printf(esc_html__('Inicia: %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?></p>
                         <?php endif; ?>
+
+                        <h3 class="slc-cpitch__pricing-course-title"><?php echo esc_html($title); ?></h3>
 
                         <?php if (!empty($materials)): ?>
                         <ul class="slc-cpitch__pricing-checklist">
@@ -678,7 +673,7 @@ final class Shortcode_CoursePitch {
                                 if ($mat_text === '') continue;
                             ?>
                             <li class="slc-cpitch__pricing-check">
-                                <span class="slc-cpitch__pricing-check-icon" aria-hidden="true">✓</span>
+                                <span class="slc-cpitch__pricing-check-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.319,4.431,8.5,18.249a1,1,0,0,1-1.417,0L1.739,12.9a1,1,0,0,0-1.417,0h0a1,1,0,0,0,0,1.417l5.346,5.345a3.008,3.008,0,0,0,4.25,0L23.736,5.847a1,1,0,0,0,0-1.416h0A1,1,0,0,0,22.319,4.431Z"/></svg></span>
                                 <span><?php echo esc_html($mat_text); ?></span>
                             </li>
                             <?php endforeach; ?>

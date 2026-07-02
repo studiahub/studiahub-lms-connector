@@ -318,11 +318,10 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #fff;
+    background: rgba(var(--shub-accent-rgb), 0.08);
     padding: 5px 12px;
     border-radius: var(--shub-radius-pill);
-    border: 1px solid var(--shub-border);
-    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.10);
+    border: 1px solid rgba(var(--shub-accent-rgb), 0.20);
     font-weight: 600;
 }
 .slc-cpitch__proof-cal { display: inline-flex; color: var(--shub-accent); }
@@ -330,12 +329,12 @@
 .slc-cpitch__hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
 .slc-cpitch__meta-chip { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--shub-text-muted); font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: var(--shub-radius-pill); border: 1px solid var(--shub-border); }
 .slc-cpitch__meta-icon { display: inline-flex; color: var(--shub-accent); }
-/* Chip de fecha de inicio destacado con fondo blanco (para que ancle la fila) */
+/* Chip de fecha de inicio destacado con el tono clarito del color del cliente */
 .slc-cpitch__meta-chip--date {
-    background: #fff;
+    background: rgba(var(--shub-accent-rgb), 0.08);
+    border-color: rgba(var(--shub-accent-rgb), 0.20);
     color: var(--shub-text-title);
     font-weight: 600;
-    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.10);
 }
 
 /* Botones del hero */
@@ -402,6 +401,7 @@
     color: var(--shub-accent);
     font-size: 17px;
 }
+.slc-cpitch__hero-float-icon svg { width: 16px; height: 16px; }
 .slc-cpitch__hero-float-text {
     font-size: 12px;
     font-weight: 600;
@@ -796,6 +796,7 @@
     margin-top: 1px;
     box-shadow: 0 6px 16px -6px rgba(34, 197, 94, 0.5);
 }
+.slc-cpitch__persona-mark svg { width: 15px; height: 15px; }
 
 /* ── OUTLINE ─────────────────────────────────────────────────────────── */
 .slc-cpitch__outline-meta { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 10px; margin-top: calc(var(--shub-title-gap) * -1 + 12px); margin-bottom: var(--shub-title-gap); }
@@ -1249,15 +1250,20 @@
 .slc-cpitch__pricing-start {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 7px;
-    margin: 0;
-    padding: 8px 36px 0;
-    font-size: 14px;
+    width: fit-content;
+    margin: 24px auto 0;
+    padding: 6px 16px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--shub-text-body);
+    background: rgba(var(--shub-accent-rgb), 0.08);
+    border: 1px solid rgba(var(--shub-accent-rgb), 0.20);
+    border-radius: var(--shub-radius-pill);
 }
 .slc-cpitch__pricing-start-ico { display: inline-flex; color: var(--shub-accent); }
+/* Cuando la fecha va arriba del título, dejamos aire entre ambos */
+.slc-cpitch__pricing-start + .slc-cpitch__pricing-course-title { padding-top: 20px; }
 
 /* Checklist */
 .slc-cpitch__pricing-checklist {
@@ -1281,8 +1287,9 @@
     color: var(--shub-accent);
     font-weight: 700;
     flex-shrink: 0;
-    margin-top: 1px;
+    margin-top: 2px;
 }
+.slc-cpitch__pricing-check-icon svg { width: 14px; height: 14px; display: block; }
 
 /* Precio */
 .slc-cpitch__pricing-price {
@@ -1478,7 +1485,6 @@
 @media (max-width: 640px) {
     .slc-cpitch__pricing-features-grid { grid-template-columns: 1fr; }
     .slc-cpitch__pricing-course-title { padding: 24px 24px 0; }
-    .slc-cpitch__pricing-start { padding: 8px 24px 0; }
     .slc-cpitch__pricing-checklist { padding: 16px 24px 0; }
     .slc-cpitch__pricing-price { padding: 0 24px; }
     .slc-cpitch__pricing-cta { margin: 0 24px 20px; }
