@@ -363,13 +363,12 @@ final class Shortcode_CoursePitch {
                             <?php foreach ($outcomes as $item):
                                 $o_title = is_array($item) ? trim((string)($item['title'] ?? '')) : '';
                                 $o_desc  = is_array($item) ? trim((string)($item['desc']  ?? '')) : '';
-                                $o_icon  = is_array($item) ? trim((string)($item['icon']  ?? '')) : '';
                                 $o_text  = is_array($item) ? trim((string)($item['text']  ?? '')) : (string)$item;
                                 if ($o_title === '' && $o_text !== '') { $o_desc = $o_text; }
                             ?>
                                 <div class="slc-cpitch__outcome-card">
                                     <div class="slc-cpitch__outcome-icon">
-                                        <?php echo self::svg_icon($o_icon !== '' ? $o_icon : 'fi-tr-star'); ?>
+                                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.319,4.431,8.5,18.249a1,1,0,0,1-1.417,0L1.739,12.9a1,1,0,0,0-1.417,0h0a1,1,0,0,0,0,1.417l5.346,5.345a3.008,3.008,0,0,0,4.25,0L23.736,5.847a1,1,0,0,0,0-1.416h0A1,1,0,0,0,22.319,4.431Z"/></svg>
                                     </div>
                                     <?php if ($o_title !== ''): ?>
                                         <h4 class="slc-cpitch__outcome-title"><?php echo esc_html($o_title); ?></h4>
@@ -458,6 +457,12 @@ final class Shortcode_CoursePitch {
                         <h2 class="slc-cpitch__h2"><?php esc_html_e('Todo lo que vas a aprender', 'studiahub-lms-connector'); ?></h2>
                     </div>
                     <div class="slc-cpitch__outline-meta">
+                        <?php if ($start_date_fmt !== ''): ?>
+                        <span class="slc-cpitch__meta-chip slc-cpitch__meta-chip--date">
+                            <span class="slc-cpitch__meta-icon" aria-hidden="true"><?php echo self::icon('calendar'); ?></span>
+                            <?php printf(esc_html__('Inicia %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?>
+                        </span>
+                        <?php endif; ?>
                         <span class="slc-cpitch__meta-chip">
                             <span class="slc-cpitch__meta-icon" aria-hidden="true"><?php echo self::icon('stack'); ?></span>
                             <?php echo esc_html(count($outline) . ' ' . _n('módulo', 'módulos', count($outline), 'studiahub-lms-connector')); ?>
@@ -470,12 +475,6 @@ final class Shortcode_CoursePitch {
                         <span class="slc-cpitch__meta-chip">
                             <span class="slc-cpitch__meta-icon" aria-hidden="true"><?php echo self::icon('camera'); ?></span>
                             <?php echo esc_html($live_count . ' ' . _n('encuentro en vivo', 'encuentros en vivo', $live_count, 'studiahub-lms-connector')); ?>
-                        </span>
-                        <?php endif; ?>
-                        <?php if ($start_date_fmt !== ''): ?>
-                        <span class="slc-cpitch__meta-chip">
-                            <span class="slc-cpitch__meta-icon" aria-hidden="true"><?php echo self::icon('calendar'); ?></span>
-                            <?php printf(esc_html__('Inicia %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?>
                         </span>
                         <?php endif; ?>
                     </div>
@@ -667,6 +666,10 @@ final class Shortcode_CoursePitch {
                         <?php endif; ?>
 
                         <h3 class="slc-cpitch__pricing-course-title"><?php echo esc_html($title); ?></h3>
+
+                        <?php if ($start_date_fmt !== ''): ?>
+                        <p class="slc-cpitch__pricing-start"><span class="slc-cpitch__pricing-start-ico" aria-hidden="true"><?php echo self::icon('calendar'); ?></span><?php printf(esc_html__('Comienza el %s', 'studiahub-lms-connector'), esc_html($start_date_fmt)); ?></p>
+                        <?php endif; ?>
 
                         <?php if (!empty($materials)): ?>
                         <ul class="slc-cpitch__pricing-checklist">
@@ -902,6 +905,15 @@ final class Shortcode_CoursePitch {
             bar.hidden = false;
             tick();
             interval = setInterval(tick, 1000);
+
+            // La barra queda fija ABAJO y visible desde que se abre la landing
+            // (presente en el primer view), y ahí se mantiene mientras se
+            // scrollea todo. Abajo y no arriba porque el menú sticky del sitio
+            // del cliente taparía la de arriba. El pequeño delay deja que
+            // entre deslizándose desde abajo.
+            setTimeout(function(){
+                bar.classList.add('slc-cpitch__topbar--docked');
+            }, 60);
         })();
         </script>
         <?php endif; ?>

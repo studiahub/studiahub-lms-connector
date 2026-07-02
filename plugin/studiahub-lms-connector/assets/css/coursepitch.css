@@ -95,10 +95,19 @@
 .slc-cpitch__topbar {
     background: var(--shub-text-title);
     color: #fff;
-    position: sticky;
-    top: 0;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 50;
+    /* Oculta abajo hasta que el hero sale de vista (ver JS). Se fija abajo,
+       no arriba, porque el menú sticky del sitio del cliente taparía la de
+       arriba y la barra perdería su función. */
+    transform: translateY(100%);
+    transition: transform 0.35s ease;
+    box-shadow: 0 -6px 24px -8px rgba(15, 23, 42, 0.25);
 }
+.slc-cpitch__topbar--docked { transform: translateY(0); }
 .slc-cpitch__topbar-inner {
     max-width: var(--shub-wrap);
     margin: 0 auto;
@@ -304,13 +313,30 @@
     margin: 0 0 24px;
 }
 .slc-cpitch__stars { display: inline-flex; color: #FAB005; }
-.slc-cpitch__proof-sep { color: var(--shub-text-muted); }
-.slc-cpitch__proof-date { display: inline-flex; align-items: center; gap: 6px; }
+.slc-cpitch__proof-sep { display: none; }
+.slc-cpitch__proof-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    padding: 5px 12px;
+    border-radius: var(--shub-radius-pill);
+    border: 1px solid var(--shub-border);
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.10);
+    font-weight: 600;
+}
 .slc-cpitch__proof-cal { display: inline-flex; color: var(--shub-accent); }
 
 .slc-cpitch__hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; }
 .slc-cpitch__meta-chip { display: inline-flex; align-items: center; gap: 8px; background: transparent; color: var(--shub-text-muted); font-size: 13px; font-weight: 500; padding: 8px 14px; border-radius: var(--shub-radius-pill); border: 1px solid var(--shub-border); }
 .slc-cpitch__meta-icon { display: inline-flex; color: var(--shub-accent); }
+/* Chip de fecha de inicio destacado con fondo blanco (para que ancle la fila) */
+.slc-cpitch__meta-chip--date {
+    background: #fff;
+    color: var(--shub-text-title);
+    font-weight: 600;
+    box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.10);
+}
 
 /* Botones del hero */
 .slc-cpitch__hero-ctas {
@@ -1220,6 +1246,17 @@
     margin: 0;
     padding: 28px 36px 0;
 }
+.slc-cpitch__pricing-start {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin: 0;
+    padding: 8px 36px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--shub-text-body);
+}
+.slc-cpitch__pricing-start-ico { display: inline-flex; color: var(--shub-accent); }
 
 /* Checklist */
 .slc-cpitch__pricing-checklist {
@@ -1439,6 +1476,7 @@
 @media (max-width: 640px) {
     .slc-cpitch__pricing-features-grid { grid-template-columns: 1fr; }
     .slc-cpitch__pricing-course-title { padding: 24px 24px 0; }
+    .slc-cpitch__pricing-start { padding: 8px 24px 0; }
     .slc-cpitch__pricing-checklist { padding: 16px 24px 0; }
     .slc-cpitch__pricing-price { padding: 0 24px; }
     .slc-cpitch__pricing-cta { margin: 0 24px 20px; }
