@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.14.7
+Stable tag: 0.14.8
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,10 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.14.8 =
+* Landing (pitch): la barra de countdown ahora usa el color de los botones del cliente (degradé de marca) en vez del fondo oscuro, con el texto en el color de texto de botón del tenant. "Inscripción abierta" en blanco y el botón "Reservar mi lugar" con esquinas de 14px (como el resto de los botones).
+* Landing (pitch): responsive de la barra en mobile — el botón se muestra, todo queda centrado y se oculta el badge "Inscripción abierta" para que no quede tan alta.
 
 = 0.14.7 =
 * Landing (pitch): fix del chip de fecha de inicio en la pricing card, que en producción (Elementor) quedaba alineado a la izquierda en vez de centrado.
