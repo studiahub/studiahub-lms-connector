@@ -210,9 +210,7 @@
     text-transform: uppercase;
     letter-spacing: 1.6px;
     color: var(--shub-accent);
-    background: rgba(var(--shub-accent-rgb), 0.10);
-    padding: 7px 14px;
-    border-radius: var(--shub-radius-pill);
+    padding: 0;
     margin: 0 0 18px;
 }
 .slc-cpitch__eyebrow--accent {
@@ -799,7 +797,7 @@
 .slc-cpitch__persona-mark svg { width: 15px; height: 15px; }
 
 /* ── OUTLINE ─────────────────────────────────────────────────────────── */
-.slc-cpitch__outline-meta { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 10px; margin-top: calc(var(--shub-title-gap) * -1 + 12px); margin-bottom: var(--shub-title-gap); }
+.slc-cpitch__outline-meta { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 10px; margin-top: calc(var(--shub-title-gap) * -1 + 24px); margin-bottom: var(--shub-title-gap); }
 .slc-cpitch__dot { opacity: 0.5; }
 .slc-cpitch__modules { display: flex; flex-direction: column; gap: 14px; }
 .slc-cpitch__module {
@@ -1806,6 +1804,9 @@
 .elementor-widget .slc-coursepitch .slc-cpitch__band-num,
 .elementor-widget .slc-coursepitch .slc-cpitch__band-label { text-align: center; }
 .elementor-widget .slc-coursepitch p { margin: 0; }
+/* El chip de fecha (un <p>) se centra con margin auto; el reset de p de arriba
+   se lo pisaba en Elementor y quedaba a la izquierda. Le devolvemos el centrado. */
+.elementor-widget .slc-coursepitch .slc-cpitch__pricing-start { margin: 24px auto 0; }
 .elementor-widget .slc-coursepitch .slc-cpitch__prose p { margin-bottom: 18px; }
 .elementor-widget .slc-coursepitch .slc-cpitch__prose p:last-child { margin-bottom: 0; }
 .elementor-widget .slc-coursepitch .slc-cpitch__pricing-features-label { margin: 0 0 30px; }
