@@ -1,6 +1,8 @@
 # Shortcodes — StudiaHub LMS Connector
 
-El plugin expone **dos** shortcodes. Cada uno renderiza la **landing completa** de un curso (hero, descripción, temario, instructores, precios, FAQ, etc.) trayendo todo el contenido **en vivo desde el LMS** (el `landing-payload` del tenant).
+El plugin expone **dos** shortcodes monolíticos. Cada uno renderiza la **landing completa** de un curso (hero, descripción, temario, instructores, precios, FAQ, etc.) trayendo todo el contenido **en vivo desde el LMS** (el `landing-payload` del tenant).
+
+> 🧩 **¿Necesitás las piezas sueltas para una landing a medida?** Mirá [granular-shortcodes.md](granular-shortcodes.md): shortcodes granulares que exponen cada campo del curso (título, precio, bonos, temario, reseñas, etc.) como data cruda para componer con tu propio markup en Elementor.
 
 > 🟢 **La landing oficial en uso es `[studiahub_course_pitch]`.** Es la que corren los tenants en producción. Cualquier cambio de diseño/funcional de la landing va sobre el **pitch** salvo que se pida explícitamente lo contrario. `[studiahub_course_page]` es una variante **secundaria** que hoy NO está en uso — no la toques a menos que te lo indiquen puntualmente.
 
