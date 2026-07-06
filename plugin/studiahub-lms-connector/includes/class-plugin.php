@@ -40,6 +40,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepage.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepitch.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-fields.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-updater.php';
     }
 
@@ -61,6 +62,7 @@ final class Plugin {
         WebhookBootstrap::register_hooks();
         Shortcode_CoursePage::register_hooks();
         Shortcode_CoursePitch::register_hooks();
+        Shortcode_Fields::register_hooks();
         Updater::register_hooks();
 
         // Entrega SÍNCRONA de webhooks WC. El default de WC es encolarlos en
