@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.15.0
+Stable tag: 0.15.1
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.15.1 =
+* Landings (`[studiahub_course_pitch]` y `[studiahub_course_page]`): fix para que se vean bien sobre cualquier theme, no solo Hello Elementor. Un block theme opinado (Twenty Twenty-*) metía el landing bajo `.is-layout-constrained` y le clavaba el content-size del theme (~645px), aplastándolo a una columna angosta y descuadrando el hero. Ahora el landing rompe ese content-size en su contenedor raíz y renderiza a su ancho completo. No-op sobre Hello Elementor (sin cambios para los sitios existentes).
 
 = 0.15.0 =
 * Shortcodes granulares: nuevos shortcodes para exponer los campos sueltos de un curso del LMS y componer landings a medida. `[studiahub_course_field field="..."]` para campos escalares (título, precio, duración, `reviewsAverage`/`reviewsCount`, etc.) y shortcodes de loop con template interno de tokens `{{campo}}` + fallback semántico para arrays (`[studiahub_course_bonuses]`, `[studiahub_course_faq]`, `[studiahub_course_reviews]`, `[studiahub_course_instructors]`, `[studiahub_course_stats]`, `[studiahub_course_outcomes]`, `[studiahub_course_audience]`, `[studiahub_course_materials]`, `[studiahub_course_requirements]`, `[studiahub_course_outline]` + `[studiahub_course_lessons]`, `[studiahub_course_guarantee]`). Reusan el mismo payload cacheado que las landings completas. Ver docs/granular-shortcodes.md.

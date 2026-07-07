@@ -40,6 +40,16 @@
     color: var(--shub-text-body);
     line-height: 1.65;
     width: 100%;
+    /* El article es la boundary: un block theme (Twenty Twenty-*) mete el
+     * article como hijo directo de .is-layout-constrained y le clava el
+     * content-size (~645px) + margin-inline:auto, aplastando TODO el landing
+     * a una columna centrada angosta. Rompemos ese content-size acá. La hoja
+     * del plugin carga DESPUÉS de los global-styles del theme, así que esta
+     * regla (misma specificity 0,1,0) gana por orden — sin !important. En
+     * Hello Elementor no hay .is-layout-constrained, así que es no-op. El
+     * ancho real del contenido lo sigue comandando .slc-cpitch__wrap (1200px). */
+    max-width: none;
+    margin-inline: 0;
     -webkit-font-smoothing: antialiased;
 }
 .slc-coursepitch *, .slc-coursepitch *::before, .slc-coursepitch *::after { box-sizing: border-box; }
@@ -75,6 +85,22 @@
 .slc-coursepitch a { text-decoration: none; }
 /* Default text-align del wrapper para que ningún hijo herede left/center del theme */
 .slc-coursepitch { text-align: left; }
+
+/* ── Immunity al content-size del block theme ────────────────────────────
+ * Un block theme opinado (Twenty Twenty-*) mete los elementos de contenido
+ * bajo .is-layout-constrained y les clava el content-size (~645px), que
+ * descuadra el hero. Ya lo rompimos en el root (.slc-coursepitch); esto es
+ * belt-and-suspenders sobre los elementos de contenido, NO sobre los wrappers
+ * de layout (.slc-cpitch__wrap declara su propio max-width y no está en la
+ * lista, así que sobrevive intacto).
+ *
+ * Especificidad 0,1,0 (viene del .slc-coursepitch) → le gana al :where() de
+ * bajo peso del theme, pero empata-pierde con los componentes del landing (que
+ * declaran su propio max-width y vienen después). No-op en Hello Elementor. */
+.slc-coursepitch :where(h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, blockquote, dl, dd, a) {
+    max-width: none;
+}
+.slc-coursepitch :where(img, svg, video) { max-width: 100%; }
 
 /* ── TIPOGRAFÍA: cuerpo = Text de Elementor, títulos = Accent de Elementor ──
  * La landing hereda la tipografía global del sitio (Elementor → Site Settings →
