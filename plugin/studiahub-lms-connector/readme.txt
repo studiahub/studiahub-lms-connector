@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.15.1
+Stable tag: 0.15.2
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.15.2 =
+* Landings (`[studiahub_course_pitch]` y `[studiahub_course_page]`): fix del hero/layout descuadrado cuando el shortcode va en una página o en el template de producto de un block theme (fuera de Elementor). WordPress corría `wpautop` sobre el output y convertía los comentarios HTML y los saltos de línea del template en `<p>` vacíos, que se colaban como items del grid y empujaban el contenido (el título quedaba a la derecha con la izquierda vacía). Ahora el output se sanea antes de devolverse (se quitan los comentarios y se colapsa el whitespace entre tags), así `wpautop` no tiene nada que envolver. En Elementor no había cambios porque nunca corría `wpautop`.
 
 = 0.15.1 =
 * Landings (`[studiahub_course_pitch]` y `[studiahub_course_page]`): fix para que se vean bien sobre cualquier theme, no solo Hello Elementor. Un block theme opinado (Twenty Twenty-*) metía el landing bajo `.is-layout-constrained` y le clavaba el content-size del theme (~645px), aplastándolo a una columna angosta y descuadrando el hero. Ahora el landing rompe ese content-size en su contenedor raíz y renderiza a su ancho completo. No-op sobre Hello Elementor (sin cambios para los sitios existentes).

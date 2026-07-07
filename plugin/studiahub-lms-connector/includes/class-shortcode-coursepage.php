@@ -772,7 +772,26 @@ final class Shortcode_CoursePage {
         </script>
         <?php endif; ?>
         <?php
-        return (string) ob_get_clean();
+        return self::deautop_safe((string) ob_get_clean());
+    }
+
+    /**
+     * Blinda el output contra wpautop. En un contexto que corre ese filtro
+     * (ej. el template Single Product de un block theme, o el bloque Shortcode
+     * de Gutenberg) los comentarios HTML y los saltos de línea del template se
+     * convierten en <p> vacíos que se cuelan como items del grid/flex y
+     * descuadran el layout. En Elementor no pasa (renderiza sin wpautop).
+     *
+     * Sacamos los comentarios HTML y colapsamos el whitespace ENTRE tags para
+     * no darle a wpautop nada que envolver. El spacing del landing lo maneja
+     * el CSS, no el whitespace del HTML. El patrón `>\s+<` solo toca los
+     * límites tag-a-tag (formato del template), no el texto ni el JS inline
+     * (que no contiene `>` seguido de whitespace y `<`).
+     */
+    private static function deautop_safe(string $html): string {
+        $html = preg_replace('/<!--.*?-->/s', '', $html) ?? $html;
+        $html = preg_replace('/>\s+</', '><', $html) ?? $html;
+        return $html;
     }
 
     // ── RESOLUCIÓN DE PRODUCTO ────────────────────────────────────────────
