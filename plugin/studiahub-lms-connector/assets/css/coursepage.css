@@ -46,6 +46,16 @@
     color: var(--shub-text-body);
     line-height: 1.65;
     width: 100%;
+    /* El article es la boundary: un block theme (Twenty Twenty-*) mete el
+     * article como hijo directo de .is-layout-constrained y le clava el
+     * content-size (~645px) + margin-inline:auto, aplastando TODO el landing
+     * a una columna centrada angosta. Rompemos ese content-size acá. La hoja
+     * del plugin carga DESPUÉS de los global-styles del theme, así que esta
+     * regla (misma specificity 0,1,0) gana por orden — sin !important. En
+     * Hello Elementor no hay .is-layout-constrained, así que es no-op. El
+     * ancho real del contenido lo sigue comandando .slc-cp__wrap (1200px). */
+    max-width: none;
+    margin-inline: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -78,6 +88,24 @@
 :where(.slc-coursepage) ul,
 :where(.slc-coursepage) ol { list-style: none; }
 .slc-coursepage a { text-decoration: none; }
+/* Default text-align del wrapper para que ningún hijo herede left/center del theme */
+.slc-coursepage { text-align: left; }
+
+/* ── Immunity al content-size del block theme ────────────────────────────
+ * Un block theme opinado (Twenty Twenty-*) mete los elementos de contenido
+ * bajo .is-layout-constrained y les clava el content-size (~645px), que
+ * descuadra el hero. Ya lo rompimos en el root (.slc-coursepage); esto es
+ * belt-and-suspenders sobre los elementos de contenido, NO sobre los wrappers
+ * de layout (.slc-cp__wrap declara su propio max-width y no está en la lista,
+ * así que sobrevive intacto).
+ *
+ * Especificidad 0,1,0 (viene del .slc-coursepage) → le gana al :where() de
+ * bajo peso del theme, pero empata-pierde con los componentes del landing (que
+ * declaran su propio max-width y vienen después). No-op en Hello Elementor. */
+.slc-coursepage :where(h1, h2, h3, h4, h5, h6, p, ul, ol, li, figure, blockquote, dl, dd, a) {
+    max-width: none;
+}
+.slc-coursepage :where(img, svg, video) { max-width: 100%; }
 
 /* ── TIPOGRAFÍA: cuerpo = Text de Elementor, títulos = Accent de Elementor ──
  * (mismo criterio que coursepitch) La landing hereda la tipografía global del
