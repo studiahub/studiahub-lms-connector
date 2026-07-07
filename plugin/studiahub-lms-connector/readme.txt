@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.15.3
+Stable tag: 0.15.4
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.15.4 =
+* Landings (`[studiahub_course_pitch]` y `[studiahub_course_page]`): **fix de raíz** del conflicto con `wpautop`. En vez de sanear el output para sobrevivir a `wpautop` (que rompía el HTML de mil formas: `<p>` en el grid, `<br>` en los botones, `</p><p>` en el `<script>`, `<p>` alrededor de la flecha del acordeón), ahora el shortcode NO pasa por `wpautop` en absoluto. Devuelve un placeholder de texto plano y el HTML real se inyecta en un output-buffer de la página, después de que `wpautop` ya corrió — así nunca puede tocarlo. Elimina toda esa clase de bugs de una, sin importar el contexto (página, template de producto de un block theme, bloque Shortcode del Site Editor). Verificado E2E en una página de producto WooCommerce bajo Twenty Twenty-Five. En Elementor sigue igual. Reemplaza los parches de 0.15.1–0.15.3.
 
 = 0.15.3 =
 * Landings (`[studiahub_course_pitch]` y `[studiahub_course_page]`): completa el fix de wpautop de la 0.15.2. Además de los `<p>` vacíos del grid, `wpautop` metía `<br>` dentro de los botones (`<a>`) — que quedaban de 2-3 líneas de alto, con aspecto de "mucho padding" — y `</p><p>` dentro del `<script>` inline, que rompía el JS (countdown/parallax) con `Uncaught SyntaxError: Unexpected token '<'`. Ahora el saneo del output convierte los saltos de línea en espacios fuera de los `<script>` (elimina los `<br>`/`<p>`) y protege el JS colapsando solo sus líneas en blanco. Botones a su altura correcta y JS funcionando. En Elementor sin cambios (nunca corría `wpautop`).
