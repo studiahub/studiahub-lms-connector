@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.15.2
+Stable tag: 0.15.3
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.15.3 =
+* Landings (`[studiahub_course_pitch]` y `[studiahub_course_page]`): completa el fix de wpautop de la 0.15.2. Además de los `<p>` vacíos del grid, `wpautop` metía `<br>` dentro de los botones (`<a>`) — que quedaban de 2-3 líneas de alto, con aspecto de "mucho padding" — y `</p><p>` dentro del `<script>` inline, que rompía el JS (countdown/parallax) con `Uncaught SyntaxError: Unexpected token '<'`. Ahora el saneo del output convierte los saltos de línea en espacios fuera de los `<script>` (elimina los `<br>`/`<p>`) y protege el JS colapsando solo sus líneas en blanco. Botones a su altura correcta y JS funcionando. En Elementor sin cambios (nunca corría `wpautop`).
 
 = 0.15.2 =
 * Landings (`[studiahub_course_pitch]` y `[studiahub_course_page]`): fix del hero/layout descuadrado cuando el shortcode va en una página o en el template de producto de un block theme (fuera de Elementor). WordPress corría `wpautop` sobre el output y convertía los comentarios HTML y los saltos de línea del template en `<p>` vacíos, que se colaban como items del grid y empujaban el contenido (el título quedaba a la derecha con la izquierda vacía). Ahora el output se sanea antes de devolverse (se quitan los comentarios y se colapsa el whitespace entre tags), así `wpautop` no tiene nada que envolver. En Elementor no había cambios porque nunca corría `wpautop`.

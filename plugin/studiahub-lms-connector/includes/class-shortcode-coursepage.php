@@ -776,21 +776,41 @@ final class Shortcode_CoursePage {
     }
 
     /**
-     * Blinda el output contra wpautop. En un contexto que corre ese filtro
-     * (ej. el template Single Product de un block theme, o el bloque Shortcode
-     * de Gutenberg) los comentarios HTML y los saltos de línea del template se
-     * convierten en <p> vacíos que se cuelan como items del grid/flex y
-     * descuadran el layout. En Elementor no pasa (renderiza sin wpautop).
-     *
-     * Sacamos los comentarios HTML y colapsamos el whitespace ENTRE tags para
-     * no darle a wpautop nada que envolver. El spacing del landing lo maneja
-     * el CSS, no el whitespace del HTML. El patrón `>\s+<` solo toca los
-     * límites tag-a-tag (formato del template), no el texto ni el JS inline
-     * (que no contiene `>` seguido de whitespace y `<`).
+     * Blinda el output contra wpautop. Cuando el shortcode va en the_content de
+     * una página o en el template Single Product de un block theme (fuera de
+     * Elementor), WordPress corre wpautop sobre el output y convierte los
+     * comentarios HTML y los saltos de línea en <p>/<br>:
+     *   - <p> vacíos que se cuelan como items del grid del hero (lo descuadra),
+     *   - <br> dentro de los <a> (los botones quedan de 2-3 líneas de alto),
+     *   - </p><p> DENTRO del <script> inline (rompe el JS: "Unexpected token '<'").
+     * Saneamos el output antes de devolverlo para que wpautop no tenga saltos
+     * que convertir. En Elementor no corre wpautop, así que esto es inocuo.
      */
     private static function deautop_safe(string $html): string {
+        // 1. Comentarios HTML → wpautop los envuelve en <p>.
         $html = preg_replace('/<!--.*?-->/s', '', $html) ?? $html;
-        $html = preg_replace('/>\s+</', '><', $html) ?? $html;
+
+        // 2. Proteger los <script>: adentro solo colapsamos líneas en blanco
+        //    (el JS necesita los saltos simples por los // comentarios; wpautop
+        //    solo rompe el script en las líneas en blanco). Placeholder con
+        //    \x01 para que nada lo toque mientras saneamos el resto.
+        $scripts = [];
+        $html = preg_replace_callback('/<script\b[^>]*>.*?<\/script>/is', function ($m) use (&$scripts) {
+            $scripts[] = preg_replace('/\n\s*\n\s*/', "\n", $m[0]);
+            return "\x01SLC_S" . (count($scripts) - 1) . "\x01";
+        }, $html) ?? $html;
+
+        // 3. Fuera de <script>: cada salto de línea (+ indentación) pasa a UN
+        //    espacio. Así wpautop no encuentra saltos para volver <p>/<br>, y no
+        //    se pegan palabras (a diferencia de borrarlos). Es el mismo render
+        //    que Elementor, donde el browser ya colapsa ese whitespace.
+        $html = preg_replace('/\n\s*/', ' ', $html) ?? $html;
+
+        // 4. Restaurar los scripts intactos.
+        $html = preg_replace_callback('/\x01SLC_S(\d+)\x01/', function ($m) use ($scripts) {
+            return $scripts[(int) $m[1]] ?? '';
+        }, $html) ?? $html;
+
         return $html;
     }
 
