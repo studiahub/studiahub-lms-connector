@@ -38,6 +38,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-order-combo-meta.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-authorize-screen.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-render-guard.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepage.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepitch.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-fields.php';
@@ -60,6 +61,7 @@ final class Plugin {
         Order_Combo_Meta::register_hooks();
         Authorize_Screen::register_hooks();
         WebhookBootstrap::register_hooks();
+        Render_Guard::register_hooks();
         Shortcode_CoursePage::register_hooks();
         Shortcode_CoursePitch::register_hooks();
         Shortcode_Fields::register_hooks();
