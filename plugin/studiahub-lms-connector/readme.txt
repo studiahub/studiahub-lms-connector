@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.15.5
+Stable tag: 0.15.6
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.15.6 =
+* Landing (pitch): en mobile/tablet (cuando el hero se apila, <=960px) se ocultan las cajitas flotantes del hero y queda solo la imagen del curso, para evitar la superposición con la foto. En desktop siguen apareciendo.
 
 = 0.15.5 =
 * Landing (pitch): ajustes de responsive en mobile — las tarjetas de "Al terminar este curso vas a poder…" pasan a 1 por fila (antes 2), y las cajitas flotantes del hero quedan fijas (sin parallax) en pantallas donde el hero se apila (<=960px), porque el movimiento las desprendía y superponía con el contenido.
