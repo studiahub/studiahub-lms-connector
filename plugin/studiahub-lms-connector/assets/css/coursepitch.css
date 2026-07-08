@@ -606,7 +606,7 @@
     margin: 0;
 }
 @media (max-width: 640px) {
-    .slc-cpitch__outcomes-grid { grid-template-columns: 1fr 1fr; }
+    .slc-cpitch__outcomes-grid { grid-template-columns: 1fr; }
 }
 
 /* ── MATERIALES con ícono Flaticon uicons ────────────────────────────── */

@@ -1020,17 +1020,27 @@ final class Shortcode_CoursePitch {
                 if (!floats.length) return;
                 // Cada cajita se mueve a distinta velocidad — efecto profundidad
                 var speeds = [-0.12, 0.18, -0.10];
+                // Solo en desktop: cuando el hero se apila (<=960px) las cajitas
+                // quedan fijas, porque el movimiento las desprende y se superponen
+                // con el contenido. Se reevalúa en cada frame/resize.
+                var mq = window.matchMedia('(max-width: 960px)');
                 var raf = null;
                 function updateFloats() {
+                    raf = null;
+                    if (mq.matches) {
+                        floats.forEach(function(el){ el.style.transform = ''; });
+                        return;
+                    }
                     var sy = window.scrollY;
                     floats.forEach(function(el, i) {
                         el.style.transform = 'translateY(' + (sy * (speeds[i] || -0.1)) + 'px)';
                     });
-                    raf = null;
                 }
                 window.addEventListener('scroll', function(){
                     if (!raf) raf = window.requestAnimationFrame(updateFloats);
                 }, { passive: true });
+                window.addEventListener('resize', updateFloats, { passive: true });
+                updateFloats();
             })();
         })();
         </script>
