@@ -1771,6 +1771,9 @@
     .slc-cpitch__reqs-img-wrap { aspect-ratio: 16 / 7; }
     .slc-cpitch__hero-grid { grid-template-columns: 1fr; gap: 40px; }
     .slc-cpitch__hero-title { max-width: none; }
+    /* En el layout apilado (mobile/tablet) ocultamos las cajitas flotantes:
+       se superponían con la foto. Queda solo la imagen del curso. */
+    .slc-cpitch__hero-float { display: none; }
     .slc-cpitch__band-grid { gap: 28px 32px; flex-wrap: wrap; }
     .slc-cpitch__reviews-grid { grid-template-columns: 1fr 1fr; }
 }
