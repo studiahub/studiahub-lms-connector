@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.15.4
+Stable tag: 0.15.5
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.15.5 =
+* Landing (pitch): ajustes de responsive en mobile — las tarjetas de "Al terminar este curso vas a poder…" pasan a 1 por fila (antes 2), y las cajitas flotantes del hero quedan fijas (sin parallax) en pantallas donde el hero se apila (<=960px), porque el movimiento las desprendía y superponía con el contenido.
 
 = 0.15.4 =
 * Landings (`[studiahub_course_pitch]` y `[studiahub_course_page]`): **fix de raíz** del conflicto con `wpautop`. En vez de sanear el output para sobrevivir a `wpautop` (que rompía el HTML de mil formas: `<p>` en el grid, `<br>` en los botones, `</p><p>` en el `<script>`, `<p>` alrededor de la flecha del acordeón), ahora el shortcode NO pasa por `wpautop` en absoluto. Devuelve un placeholder de texto plano y el HTML real se inyecta en un output-buffer de la página, después de que `wpautop` ya corrió — así nunca puede tocarlo. Elimina toda esa clase de bugs de una, sin importar el contexto (página, template de producto de un block theme, bloque Shortcode del Site Editor). Verificado E2E en una página de producto WooCommerce bajo Twenty Twenty-Five. En Elementor sigue igual. Reemplaza los parches de 0.15.1–0.15.3.
