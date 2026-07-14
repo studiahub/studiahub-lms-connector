@@ -108,7 +108,17 @@ final class Multicurrency {
     }
 
     private static function is_booster(): bool {
-        return function_exists('wcj_get_woocommerce_currency') || class_exists('WCJ');
+        // Detección multi-señal del linaje Booster (WooCommerce Jetpack → Booster
+        // for WooCommerce / Booster Plus / Elite). La versión vieja solo cubría el
+        // Booster legacy (clase WCJ / wcj_get_woocommerce_currency), que las 4.x+
+        // ya no exponen: Booster Plus 8.x usa la clase WC_Jetpack y el helper
+        // wcj_get_option. Todas estas señales son EXCLUSIVAS de Booster, así que en
+        // un tenant que corre WOOCS esto sigue dando false (no interfiere).
+        return class_exists('WC_Jetpack')                      // Booster 4.x+ (Plus/free/Elite)
+            || function_exists('wcj_get_option')               // helper del core Booster
+            || function_exists('wcj_get_woocommerce_currency') // variantes legacy
+            || class_exists('WCJ')                             // Booster legacy
+            || defined('WCJ_VERSION');                         // constante legacy
     }
 
     /**
