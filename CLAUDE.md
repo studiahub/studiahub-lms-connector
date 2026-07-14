@@ -2,6 +2,8 @@
 
 Contexto para cualquier agente que abra este repo. Leé también el [README](README.md) (arquitectura, release), [docs/INSTALL.md](docs/INSTALL.md) (setup Docker) y **[docs/LANDING-PAYLOAD.md](docs/LANDING-PAYLOAD.md) — el diccionario de TODAS las variables dinámicas que la landing recibe del LMS** (nombres exactos, tipos, qué renderiza cada una). Leelo antes de tocar cualquier cosa de la landing.
 
+Para dar de alta un tenant nuevo o debuggear precios/landing vacía, mirá **[docs/multimoneda-y-troubleshooting.md](docs/multimoneda-y-troubleshooting.md)** (cadena de la landing, regla de oro de multimoneda `woocommerce_currency` = principal del LMS, WOOCS vs Booster, qué postmeta esperar).
+
 ## Qué es
 Plugin de WordPress que conecta WooCommerce con el StudiaHub LMS. Renderiza la **landing del curso en vivo** desde el LMS con dos shortcodes:
 - `[studiahub_course_page]` — variante "refinada".

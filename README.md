@@ -9,7 +9,7 @@ Plugin de WordPress que conecta WooCommerce con [StudiaHub LMS](https://github.c
 ## Qué hace
 
 - Renderiza la landing del curso **en vivo desde el LMS** con los shortcodes `[studiahub_course_page]` (refinado) y `[studiahub_course_pitch]` (estilo DTC) — **sin ACFs**. La data se fetchea de `GET /api/wc/courses/:id/landing-payload` del LMS y se cachea en un transient (15 min fresh + stale-while-revalidate de 7 días). Los **colores** del branding del tenant se inyectan como CSS vars; la **tipografía** se hereda de la config global de Elementor (Text para el cuerpo, Accent para los títulos).
-- Sincroniza cursos del LMS como productos WC: endpoint REST `POST /wp-json/studiahub/v1/course-sync` que recibe el push del LMS y crea/actualiza productos atómicamente (incluye pricing multi-moneda).
+- Sincroniza cursos del LMS como productos WC: endpoint REST `POST /wp-json/studiahub/v1/course-sync` que recibe el push del LMS y crea/actualiza productos atómicamente (incluye pricing multi-moneda — setup y troubleshooting en [docs/multimoneda-y-troubleshooting.md](docs/multimoneda-y-troubleshooting.md)).
 - Conexión automática (OAuth-style) con el LMS: el pairing genera las credenciales y **registra el webhook de compras solo**, sin configuración manual.
 - Procesa compras via webhook de WooCommerce (topics `order.created` + `order.updated`, entrega síncrona) que pega al LMS para crear el enrollment.
 - Expone `GET /wp-json/studiahub/v1/health` para test de conexión desde el LMS.
