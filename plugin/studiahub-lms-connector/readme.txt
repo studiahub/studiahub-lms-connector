@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.15.8
+Stable tag: 0.15.9
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.15.9 =
+* Landing: el precio multimoneda ahora muestra siempre ARS primero (ej "ARS 699.000 / USD 699"). Cambio solo cosmético en el orden de visualización; no afecta precios, checkout ni el push de multimoneda (WOOCS/Booster). Aplica a las variantes pitch y page.
 
 = 0.15.8 =
 * Multimoneda (Booster): se corrige la detección del plugin Booster. Las versiones 4.x+ (Booster Plus 8.x) usan la clase `WC_Jetpack` y el helper `wcj_get_option`, que la detección anterior no contemplaba, por lo que los precios por moneda del LMS no se empujaban a los campos del switcher (quedaban vacíos). No afecta a los tenants con WOOCS.
