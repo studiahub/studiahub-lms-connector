@@ -198,6 +198,13 @@ final class Shortcode_CoursePitch {
             }
         }
         $sales_closed = !empty($payload['salesClosed']);
+        // Preventa: botón deshabilitado "Próximamente". Toma precedencia sobre
+        // salesClosed (es un override manual del admin, no una fecha vencida).
+        $coming_soon       = !empty($payload['comingSoon']);
+        $coming_soon_label = trim((string) ($payload['comingSoonLabel'] ?? ''));
+        if ($coming_soon_label === '') {
+            $coming_soon_label = __('Próximamente', 'studiahub-lms-connector');
+        }
         $bonuses   = Shortcode_CoursePage::data_bonuses_public($payload);
         $guarantee = Shortcode_CoursePage::data_guarantee_public($payload);
         $faq       = Shortcode_CoursePage::data_faq_public($payload);
@@ -698,7 +705,11 @@ final class Shortcode_CoursePitch {
                             <?php endif; ?>
                         </div>
 
-                        <?php if ($sales_closed): ?>
+                        <?php if ($coming_soon): ?>
+                        <span class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta slc-cpitch__pricing-cta--closed" aria-disabled="true">
+                            <?php echo esc_html($coming_soon_label); ?>
+                        </span>
+                        <?php elseif ($sales_closed): ?>
                         <span class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta slc-cpitch__pricing-cta--closed" aria-disabled="true">
                             <?php esc_html_e('Inscripciones cerradas', 'studiahub-lms-connector'); ?>
                         </span>
