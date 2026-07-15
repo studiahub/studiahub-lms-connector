@@ -45,7 +45,15 @@ final class Enroll {
         }
         // Base = checkout para degradar bien si el handler no llegara a correr;
         // en el flujo normal redirige antes de renderizar nada.
-        return add_query_arg(self::PARAM, $product_id, wc_get_checkout_url());
+        $args = [self::PARAM => $product_id];
+        // Forzar moneda en el checkout (hoy: ARS con WOOCS) si el tenant lo
+        // permite. Si el guardrail devuelve '', el botón queda como siempre.
+        // handle() se encarga de propagar este param al checkout limpio.
+        $currency = Multicurrency::forced_checkout_currency();
+        if ($currency !== '') {
+            $args['currency'] = $currency;
+        }
+        return add_query_arg($args, wc_get_checkout_url());
     }
 
     /** Intercepta el endpoint, agrega el curso y redirige al checkout limpio. */
@@ -73,7 +81,19 @@ final class Enroll {
             WC()->cart->add_to_cart($product_id);
         }
 
-        wp_safe_redirect(wc_get_checkout_url());
+        // El checkout final va LIMPIO (sin slc_enroll, para no re-disparar el
+        // carrito al recargar). Pero si el botón pidió forzar una moneda,
+        // propagamos SOLO ese param: WOOCS lo lee y abre el checkout en esa
+        // moneda. Es idempotente, recargar no rompe nada.
+        $redirect = wc_get_checkout_url();
+        if (!empty($_GET['currency'])) {
+            $currency = strtoupper(sanitize_text_field(wp_unslash($_GET['currency'])));
+            if (preg_match('/^[A-Z]{3}$/', $currency)) {
+                $redirect = add_query_arg('currency', $currency, $redirect);
+            }
+        }
+
+        wp_safe_redirect($redirect);
         exit;
     }
 }

@@ -173,6 +173,27 @@ final class Multicurrency {
 
     // ───────────────────────────────────────────────────────────────────── HELPERS
 
+    /**
+     * Moneda a forzar en el checkout desde el botón de la landing.
+     *
+     * Hoy: ARS. Solo se fuerza si el tenant corre WOOCS y ARS es una de las
+     * monedas configuradas en el switcher (guardrail: si ARS no está activa,
+     * devolvemos '' y el botón no toca nada → checkout normal). NO aplica a
+     * Booster ni a tenants sin multimoneda: para ellos siempre devuelve ''.
+     *
+     * El objetivo es no depender de la config "moneda inicial" de WOOCS, que
+     * en algunos tenants no se respeta en el checkout.
+     */
+    public static function forced_checkout_currency(): string {
+        if (!class_exists('WOOCS')) {
+            return '';
+        }
+        if (!in_array('ARS', self::woocs_currencies(), true)) {
+            return '';
+        }
+        return 'ARS';
+    }
+
     /** Moneda elegida por el visitante en el switcher (ISO uppercase). */
     private static function active_currency(): string {
         if (class_exists('WOOCS')) {
