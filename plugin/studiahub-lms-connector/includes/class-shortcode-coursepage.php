@@ -824,6 +824,33 @@ final class Shortcode_CoursePage {
         return '$' . number_format_i18n((float) $amount, 2);
     }
 
+    /**
+     * Reordena un string de precio multimoneda para que ARS aparezca primero.
+     * SOLO cosmético: no toca precios, checkout ni la lógica de multimoneda.
+     * El LMS manda texto libre con monedas separadas por " / " (ej "USD 699 / ARS 699.000")
+     * y el orden lo decide la moneda principal del tenant. Acá lo mostramos con ARS al frente.
+     * Si no hay segmento ARS (o no hay separador), devuelve el string tal cual.
+     */
+    private static function ars_first(string $price): string {
+        if (stripos($price, 'ARS') === false || strpos($price, '/') === false) {
+            return $price;
+        }
+        $segments = array_map('trim', explode('/', $price));
+        $ars   = [];
+        $other = [];
+        foreach ($segments as $seg) {
+            if (stripos($seg, 'ARS') === 0) {
+                $ars[] = $seg;
+            } else {
+                $other[] = $seg;
+            }
+        }
+        if (empty($ars)) {
+            return $price; // "ARS" aparecía pero no como código de moneda al inicio de un segmento
+        }
+        return implode(' / ', array_merge($ars, $other));
+    }
+
     // ── HELPERS DE DATA REAL ──────────────────────────────────────────────
     private static function count_lessons(array $outline): int {
         return array_sum(array_map(static fn($m) => isset($m['lessons']) && is_array($m['lessons']) ? count($m['lessons']) : 0, $outline));
@@ -1014,8 +1041,8 @@ final class Shortcode_CoursePage {
         }
 
         return [
-            'original'       => $original,
-            'current'        => $real_price !== '' ? $real_price : self::format_price($price),
+            'original'       => self::ars_first($original),
+            'current'        => self::ars_first($real_price !== '' ? $real_price : self::format_price($price)),
             'discount_label' => $discount_label,
             'installments'   => $installments,
             'deadline'       => $deadline_label,
