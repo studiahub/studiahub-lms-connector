@@ -138,7 +138,7 @@ final class Shortcode_CoursePitch {
         if ($start_ts) {
             $meses = [1 => 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
                       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-            $start_date_fmt = (int) date('j', $start_ts) . ' de ' . $meses[(int) date('n', $start_ts)];
+            $start_date_fmt = (int) date('j', $start_ts) . ' de ' . $meses[(int) date('n', $start_ts)] . ' de ' . date('Y', $start_ts);
         }
 
         $instructors_raw = is_array($payload['instructors'] ?? null) ? $payload['instructors'] : [];
@@ -1155,10 +1155,11 @@ final class Shortcode_CoursePitch {
         $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
         $dia   = (int) $dt->format('j');
         $mes   = $meses[(int) $dt->format('n') - 1];
+        $anio  = $dt->format('Y');
         $hora  = (int) $dt->format('G');       // hora 0-23 en el offset del propio ISO
         $min   = $dt->format('i');
         $time  = ($min === '00') ? $hora . 'hs' : $hora . ':' . $min . 'hs';
-        return $dia . ' ' . $mes . ' · ' . $time . ' (ARG)';
+        return $dia . ' ' . $mes . ' ' . $anio . ' · ' . $time . ' (ARG)';
     }
 
     /**
