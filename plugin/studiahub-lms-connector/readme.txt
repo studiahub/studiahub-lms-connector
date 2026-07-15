@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.16.1
+Stable tag: 0.16.2
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.16.2 =
+* Landing (pitch): nuevo estado "Próximamente" (preventa). Cuando el curso está marcado como preventa en el LMS, la landing se muestra pero el botón de compra queda deshabilitado con un texto configurable (default "Próximamente"), en vez del link al checkout. Tiene precedencia sobre "Inscripciones cerradas".
 
 = 0.16.1 =
 * Landing (pitch): las fechas ahora incluyen el año para que quede claro a qué año corresponden. La fecha de inicio pasa a "Inicia: 1 de marzo de 2027" (hero, plan de estudio y pricing) y las fechas de las sesiones en vivo del temario a "12 mar 2027 · 18hs (ARG)". El año sale del dato real del curso.
