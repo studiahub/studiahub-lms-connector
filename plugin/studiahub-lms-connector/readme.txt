@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.16.2
+Stable tag: 0.16.3
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,10 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.16.3 =
+* Multimoneda: la moneda principal del LMS ahora sincroniza también la OFERTA al precio nativo del producto (`_sale_price`). Antes solo se escribía el precio regular, así que una promo cargada en la moneda principal se mostraba en la landing pero el checkout cobraba el precio lleno (y al borrarla, no se limpiaba). Si el LMS deja de mandar precio para la moneda principal, la oferta se limpia: solo la que puso el connector (queda marcada en `_studiahub_native_sale`), nunca una promo cargada a mano en WooCommerce.
+* Multimoneda: en cada sync se borran los precios por moneda del switcher (WOOCS / Booster) que ya no corresponden: los de la moneda base y los de monedas que el LMS dejó de mandar. Antes, cambiar la moneda base de WooCommerce dejaba el precio fijo viejo de esa moneda pisando el precio nativo para siempre.
 
 = 0.16.2 =
 * Landing (pitch): nuevo estado "Próximamente" (preventa). Cuando el curso está marcado como preventa en el LMS, la landing se muestra pero el botón de compra queda deshabilitado con un texto configurable (default "Próximamente"), en vez del link al checkout. Tiene precedencia sobre "Inscripciones cerradas".

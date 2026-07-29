@@ -10,8 +10,9 @@ if (!defined('ABSPATH')) {
  *
  * 1) PUSH (desde el sync): escribe los precios por moneda del LMS en los postmetas
  *    que lee el switcher (WOOCS / Booster), para que el checkout cobre el precio
- *    fijo de cada moneda en lugar de convertir por tasa. La base del store (USD)
- *    queda en el _regular_price nativo. Guardamos además _studiahub_prices como
+ *    fijo de cada moneda en lugar de convertir por tasa. La moneda base del store
+ *    NO va al switcher: la cobra el precio nativo del producto (regular + sale),
+ *    que también escribimos desde el LMS. Guardamos además _studiahub_prices como
  *    registro propio (fuente de verdad del safeguard).
  *
  * 2) SAFEGUARD (front): si el visitante tiene una moneda != base y el LMS NO
@@ -30,6 +31,19 @@ final class Multicurrency {
 
     /** Valor que le dice al switcher "no hay precio fijo, convertí por tasa". */
     private const NO_FIXED = -1;
+
+    /**
+     * Marca de propiedad de la oferta nativa: guarda el sale que escribimos desde el
+     * LMS. Si existe, la promo del producto es NUESTRA y la podemos limpiar; si no
+     * existe, la cargó el admin a mano en WooCommerce y no la tocamos.
+     */
+    private const NATIVE_SALE = '_studiahub_native_sale';
+
+    /** Prefijos de los postmeta por moneda de cada switcher. */
+    private const WOOCS_REGULAR   = '_woocs_regular_price_';
+    private const WOOCS_SALE      = '_woocs_sale_price_';
+    private const BOOSTER_REGULAR = '_wcj_multicurrency_per_product_regular_price_';
+    private const BOOSTER_SALE    = '_wcj_multicurrency_per_product_sale_price_';
 
     /** Cache por-request de _studiahub_prices normalizado, por product id. */
     private static array $cache = [];
@@ -88,7 +102,8 @@ final class Multicurrency {
     // ─────────────────────────────────────────────────────────── PUSH (desde sync)
 
     /**
-     * Escribe los precios por moneda del curso en los postmetas del switcher.
+     * Aplica los precios por moneda del curso: la moneda base al precio nativo del
+     * producto y el resto a los postmetas del switcher (WOOCS / Booster).
      *
      * @param int   $product_id
      * @param mixed $raw_prices  course.pricesByCurrency: [{code, regular, sale}]
@@ -98,6 +113,7 @@ final class Multicurrency {
         $prices = self::normalize($raw_prices);
         $base   = strtoupper((string) get_option('woocommerce_currency'));
 
+        self::push_native($product_id, $prices, $base);
         if (class_exists('WOOCS')) {
             self::push_woocs($product_id, $prices, $base);
         }
@@ -105,6 +121,57 @@ final class Multicurrency {
             self::push_booster($product_id, $prices, $base);
         }
         unset(self::$cache[$product_id]);
+    }
+
+    /**
+     * Moneda base → precio NATIVO del producto (regular + sale).
+     *
+     * La base nunca va a los postmeta del switcher, así que si no escribimos acá el
+     * sale, una oferta cargada en la moneda principal del LMS no llega nunca al
+     * checkout (la landing la muestra igual porque sale del payload del LMS → la
+     * landing promete un precio que WooCommerce no cobra).
+     *
+     * Si el LMS deja de mandar precio para la base, la oferta que habíamos escrito
+     * TIENE que limpiarse: el regular se sigue actualizando por su lado (el sync lo
+     * escribe desde course.price) y una promo vieja quedaría vigente pisando el
+     * precio nuevo. Acá no hay red: guard_checkout() no cubre la moneda base. Pero
+     * solo limpiamos lo que pusimos nosotros (marca NATIVE_SALE): en un tenant sin
+     * multimoneda el admin puede cargar una promo a mano y no es nuestra para tocar.
+     *
+     * El LMS ya filtró el sale por vigencia, así que limpiamos las fechas de oferta
+     * nativas: la vigencia la decide el LMS, no un schedule viejo de WooCommerce.
+     */
+    private static function push_native(int $product_id, array $prices, string $base): void {
+        if (!function_exists('wc_get_product')) {
+            return;
+        }
+        $has_base = ($base !== '' && isset($prices[$base]));
+        $ours     = (string) get_post_meta($product_id, self::NATIVE_SALE, true) !== '';
+        if (!$has_base && !$ours) {
+            return; // el LMS nunca puso oferta acá: no tocamos nada del producto
+        }
+        $product = wc_get_product($product_id);
+        if (!$product) {
+            return;
+        }
+
+        // Sin precio del LMS para la base solo sacamos la oferta: el regular ya lo
+        // escribió el sync desde course.price y no es nuestro para pisar acá.
+        $sale = $has_base ? $prices[$base]['sale'] : null;
+        if ($has_base) {
+            $product->set_regular_price($prices[$base]['regular']);
+        }
+        $product->set_sale_price($sale === null ? '' : $sale);
+        $product->set_date_on_sale_from('');
+        $product->set_date_on_sale_to('');
+        // WC recalcula _price solo al guardar cuando cambian regular/sale.
+        $product->save();
+
+        if ($sale === null) {
+            delete_post_meta($product_id, self::NATIVE_SALE);
+        } else {
+            update_post_meta($product_id, self::NATIVE_SALE, $sale);
+        }
     }
 
     private static function is_booster(): bool {
@@ -127,18 +194,30 @@ final class Multicurrency {
      * conversión, por si tenían un fijo obsoleto). La base se saltea (precio nativo).
      */
     private static function push_woocs(int $product_id, array $prices, string $base): void {
-        foreach (self::woocs_currencies() as $cur) {
+        $currencies = self::woocs_currencies();
+        if ($currencies === []) {
+            // Sin config del switcher no tocamos nada: si leyéramos vacío por un
+            // arranque a medias, la limpieza de abajo borraría TODOS los fijos.
+            return;
+        }
+        $keep = [];
+        foreach ($currencies as $cur) {
             if ($cur === '' || $cur === $base) {
                 continue;
             }
+            $keep[$cur] = true;
             if (isset($prices[$cur])) {
-                update_post_meta($product_id, '_woocs_regular_price_' . $cur, $prices[$cur]['regular']);
-                update_post_meta($product_id, '_woocs_sale_price_' . $cur, $prices[$cur]['sale'] ?? self::NO_FIXED);
+                update_post_meta($product_id, self::WOOCS_REGULAR . $cur, $prices[$cur]['regular']);
+                update_post_meta($product_id, self::WOOCS_SALE . $cur, $prices[$cur]['sale'] ?? self::NO_FIXED);
             } else {
-                update_post_meta($product_id, '_woocs_regular_price_' . $cur, self::NO_FIXED);
-                update_post_meta($product_id, '_woocs_sale_price_' . $cur, self::NO_FIXED);
+                update_post_meta($product_id, self::WOOCS_REGULAR . $cur, self::NO_FIXED);
+                update_post_meta($product_id, self::WOOCS_SALE . $cur, self::NO_FIXED);
             }
         }
+        // Borra lo que quedó fuera del switcher: la base (la cobra el precio nativo)
+        // y monedas que se sacaron de WOOCS. Sin esto, cambiar la moneda base deja
+        // el fijo viejo de la base pisando el precio nativo para siempre.
+        self::delete_stale_metas($product_id, [self::WOOCS_REGULAR, self::WOOCS_SALE], $keep);
     }
 
     /** Códigos de moneda configurados en WOOCS (uppercase). */
@@ -156,17 +235,48 @@ final class Multicurrency {
         return $out;
     }
 
-    /** Booster (módulo Multicurrency per-product). A validar cuando probemos Booster. */
+    /** Booster (módulo Multicurrency per-product). */
     private static function push_booster(int $product_id, array $prices, string $base): void {
+        $keep = [];
         foreach ($prices as $cur => $p) {
             if ($cur === $base) {
                 continue;
             }
-            update_post_meta($product_id, '_wcj_multicurrency_per_product_regular_price_' . $cur, $p['regular']);
+            $keep[$cur] = true;
+            update_post_meta($product_id, self::BOOSTER_REGULAR . $cur, $p['regular']);
             if ($p['sale'] !== null) {
-                update_post_meta($product_id, '_wcj_multicurrency_per_product_sale_price_' . $cur, $p['sale']);
+                update_post_meta($product_id, self::BOOSTER_SALE . $cur, $p['sale']);
             } else {
-                delete_post_meta($product_id, '_wcj_multicurrency_per_product_sale_price_' . $cur);
+                delete_post_meta($product_id, self::BOOSTER_SALE . $cur);
+            }
+        }
+        // Booster no tiene el "-1" de WOOCS: un fijo viejo se queda pisando el precio
+        // para siempre. Borramos los de la base (la cobra el precio nativo) y los de
+        // monedas que el LMS ya no manda o que quedaron de una moneda base anterior.
+        self::delete_stale_metas($product_id, [self::BOOSTER_REGULAR, self::BOOSTER_SALE], $keep);
+    }
+
+    /**
+     * Borra los postmeta por moneda del switcher que ya no corresponden.
+     *
+     * Escanea las claves reales del producto (no las que "deberían" estar), así
+     * limpia también lo que dejó una configuración anterior: monedas sacadas del
+     * switcher o una moneda base distinta a la de hoy.
+     *
+     * @param string[]           $prefixes claves de meta por moneda a revisar
+     * @param array<string,true> $keep     monedas (ISO uppercase) que SÍ se conservan
+     */
+    private static function delete_stale_metas(int $product_id, array $prefixes, array $keep): void {
+        foreach (array_keys((array) get_post_meta($product_id)) as $key) {
+            $key = (string) $key;
+            foreach ($prefixes as $prefix) {
+                if (strpos($key, $prefix) !== 0) {
+                    continue;
+                }
+                $cur = strtoupper(substr($key, strlen($prefix)));
+                if (preg_match('/^[A-Z]{3}$/', $cur) && !isset($keep[$cur])) {
+                    delete_post_meta($product_id, $key);
+                }
             }
         }
     }

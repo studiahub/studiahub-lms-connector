@@ -93,8 +93,19 @@ una con precio regular y (opcional) oferta. El LMS manda:
 
 - `course.price` → escalar, en la **moneda principal** → va al `_regular_price` nativo.
 - `course.pricesByCurrency` → `[{code, regular, sale}]` → se guarda en
-  `_studiahub_prices` y se empuja al switcher (todas las monedas **menos la base**,
-  que ya la cubre el nativo).
+  `_studiahub_prices` y se reparte en dos:
+  - la **moneda base** va al producto nativo (`_regular_price` **y `_sale_price`**).
+    Si el LMS deja de mandar precio para la base, la oferta que había escrito el
+    connector **se limpia** (si no, el regular se actualiza y la promo vieja queda
+    vigente pisándolo). Solo se limpia la que puso el connector: la marca
+    `_studiahub_native_sale` distingue esa de una promo cargada a mano por el admin,
+    que no se toca;
+  - las **secundarias** van a los postmeta del switcher.
+
+  Además, en cada sync se **borran** los postmeta del switcher que ya no
+  corresponden: los de la moneda base y los de monedas que el LMS dejó de mandar o
+  que quedaron de una moneda base anterior. Sin esa limpieza, un fijo viejo se queda
+  pisando el precio para siempre (`Multicurrency::delete_stale_metas`).
 
 ### Safeguard (por qué a veces se "traba" el checkout)
 
@@ -117,15 +128,19 @@ meta protegidos que empiezan con `_`, que el panel nativo de WP oculta).
 | Una moneda se llena y la otra **no** (ej: USD sí, ARS no) | `woocommerce_currency` está en la moneda que **no** se llena | `push_booster`/`push_woocs` **saltean la moneda base** (esa la cubre el nativo). Si ARS queda vacío, es porque el store base **es** ARS. Alinear `Ajustes → General → Moneda` con la principal del LMS y re-sincronizar. |
 | El precio base sale absurdo (ej: $0,00, o 720000 donde debería ir 720) | `woocommerce_currency` ≠ moneda principal del LMS, **o** el módulo Booster "Product Base Price per-product" está activo | Aplicar la regla de oro (Parte 3). Confirmar ese módulo desactivado. |
 | Precio $0,00 en el front con el switcher en una moneda | Esa moneda no tiene precio fijo cargado (switcher convertiría por tasa, pero no hay fijo) | Cargar el precio de esa moneda en el LMS, re-sync. |
+| El switcher muestra un precio **viejo** en la moneda base (ej: quedó 720/520 cuando el LMS dice 360) | Postmeta huérfanos: se escribieron cuando esa moneda **no** era la base y nunca se limpiaron | Corregido en **≥ 0.16.3**: el sync borra los metas del switcher de la moneda base. Actualizar el plugin + re-sync. |
+| Se borra la oferta en el LMS y el checkout sigue cobrando el precio de promo (o al revés: hay promo y cobra el precio lleno) en la **moneda principal** | El connector nunca escribía el `_sale_price` nativo | Corregido en **≥ 0.16.3**. Actualizar el plugin + re-sync. |
 
 ### Qué postmeta esperar (producto bien configurado, Booster, base USD)
 
 ```
 _regular_price                                       → 720        (moneda principal / base)
+_sale_price                                          → 520        (oferta de la base; vacío si no hay)
+_studiahub_native_sale                               → 520        (marca: esa oferta la puso el connector)
 _studiahub_prices                                    → [{ARS: 720000/520000}, {USD: 720/520}]
 _wcj_multicurrency_per_product_regular_price_ARS     → 720000     (secundaria, la escribe el connector)
 _wcj_multicurrency_per_product_sale_price_ARS        → 520000
-_wcj_multicurrency_per_product_regular_price_USD     → (vacío: es la base, la cubre _regular_price)
+_wcj_multicurrency_per_product_regular_price_USD     → (NO existe: es la base, la cubre _regular_price)
 ```
 
 > Con **WOOCS** las keys son `_woocs_regular_price_{CUR}` / `_woocs_sale_price_{CUR}`
