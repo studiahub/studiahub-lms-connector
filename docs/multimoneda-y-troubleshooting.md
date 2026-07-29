@@ -107,6 +107,14 @@ una con precio regular y (opcional) oferta. El LMS manda:
   que quedaron de una moneda base anterior. Sin esa limpieza, un fijo viejo se queda
   pisando el precio para siempre (`Multicurrency::delete_stale_metas`).
 
+> **El LMS gana sobre WooCommerce (desde 0.16.3).** Si el LMS manda precio para la
+> moneda principal, ese precio y esa oferta pisan lo que haya en el producto de
+> WooCommerce. Un admin **no** puede cargar una promo a mano desde WooCommerce sobre
+> un curso del LMS: se la apaga el próximo sync. Las promos se cargan en el LMS, que
+> es lo que muestra la landing — si se cargaran en Woo, la landing y el checkout
+> dirían cosas distintas. (Único caso que se respeta: un producto donde el connector
+> nunca escribió una oferta, o sea sin la marca `_studiahub_native_sale`.)
+
 ### Safeguard (por qué a veces se "traba" el checkout)
 
 Si el visitante elige una moneda que **no es la base** y el LMS **no** definió un

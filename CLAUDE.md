@@ -19,6 +19,12 @@ Pushear a `main` **NO** actualiza nada. Solo lo hace publicar una **GitHub Relea
 2. Commit + push a `main`.
 3. `bin/release.sh` (necesita `gh` autenticado y working tree limpio).
 
+> ⚠️ Si `bin/release.sh` falla con `"workflow" scope may be required`, **el scope casi
+> nunca es el problema**: es que la cuenta **activa** de `gh` no es la dueña del repo
+> (hay 3 logueadas). Verificá con `gh auth status` cuál tiene `Active account: true` y
+> cambiá con `gh auth switch --hostname github.com --user studiahub`. Dejá la cuenta
+> activa como estaba cuando termines.
+
 ## El mock de la landing (dev local) — IMPORTANTE
 La landing se dibuja desde un payload del LMS. Para trabajar el **diseño sin el LMS corriendo**, hay un mock:
 
