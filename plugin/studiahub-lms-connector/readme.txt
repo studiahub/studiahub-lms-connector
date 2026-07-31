@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.16.3
+Stable tag: 0.16.4
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,11 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.16.4 =
+* Encuentros en vivo: las fechas se muestran en la zona horaria de la academia. Antes se imprimía la hora UTC y se le pegaba la etiqueta "(ARG)" fija, así que un encuentro cargado a las 10:00 de Argentina se publicaba como "13hs (ARG)". El LMS ahora manda la zona horaria en el payload y la landing convierte. Si la zona no se puede resolver, se usa Argentina y se omite la etiqueta en vez de rotular con un huso que no corresponde.
+* Fecha de inicio del curso: también se muestra en la zona horaria de la academia. Usaba `date()`, que en WordPress corre en UTC y no en la zona del sitio, así que un curso que arrancaba 21hs de Argentina se anunciaba con la fecha del día siguiente.
+* Ofertas: corregido el cálculo del tiempo restante, que se corría por el huso configurado en WordPress. Además de sobrestimar el "Termina en X", la oferta seguía figurando vigente y con countdown durante unas horas DESPUÉS de haber vencido (3 horas en un sitio argentino).
 
 = 0.16.3 =
 * Multimoneda: la moneda principal del LMS ahora sincroniza también la OFERTA al precio nativo del producto (`_sale_price`). Antes solo se escribía el precio regular, así que una promo cargada en la moneda principal se mostraba en la landing pero el checkout cobraba el precio lleno (y al borrarla, no se limpiaba). Si el LMS deja de mandar precio para la moneda principal, la oferta se limpia: solo la que puso el connector (queda marcada en `_studiahub_native_sale`), nunca una promo cargada a mano en WooCommerce.
