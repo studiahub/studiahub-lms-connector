@@ -198,7 +198,13 @@ final class Shortcode_CoursePitch {
         $offer_imminent       = false; // a < 48hs pasamos a countdown vivo (JS)
         if ($offer_deadline_iso !== '') {
             $odl_ts = strtotime($offer_deadline_iso);
-            $now_ts = function_exists('current_time') ? (int) current_time('timestamp') : time();
+            // time() y NO current_time('timestamp'): el segundo devuelve el epoch
+            // DESPLAZADO por el gmt_offset del sitio, mientras que strtotime()
+            // sobre un ISO absoluto devuelve el epoch real. Comparar uno contra
+            // otro corría la cuenta por el offset (3hs en un sitio argentino):
+            // el countdown sobrestimaba lo que faltaba y, peor, la oferta seguía
+            // figurando vigente 3hs después de haber vencido.
+            $now_ts = time();
             if ($odl_ts && $odl_ts > $now_ts) {
                 $remaining = $odl_ts - $now_ts;
                 $offer_imminent = $remaining < 48 * 3600;
