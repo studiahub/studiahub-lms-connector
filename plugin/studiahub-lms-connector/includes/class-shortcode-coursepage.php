@@ -1027,7 +1027,13 @@ final class Shortcode_CoursePage {
         $deadline_label = '';
         if ($deadline_iso !== '') {
             $deadline_ts = strtotime($deadline_iso);
-            $now         = function_exists('current_time') ? (int) current_time('timestamp') : time();
+            // time() y NO current_time('timestamp'): el segundo devuelve el epoch
+            // DESPLAZADO por el gmt_offset del sitio, mientras que strtotime()
+            // sobre un ISO absoluto devuelve el epoch real. Comparar uno contra
+            // otro corría la cuenta por el offset (3hs en un sitio argentino):
+            // el "Termina en X" sobrestimaba y la oferta seguía figurando
+            // vigente 3hs después de haber vencido.
+            $now         = time();
             if ($deadline_ts && $deadline_ts > $now) {
                 $diff = function_exists('human_time_diff')
                     ? human_time_diff($now, $deadline_ts)

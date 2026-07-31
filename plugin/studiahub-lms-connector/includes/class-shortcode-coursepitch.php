@@ -126,6 +126,11 @@ final class Shortcode_CoursePitch {
         $thumbnail_url = trim((string) ($payload['thumbnailUrl'] ?? ''));
         $landing_image_url = trim((string) ($payload['landingImageUrl'] ?? ''));
         $tenant_name = trim((string) ($payload['tenantName'] ?? ''));
+        // Huso de la academia. TODAS las fechas del payload vienen en UTC, así
+        // que hay que convertirlas antes de imprimirlas: `date()` en WordPress
+        // corre en UTC (WP hace date_default_timezone_set('UTC')), no en la
+        // zona del sitio.
+        [$tenant_tz, $tenant_tz_label] = self::tenant_tz($payload);
         $live_count   = (int) ($payload['liveSessionsCount'] ?? 0);
         // Barra superior: fecha de inicio del curso (countdown a la apertura).
         $start_at     = trim((string) ($payload['courseStartAt'] ?? $payload['liveSessionAt'] ?? ''));
@@ -138,7 +143,10 @@ final class Shortcode_CoursePitch {
         if ($start_ts) {
             $meses = [1 => 'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
                       'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-            $start_date_fmt = (int) date('j', $start_ts) . ' de ' . $meses[(int) date('n', $start_ts)] . ' de ' . date('Y', $start_ts);
+            // En el huso de la academia: con `date()` (UTC) un curso que arranca
+            // a las 21hs de Argentina se anunciaba con la fecha del día siguiente.
+            $start_dt = (new \DateTime('@' . $start_ts))->setTimezone($tenant_tz);
+            $start_date_fmt = (int) $start_dt->format('j') . ' de ' . $meses[(int) $start_dt->format('n')] . ' de ' . $start_dt->format('Y');
         }
 
         $instructors_raw = is_array($payload['instructors'] ?? null) ? $payload['instructors'] : [];
@@ -190,7 +198,13 @@ final class Shortcode_CoursePitch {
         $offer_imminent       = false; // a < 48hs pasamos a countdown vivo (JS)
         if ($offer_deadline_iso !== '') {
             $odl_ts = strtotime($offer_deadline_iso);
-            $now_ts = function_exists('current_time') ? (int) current_time('timestamp') : time();
+            // time() y NO current_time('timestamp'): el segundo devuelve el epoch
+            // DESPLAZADO por el gmt_offset del sitio, mientras que strtotime()
+            // sobre un ISO absoluto devuelve el epoch real. Comparar uno contra
+            // otro corría la cuenta por el offset (3hs en un sitio argentino):
+            // el countdown sobrestimaba lo que faltaba y, peor, la oferta seguía
+            // figurando vigente 3hs después de haber vencido.
+            $now_ts = time();
             if ($odl_ts && $odl_ts > $now_ts) {
                 $remaining = $odl_ts - $now_ts;
                 $offer_imminent = $remaining < 48 * 3600;
@@ -519,7 +533,7 @@ final class Shortcode_CoursePitch {
                                                 <?php endif; ?>
                                                 <span><?php echo esc_html($lesson['title'] ?? ''); ?><?php if ($lesson_live !== '' && !$is_live): ?> <span class="slc-cpitch__live-badge slc-cpitch__live-badge--sm"><span class="slc-cpitch__live-dot" aria-hidden="true"></span><?php esc_html_e('EN VIVO', 'studiahub-lms-connector'); ?></span><?php endif; ?></span>
                                                 <?php if ($lesson_live !== ''): ?>
-                                                    <span class="slc-cpitch__lesson-dur slc-cpitch__lesson-date"><?php echo esc_html(self::format_live_date($lesson_live)); ?></span>
+                                                    <span class="slc-cpitch__lesson-dur slc-cpitch__lesson-date"><?php echo esc_html(self::format_live_date($lesson_live, $tenant_tz, $tenant_tz_label)); ?></span>
                                                 <?php elseif (!empty($lesson['durationMin'])): ?>
                                                     <span class="slc-cpitch__lesson-dur"><?php echo esc_html(Shortcode_CoursePage::format_duration_public((int) $lesson['durationMin'])); ?></span>
                                                 <?php endif; ?>
@@ -1153,24 +1167,58 @@ final class Shortcode_CoursePitch {
     }
 
     /**
-     * Formatea una fecha/hora de sesión en vivo a un string corto en español,
-     * respetando el huso horario embebido en el ISO (ej: -03:00 = Argentina).
-     * Devuelve algo como "12 jun · 18hs (ARG)". '' si el ISO no es válido.
+     * Resuelve el huso horario de la academia desde el payload.
+     *
+     * El LMS manda todas las fechas en UTC (ISO con `Z`) más el campo
+     * `timezone` (IANA). Si el payload viene de un LMS viejo que todavía no
+     * lo manda, caemos a Argentina, que era el comportamiento asumido.
      */
-    private static function format_live_date(string $iso): string {
+    private static function tenant_tz(array $payload): array {
+        $tz    = trim((string) ($payload['timezone'] ?? ''));
+        $label = trim((string) ($payload['timezoneLabel'] ?? ''));
+        if ($tz !== '') {
+            try {
+                return [new \DateTimeZone($tz), $label];
+            } catch (\Exception $e) {
+                // Huso desconocido para esta versión de PHP/tzdata → fallback.
+            }
+        }
+        // OJO: si caemos acá, el label del payload NO describe la zona que vamos
+        // a usar. Devolverlo igual sería rotular hora argentina como, por ej.,
+        // "(España)" — el mismo tipo de mentira que este fix vino a eliminar.
+        // Sin label, la fecha se muestra sin huso: incompleta pero honesta.
+        return [new \DateTimeZone('America/Argentina/Buenos_Aires'), ''];
+    }
+
+    /**
+     * Formatea una fecha/hora de sesión en vivo a un string corto en español,
+     * CONVIRTIENDO el instante UTC al huso de la academia.
+     *
+     * OJO — acá vivía un bug feo: se hacía `new DateTime($iso)` y se leía la
+     * hora con `format('G')` asumiendo que el ISO traía el offset local
+     * (`-03:00`), pero el LMS siempre manda `Z`. Resultado: se imprimía la hora
+     * UTC y encima se le concatenaba "(ARG)" hardcodeado — un encuentro
+     * cargado a las 10:00 de Argentina se mostraba como "13hs (ARG)".
+     *
+     * Devuelve algo como "12 jun 2026 · 18hs (Argentina)". '' si el ISO no es
+     * válido.
+     */
+    private static function format_live_date(string $iso, \DateTimeZone $tz, string $tz_label): string {
         try {
             $dt = new \DateTime($iso);
         } catch (\Exception $e) {
             return '';
         }
+        $dt->setTimezone($tz);
         $meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
         $dia   = (int) $dt->format('j');
         $mes   = $meses[(int) $dt->format('n') - 1];
         $anio  = $dt->format('Y');
-        $hora  = (int) $dt->format('G');       // hora 0-23 en el offset del propio ISO
+        $hora  = (int) $dt->format('G');
         $min   = $dt->format('i');
         $time  = ($min === '00') ? $hora . 'hs' : $hora . ':' . $min . 'hs';
-        return $dia . ' ' . $mes . ' ' . $anio . ' · ' . $time . ' (ARG)';
+        $suffix = $tz_label !== '' ? ' (' . $tz_label . ')' : '';
+        return $dia . ' ' . $mes . ' ' . $anio . ' · ' . $time . $suffix;
     }
 
     /**
