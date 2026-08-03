@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.16.4
+Stable tag: 0.16.5
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.16.5 =
+* Los productos de curso quedan siempre marcados como Virtual y Descargable, tanto al crearse como en cada sincronización. WooCommerce solo cierra un pedido automáticamente al cobrar si todos sus productos tienen esas dos casillas; si faltaba alguna, el pedido se quedaba en "Procesando" para siempre y el alumno pagaba sin quedar inscripto, sin ningún cartel de error. Antes había que tildarlas a mano en cada producto. Los productos que ya estaban mal se reparan solos en la próxima sincronización del curso.
 
 = 0.16.4 =
 * Encuentros en vivo: las fechas se muestran en la zona horaria de la academia. Antes se imprimía la hora UTC y se le pegaba la etiqueta "(ARG)" fija, así que un encuentro cargado a las 10:00 de Argentina se publicaba como "13hs (ARG)". El LMS ahora manda la zona horaria en el payload y la landing convierte. Si la zona no se puede resolver, se usa Argentina y se omite la etiqueta en vez de rotular con un huso que no corresponde.
