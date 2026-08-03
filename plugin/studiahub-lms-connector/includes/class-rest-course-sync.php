@@ -121,7 +121,11 @@ final class REST_Course_Sync {
             $product->set_short_description((string) ($course['shortDescription'] ?? ''));
             $product->set_status('draft');
             $product->set_catalog_visibility('visible');
+            // Virtual + Descargable: sin las DOS, WC deja la orden en "processing"
+            // al cobrar y el LMS nunca inscribe al alumno. No hace falta adjuntar
+            // ningún archivo: la casilla sola alcanza para que el pedido se cierre.
             $product->set_virtual(true);
+            $product->set_downloadable(true);
             $product->set_sold_individually(true);
             $product->set_manage_stock(false);
             if (isset($course['price']) && is_numeric($course['price'])) {
@@ -174,6 +178,13 @@ final class REST_Course_Sync {
         if (isset($course['price']) && is_numeric($course['price'])) {
             $product->set_regular_price((string) $course['price']);
         }
+        // Excepción deliberada a la regla de abajo: virtual + downloadable NO es
+        // preferencia del admin, es requisito para cobrar. Si falta cualquiera de
+        // las dos, WC deja la orden en "processing" y el alumno paga sin entrar.
+        // Lo forzamos en cada sync para reparar productos creados a mano o
+        // destildados sin querer.
+        $product->set_virtual(true);
+        $product->set_downloadable(true);
         $product->save();
         // No tocamos: status, catalog_visibility, stock, sku — los controla el admin de WC.
 
