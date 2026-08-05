@@ -74,6 +74,11 @@ final class Plugin {
         // completa el pago, queremos entrega inmediata en el shutdown del
         // mismo request. El impacto en el tiempo del checkout es ~100-500ms
         // del round-trip al LMS.
+        //
+        // El contrapeso obligado de esto es el timeout: WC core entrega con
+        // 'timeout' => MINUTE_IN_SECONDS, así que un LMS lento bloquearía el
+        // request del checkout un minuto por topic. Lo bajamos en
+        // WebhookBootstrap::filter_http_args() (solo para nuestros webhooks).
         add_filter('woocommerce_webhook_deliver_async', '__return_false');
     }
 }

@@ -56,12 +56,20 @@ final class Settings {
 
         $msg_map = [
             'disconnected_ok' => ['success', 'Desconectado del LMS.'],
+            'webhook_ok'      => ['success', 'Webhook recreado. WooCommerce vuelve a avisarle al LMS de cada compra.'],
+            'webhook_err'     => ['error', 'No se pudo recrear el webhook. Revisá que el WordPress siga conectado al LMS.'],
         ];
-        $flash = isset($_GET['slc_msg']) ? ($msg_map[$_GET['slc_msg']] ?? null) : null;
+        $flash = isset($_GET['slc_msg'])
+            ? ($msg_map[sanitize_key(wp_unslash($_GET['slc_msg']))] ?? null)
+            : null;
 
         $webhook_status = class_exists('\\SLC\\WebhookBootstrap')
             ? WebhookBootstrap::get_status_summary()
             : ['state' => 'unknown', 'webhook' => null];
+
+        $reactivated_at = class_exists('\\SLC\\WebhookBootstrap')
+            ? (int) get_option(WebhookBootstrap::OPT_REACTIVATED_AT, 0)
+            : 0;
 
         ?>
         <div class="wrap">
@@ -127,11 +135,12 @@ final class Settings {
                         <?php
                         $state    = $webhook_status['state'] ?? 'unknown';
                         $webhook  = $webhook_status['webhook'] ?? null;
+                        $failures = (int) ($webhook_status['failure_count'] ?? 0);
                         switch ($state) {
                             case 'active':
                                 echo '<span style="color:#00a32a;">● Activo</span>';
-                                if (!empty($webhook_status['failure_count'])) {
-                                    echo ' <span style="color:#d63638;">(' . (int) $webhook_status['failure_count'] . ' fallos recientes)</span>';
+                                if ($failures) {
+                                    echo ' <span style="color:#d63638;">(' . $failures . ' fallos recientes)</span>';
                                 }
                                 if ($webhook) {
                                     echo '<br><span style="color:#646970; font-size:12px;">ID #' . (int) $webhook->get_id() . ' → ' . esc_html($webhook->get_delivery_url()) . '</span>';
@@ -139,12 +148,15 @@ final class Settings {
                                 break;
                             case 'disabled':
                                 echo '<span style="color:#d63638;">● Desactivado</span>';
-                                echo '<br><span style="color:#646970; font-size:12px;">WC lo desactivó por fallos seguidos. Reconectá el LMS para reactivar.</span>';
+                                if ($failures) {
+                                    echo ' <span style="color:#d63638;">(' . $failures . ' fallos seguidos)</span>';
+                                }
+                                echo '<br><span style="color:#646970; font-size:12px;">Mientras esté desactivado, las compras se cobran pero no se inscribe a nadie. Apretá «Recrear webhook» para volver a activarlo.</span>';
                                 break;
                             case 'missing':
                                 echo '<span style="color:#d63638;">● No existe</span>';
                                 if ($is_connected) {
-                                    echo '<br><span style="color:#646970; font-size:12px;">Recargá esta página o reconectá el LMS.</span>';
+                                    echo '<br><span style="color:#646970; font-size:12px;">Recargá esta página o apretá «Recrear webhook».</span>';
                                 }
                                 break;
                             case 'lms_not_configured':
@@ -153,9 +165,34 @@ final class Settings {
                             default:
                                 echo '<span style="color:#646970;">—</span>';
                         }
+
+                        if ($reactivated_at) {
+                            echo '<p style="margin:8px 0 0 0; color:#646970; font-size:12px; max-width:520px; line-height:1.6;">'
+                                . 'WooCommerce lo había pausado por entregas fallidas y el plugin lo reactivó automáticamente el '
+                                . esc_html(wp_date('Y-m-d H:i', $reactivated_at))
+                                . '. Si se repite seguido, revisá que el LMS esté respondiendo.'
+                                . '</p>';
+                        }
                         ?>
                     </td>
                 </tr>
+
+                <?php if ($state !== 'lms_not_configured'): ?>
+                    <tr>
+                        <th scope="row">Acciones</th>
+                        <td>
+                            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"
+                                  onsubmit="return confirm('¿Recrear el webhook? Se borra el actual y se crea uno nuevo con las mismas credenciales — no hace falta reconectar el LMS. Se pierde el historial de entregas de WooCommerce.');">
+                                <input type="hidden" name="action" value="slc_recreate_webhook">
+                                <?php wp_nonce_field('slc_recreate_webhook'); ?>
+                                <button type="submit" class="button">Recrear webhook</button>
+                            </form>
+                            <p class="description" style="max-width:520px;">
+                                Usalo si el webhook figura desactivado o inexistente. WooCommerce lo pausa solo después de varias entregas fallidas seguidas (por ejemplo, si el LMS estuvo caído) y no lo reintenta nunca más.
+                            </p>
+                        </td>
+                    </tr>
+                <?php endif; ?>
             </table>
         </div>
         <?php
@@ -178,6 +215,7 @@ final class Settings {
         // Borrar los WC webhooks del LMS (todos los topics).
         if (class_exists('\\SLC\\WebhookBootstrap')) {
             WebhookBootstrap::delete_all_for_lms();
+            delete_option(WebhookBootstrap::OPT_REACTIVATED_AT);
         }
 
         wp_safe_redirect(add_query_arg(
