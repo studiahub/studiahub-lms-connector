@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.16.6
+Stable tag: 0.17.0
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -31,6 +31,16 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.17.0 =
+* Compras que se cobraban sin inscribir a nadie, sin dejar ningún registro. Si tu tienda usa el checkout en bloques y una pasarela que aprueba el pago al instante (Stripe, WooPayments), WooCommerce le mandaba a la academia un error interno en lugar del pedido. La academia contestaba "recibido", así que el aviso figuraba entregado, el registro quedaba vacío y la venta se perdía en silencio. Las pasarelas que redirigen a otra página para pagar (MercadoPago, PayPal, transferencia) no estaban afectadas.
+* Los avisos de compra pausados vuelven a andar solos. WooCommerce los pausa cuando fallan varias veces seguidas (por ejemplo si la academia estuvo unos minutos fuera de servicio) y, desde ahí, todas las compras se cobran y ninguna inscribe. Antes había que entrar al panel de WordPress para que se reactivaran; ahora se recuperan solos.
+* Las ventas que igual no lleguen ahora se pueden rescatar. La academia puede preguntarle a la tienda por los pedidos completados de los últimos días y dar de alta los que le falten, sin depender de que el aviso haya llegado.
+* Los combos cargados a mano ahora inscriben. Un pack armado desde el panel de WooCommerce (el camino habitual cuando te pagan por transferencia) se cobraba y no le daba acceso a ningún curso. Los pedidos de ese tipo que ya existan necesitan que uses "Entregar de nuevo" una vez.
+* "Inscripciones cerradas" y "Próximamente" ahora cierran de verdad. Antes solo cambiaban el texto del botón: quien tuviera el link directo del producto (guardado, compartido por WhatsApp o indexado por Google) podía comprar igual.
+* Los combos ya no se cobran convertidos por cotización. Si vendés en más de una moneda y el pack no tiene precio cargado en la moneda que eligió el comprador, la compra se frena con un aviso en vez de cobrar una conversión automática. Al marcar un producto como combo, la pantalla te avisa en amarillo qué monedas te faltan completar.
+* El video de presentación solo acepta direcciones web comunes. Una dirección con formato raro podía ejecutar código en la página de venta cuando un visitante tocaba play.
+* La página de venta ya no se vacía si la academia no responde. Antes perdía el temario y el contenido del curso y quedaba como un producto pelado, sin avisar nada. Ahora conserva la última copia buena. Si el curso se da de baja, sí se limpia: una landing dada de baja no debe seguir vendiendo.
 
 = 0.16.6 =
 * El aviso de compra hacia el LMS ahora espera 10 segundos como máximo en vez de 60. Con el LMS lento (no caído), cada compra dejaba un proceso del sitio ocupado hasta un minuto por cada uno de los dos avisos; con varias compras a la vez eso podía dejar la web entera sin responder, incluidas las páginas de venta. Los avisos de otros plugins no se tocan.
