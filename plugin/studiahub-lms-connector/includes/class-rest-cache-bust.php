@@ -35,9 +35,10 @@ final class REST_Cache_Bust {
         if ($course_id === '') {
             return new \WP_REST_Response(['error' => 'missing course_id'], 400);
         }
-        $key = 'slc_landing_' . md5($course_id);
-        delete_transient($key);
-        delete_transient($key . '_stale');
+        // Invalida las copias con TTL, no la última copia buena: si el LMS se
+        // cae justo después del bust, la landing tiene que seguir mostrando el
+        // contenido anterior en vez de quedar vacía. Ver Landing_Fetch.
+        Landing_Fetch::bust($course_id);
         return new \WP_REST_Response(['ok' => true, 'busted' => $course_id], 200);
     }
 }

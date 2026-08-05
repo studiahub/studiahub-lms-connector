@@ -29,7 +29,7 @@ Para cualquier WordPress en producción (hosting compartido, VPS, etc.).
 
 Para **desconectar**: hacelo desde el admin del LMS (le avisa al WP y borra el webhook) o desde **WP Admin → Settings → StudiaHub LMS → Desconectar** (limpia el lado WP y desactiva el webhook). Para **reconectar**, repetí el paso 5.
 
-> El webhook se mantiene solo: si lo borrás desde WC, se vuelve a crear al recargar el admin del WP mientras la conexión siga activa.
+> El webhook se mantiene solo mientras la conexión siga activa: si lo borrás desde WC, se vuelve a crear; y si WooCommerce lo pausa porque el LMS estuvo caído un rato (un redeploy alcanza), se reactiva solo. Esa verificación corre al entrar al admin del WP, en un cron horario y después de cada compra — no hace falta que nadie abra WordPress. Si en cambio lo desactivaste vos a mano desde WC, se respeta: para volver a prenderlo usá **Recrear webhook** en la pantalla de settings del plugin.
 
 ---
 

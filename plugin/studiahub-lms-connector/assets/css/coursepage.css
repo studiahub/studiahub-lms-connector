@@ -252,6 +252,16 @@
 }
 .slc-cp__cta:hover { transform: translateY(-2px); box-shadow: 0 16px 34px -10px rgba(var(--shub-accent-rgb), 0.6); }
 .slc-cp__cta--lg { font-size: 17px; padding: 18px 44px; display: inline-block; }
+/* Curso cerrado o en preventa: mismo lugar que el botón, sin acción. El
+ * pointer-events:none es defensivo — es un <span>, no navega a ningún lado. */
+.slc-cp__cta--closed {
+    background: var(--shub-bg-soft) !important;
+    color: var(--shub-text-muted) !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none !important;
+}
 .slc-cp__urgency { display: flex; align-items: center; gap: 8px; color: #E8590C; font-size: 13px; font-weight: 600; margin-top: 14px; }
 .slc-cp__urgency--center { justify-content: center; margin-top: 16px; }
 .slc-cp__urgency-dot { width: 8px; height: 8px; border-radius: 50%; background: #FD7E14; box-shadow: 0 0 0 0 rgba(253,126,20,0.5); animation: slc-cp-pulse 1.8s infinite; }
@@ -705,4 +715,13 @@ details[open] > .slc-cp__faq-q .slc-cp__chevron { transform: rotate(45deg); marg
 .slc-coursepage .slc-cp__final .slc-cp__cta--lg {
     background: #fff !important;
     color: var(--shub-accent-dark) !important;
+}
+/* El estado cerrado gana a las dos de arriba: va último y con la misma
+ * specificity que la más fuerte (0,3,0). Sin esto, un curso cerrado seguiría
+ * mostrando el botón con el color de compra del tenant. */
+.slc-coursepage .slc-cp__cta--closed,
+.slc-coursepage .slc-cp__final .slc-cp__cta--closed {
+    background: var(--shub-bg-soft) !important;
+    color: var(--shub-text-muted) !important;
+    box-shadow: none !important;
 }

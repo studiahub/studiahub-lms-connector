@@ -74,6 +74,25 @@ final class Enroll {
             exit;
         }
 
+        // Cierre de inscripciones / preventa. `is_purchasable()` de arriba ya lo
+        // cubre en el caso normal, pero solo mira la caché: si este WordPress
+        // todavía no tiene el payload del curso (nunca se renderizó la landing),
+        // deja pasar. Acá sí podemos preguntarle al LMS — es una acción del
+        // visitante, no un listado — y este endpoint es justamente el link que
+        // viaja por WhatsApp y queda en los marcadores.
+        //
+        // Además `WC_Cart::add_to_cart()` NO dispara
+        // `woocommerce_add_to_cart_validation`, así que sin este chequeo el
+        // curso cerrado entraba igual al carrito y recién lo frenaba el checkout.
+        $closed = Purchase_Gate::closed_state($product_id, true);
+        if ($closed !== null) {
+            if (function_exists('wc_add_notice')) {
+                wc_add_notice($closed['label'], 'notice');
+            }
+            wp_safe_redirect(get_permalink($product_id) ?: wc_get_cart_url());
+            exit;
+        }
+
         // Acumular sin duplicar: si el curso ya está en el carrito no lo
         // re-agregamos (un curso no se compra dos veces).
         $cart_id = WC()->cart->generate_cart_id($product_id);

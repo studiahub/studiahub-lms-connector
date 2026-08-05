@@ -30,6 +30,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-categories.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-products.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-orders.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-rest-orders-recent.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-pair.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-cache-bust.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-lms-courses.php';
@@ -38,6 +39,8 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-order-combo-meta.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-authorize-screen.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-webhook-bootstrap.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-webhook-payload.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-purchase-gate.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-render-guard.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepage.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepitch.php';
@@ -54,6 +57,7 @@ final class Plugin {
         REST_Categories::register_hooks();
         REST_Products::register_hooks();
         REST_Orders::register_hooks();
+        REST_Orders_Recent::register_hooks();
         REST_Pair::register_hooks();
         REST_Cache_Bust::register_hooks();
         REST_LMS_Courses::register_hooks();
@@ -61,6 +65,8 @@ final class Plugin {
         Order_Combo_Meta::register_hooks();
         Authorize_Screen::register_hooks();
         WebhookBootstrap::register_hooks();
+        Webhook_Payload::register_hooks();
+        Purchase_Gate::register_hooks();
         Render_Guard::register_hooks();
         Shortcode_CoursePage::register_hooks();
         Shortcode_CoursePitch::register_hooks();
@@ -79,6 +85,11 @@ final class Plugin {
         // 'timeout' => MINUTE_IN_SECONDS, así que un LMS lento bloquearía el
         // request del checkout un minuto por topic. Lo bajamos en
         // WebhookBootstrap::filter_http_args() (solo para nuestros webhooks).
+        //
+        // El otro efecto de entregar en el shutdown del mismo request es que el
+        // payload se arma ahí adentro, y WC no puede armarlo bien si ese request
+        // es de otro namespace de su REST API (el checkout de bloques, sin ir más
+        // lejos). Eso lo repara Webhook_Payload.
         add_filter('woocommerce_webhook_deliver_async', '__return_false');
     }
 }

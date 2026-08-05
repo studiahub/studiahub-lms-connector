@@ -117,11 +117,46 @@ una con precio regular y (opcional) oferta. El LMS manda:
 
 ### Safeguard (por qué a veces se "traba" el checkout)
 
-Si el visitante elige una moneda que **no es la base** y el LMS **no** definió un
-precio fijo para esa moneda, el connector **frena el checkout** con un aviso, en vez
-de cobrar la conversión por tasa (que sería un precio incorrecto). O sea: si una
-moneda no tiene precio cargado en el LMS, en esa moneda **no se vende** — es a
-propósito. (`Multicurrency::guard_checkout`.)
+Si el visitante elige una moneda que **no es la base** y **no** hay un precio fijo
+para esa moneda, el connector **frena el checkout** con un aviso, en vez de cobrar la
+conversión por tasa (que sería un precio incorrecto). O sea: si una moneda no tiene
+precio fijo cargado, en esa moneda **no se vende** — es a propósito.
+(`Multicurrency::guard_checkout`.)
+
+Aplica tanto al checkout clásico como al de bloques (la Store API dispara el mismo
+`woocommerce_check_cart_items`).
+
+### Combos: el precio por moneda lo carga el dueño en WooCommerce
+
+Un **combo** (producto WC marcado como combo, que da acceso a N cursos) **no existe
+en el LMS**: es un producto de WooCommerce a secas. Por eso el validador del LMS que
+impide publicar un curso al que le falta una moneda **no lo cubre**, y su precio por
+moneda hay que cargarlo del lado de WordPress.
+
+> **Sin precio fijo, un combo no se vende en esa moneda.** Un pack de USD 200 con la
+> tasa del switcher en 1440,5 se cobraría 288.100 ARS: un número que no decidió
+> nadie y que depende de una cotización que alguien tiene que mantener a mano. El
+> connector prefiere frenar la compra antes que cobrar eso.
+
+**Cómo cargarlo (WOOCS):** editar el producto → pestaña **General** → los campos de
+precio por moneda del switcher (requiere "Fixed prices" habilitado en los ajustes de
+WOOCS) → cargar el regular de cada moneda. La **moneda base no se carga ahí**: esa la
+cobra el precio normal del producto.
+
+El metabox **StudiaHub LMS** del producto avisa en amarillo qué monedas le faltan
+(*"Sin precio en ARS"*) apenas se marca como combo, así el dueño se entera al armarlo
+y no cuando un cliente se come el bloqueo. El aviso desaparece solo al cargar el
+precio.
+
+> Diferencia con los **cursos**: ahí el precio fijo **tiene** que venir del LMS
+> (`_studiahub_prices`). Un fijo cargado a mano en el switcher sobre un curso del LMS
+> **no** alcanza para destrabar el checkout, a propósito: la landing del curso muestra
+> el precio del LMS, y cobrar otro sería prometer una cosa y cobrar otra. El combo no
+> tiene esa contradicción posible porque su landing es Elementor a mano.
+>
+> Con **Booster** el safeguard del checkout funciona igual, pero **no** hay aviso en
+> el metabox: Booster no expone su lista de monedas, así que no se puede saber cuáles
+> faltan hasta que alguien intenta comprar.
 
 ---
 
@@ -136,6 +171,8 @@ meta protegidos que empiezan con `_`, que el panel nativo de WP oculta).
 | Una moneda se llena y la otra **no** (ej: USD sí, ARS no) | `woocommerce_currency` está en la moneda que **no** se llena | `push_booster`/`push_woocs` **saltean la moneda base** (esa la cubre el nativo). Si ARS queda vacío, es porque el store base **es** ARS. Alinear `Ajustes → General → Moneda` con la principal del LMS y re-sincronizar. |
 | El precio base sale absurdo (ej: $0,00, o 720000 donde debería ir 720) | `woocommerce_currency` ≠ moneda principal del LMS, **o** el módulo Booster "Product Base Price per-product" está activo | Aplicar la regla de oro (Parte 3). Confirmar ese módulo desactivado. |
 | Precio $0,00 en el front con el switcher en una moneda | Esa moneda no tiene precio fijo cargado (switcher convertiría por tasa, pero no hay fijo) | Cargar el precio de esa moneda en el LMS, re-sync. |
+| **Un combo** se puede agregar al carrito pero el checkout tira *"El combo X no está disponible en ARS"* | El combo no tiene precio fijo cargado para esa moneda. **Es el comportamiento correcto**: sin fijo se cobraría la conversión por cotización | Editar el producto → pestaña **General** → cargar el precio fijo de esa moneda en los campos del switcher. El aviso amarillo del metabox "StudiaHub LMS" lista las monedas que faltan. |
+| Un combo se cobra un número raro que nadie cargó (ej. 288.100 ARS por un pack de USD 200) | Plugin viejo: el safeguard solo cubría los cursos del LMS, no los combos | Actualizar el plugin: ahora el checkout se frena en vez de cobrar la conversión. |
 | El switcher muestra un precio **viejo** en la moneda base (ej: quedó 720/520 cuando el LMS dice 360) | Postmeta huérfanos: se escribieron cuando esa moneda **no** era la base y nunca se limpiaron | Corregido en **≥ 0.16.3**: el sync borra los metas del switcher de la moneda base. Actualizar el plugin + re-sync. |
 | Se borra la oferta en el LMS y el checkout sigue cobrando el precio de promo (o al revés: hay promo y cobra el precio lleno) en la **moneda principal** | El connector nunca escribía el `_sale_price` nativo | Corregido en **≥ 0.16.3**. Actualizar el plugin + re-sync. |
 
@@ -186,7 +223,8 @@ add_action('init', function () {
 
 - `includes/class-landing-fetch.php` — fetch del payload (transient 15 min + stale 7 días).
 - `includes/class-rest-course-sync.php` — crea/actualiza el producto; `_regular_price` nativo (líneas 127/175) y `push_prices` (217).
-- `includes/class-multicurrency.php` — bridge de multimoneda: `push_prices`, `push_woocs`, `push_booster`, `is_booster` (110), safeguard `guard_checkout` (57).
+- `includes/class-multicurrency.php` — bridge de multimoneda: `push_prices` (283), `push_woocs`, `push_booster`, `is_booster` (348), safeguard `guard_checkout` (90) con `has_fixed_price` (169) / `switcher_fixed_price` (183), y el aviso del metabox `missing_combo_currencies` (256).
+- `includes/class-order-combo-meta.php` — combos: escribe `_lms_course_ids` en el order item venga de donde venga el pedido, y lo completa en el payload si faltara.
 - `includes/class-shortcode-fields.php` — shortcodes granulares (cadena de payload en `get_payload`, 127).
 
 Ver también: [LANDING-PAYLOAD.md](LANDING-PAYLOAD.md) (todos los campos del payload),

@@ -145,6 +145,10 @@ final class Product_Metabox {
            . esc_html__('Al comprarlo, el alumno recibe acceso a todos los cursos seleccionados.', 'studiahub-lms-connector')
            . '</p>';
 
+        if ($is_combo) {
+            self::render_currency_warning($post->ID);
+        }
+
         // Región del picker. Hidden por CSS si el toggle está off (lo maneja el JS).
         echo '<div class="slc-combo__picker" data-selected="' . esc_attr((string) wp_json_encode(array_values($selected))) . '"'
            . ($is_combo ? '' : ' hidden') . '>';
@@ -169,6 +173,45 @@ final class Product_Metabox {
 
         echo '</div>'; // .slc-combo__picker
         echo '</div>'; // .slc-combo
+    }
+
+    /**
+     * Avisa, en la pantalla del producto, en qué monedas este combo NO se va a
+     * poder vender.
+     *
+     * Un combo no pasa por el LMS, así que tampoco pasa por el validador que
+     * impide publicar un curso al que le falta una moneda: el único control es el
+     * safeguard del checkout, y ese lo descubre el CLIENTE, con la compra ya
+     * empezada. Este aviso lo pone donde corresponde — delante del dueño, en el
+     * momento en que arma el combo.
+     *
+     * No bloquea el guardado a propósito: vender solo en la moneda base es una
+     * decisión legítima. Lo que no puede pasar es que sea una sorpresa.
+     */
+    private static function render_currency_warning(int $product_id): void {
+        $missing = Multicurrency::missing_combo_currencies($product_id);
+        if ($missing === []) {
+            return;
+        }
+
+        echo '<div class="slc-combo__warning notice notice-warning inline">';
+        echo '<p><strong>' . esc_html(
+            sprintf(
+                /* translators: %s: lista de monedas, ej "ARS / BRL" */
+                _n(
+                    'Sin precio en %s',
+                    'Sin precio en %s',
+                    count($missing),
+                    'studiahub-lms-connector'
+                ),
+                implode(' / ', $missing)
+            )
+        ) . '</strong></p>';
+        echo '<p>' . esc_html__(
+            'Este combo no se va a poder comprar en esas monedas: se frena el checkout antes que cobrar una conversión por cotización. Cargá el precio fijo de cada moneda en la pestaña "General" del producto (campos del currency switcher).',
+            'studiahub-lms-connector'
+        ) . '</p>';
+        echo '</div>';
     }
 
     /**

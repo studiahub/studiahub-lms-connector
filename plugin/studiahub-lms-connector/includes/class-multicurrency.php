@@ -15,11 +15,22 @@ if (!defined('ABSPATH')) {
  *    que también escribimos desde el LMS. Guardamos además _studiahub_prices como
  *    registro propio (fuente de verdad del safeguard).
  *
- * 2) SAFEGUARD (front): si el visitante tiene una moneda != base y el LMS NO
- *    definió un precio fijo para esa moneda (el sync falló o no se cargó), el
- *    producto del LMS queda NO COMPRABLE en esa moneda. Así, ante cualquier falla,
- *    el cliente nunca paga la conversión por tasa (precio incorrecto): compra en la
- *    moneda base o se frena. El peor caso es recuperable, no una venta mal cobrada.
+ * 2) SAFEGUARD (front): si el visitante tiene una moneda != base y NO hay un precio
+ *    fijo para esa moneda (el sync falló, no se cargó, o es un combo que nadie
+ *    tarifó), el producto queda NO COMPRABLE en esa moneda. Así, ante cualquier
+ *    falla, el cliente nunca paga la conversión por tasa (precio incorrecto):
+ *    compra en la moneda base o se frena. El peor caso es recuperable, no una
+ *    venta mal cobrada.
+ *
+ *    LOS COMBOS TAMBIÉN. Un combo es un producto de WooCommerce sin registro en el
+ *    LMS, así que el validador del LMS que impide publicar un curso sin todas sus
+ *    monedas cargadas (`syncCourseToWC`) no lo toca ni lo puede tocar. Sin este
+ *    safeguard, un pack de USD 200 con la tasa de WOOCS en 1440,5 se cobraba
+ *    288.100 ARS: un precio que no decidió nadie, que depende de una cotización
+ *    que alguien tiene que mantener a mano en WordPress, y que se desactualiza
+ *    sola. El precio fijo de un combo lo carga el dueño en los campos por moneda
+ *    del switcher (en WOOCS: pestaña "General" del producto, con "Fixed prices"
+ *    habilitado). Si no lo cargó, en esa moneda no se vende — a propósito.
  *
  * WOOCS (formato confirmado en runtime):
  *   _woocs_regular_price_{CUR}  → precio fijo, o -1 = "convertir por tasa"
@@ -31,6 +42,10 @@ final class Multicurrency {
 
     /** Valor que le dice al switcher "no hay precio fijo, convertí por tasa". */
     private const NO_FIXED = -1;
+
+    /** Qué vende un producto nuestro: un curso del LMS o un combo armado en WC. */
+    private const KIND_COURSE = 'course';
+    private const KIND_COMBO  = 'combo';
 
     /**
      * Marca de propiedad de la oferta nativa: guarda el sale que escribimos desde el
@@ -64,9 +79,13 @@ final class Multicurrency {
     }
 
     /**
-     * Safeguard: si la moneda de pago elegida no es la base y algún curso del
-     * carrito no tiene precio fijo del LMS para esa moneda, frena el pago con un
-     * aviso. Garantiza que nunca se cobra la conversión por tasa.
+     * Safeguard: si la moneda de pago elegida no es la base y algo del carrito no
+     * tiene precio FIJO para esa moneda, frena el pago con un aviso. Garantiza
+     * que nunca se cobra la conversión por tasa.
+     *
+     * Cubre las dos cosas que vendemos, con una fuente de verdad distinta cada
+     * una (ver `has_fixed_price`): los cursos sincronizados desde el LMS y los
+     * combos, que son productos de WooCommerce sin registro en el LMS.
      */
     public static function guard_checkout(): void {
         if (!function_exists('WC') || !WC()->cart) {
@@ -79,24 +98,176 @@ final class Multicurrency {
         }
         foreach (WC()->cart->get_cart() as $item) {
             $pid = isset($item['product_id']) ? (int) $item['product_id'] : 0;
-            if ($pid <= 0 || !get_post_meta($pid, '_lms_course_id', true)) {
-                continue; // solo productos del LMS
+            if ($pid <= 0) {
+                continue;
             }
-            $prices = self::stored_prices($pid);
-            if (!isset($prices[$current])) {
-                $avail = implode(' / ', array_keys($prices));
-                wc_add_notice(
-                    sprintf(
+            $kind = self::product_kind($pid);
+            if ($kind === null) {
+                continue; // no es nuestro: un ebook, una consultoría, lo que sea
+            }
+            if (self::has_fixed_price($pid, $current, $kind)) {
+                continue;
+            }
+
+            $avail = self::sellable_currencies($pid, $kind, $base);
+            $avail = $avail !== [] ? implode(' / ', $avail) : $base;
+
+            wc_add_notice(
+                $kind === self::KIND_COMBO
+                    ? sprintf(
+                        /* translators: 1: nombre del combo, 2: moneda actual, 3: monedas disponibles */
+                        esc_html__('El combo "%1$s" no está disponible en %2$s. Cambiá la moneda de pago a: %3$s.', 'studiahub-lms-connector'),
+                        get_the_title($pid),
+                        $current,
+                        $avail
+                    )
+                    : sprintf(
                         /* translators: 1: nombre del curso, 2: moneda actual, 3: monedas disponibles */
                         esc_html__('El curso "%1$s" no está disponible en %2$s. Cambiá la moneda de pago a: %3$s.', 'studiahub-lms-connector'),
                         get_the_title($pid),
                         $current,
-                        $avail !== '' ? $avail : $base
+                        $avail
                     ),
-                    'error'
-                );
+                'error'
+            );
+        }
+    }
+
+    /**
+     * Qué es este producto para nosotros, o null si no nos incumbe.
+     *
+     * El combo gana si por algún motivo tuviera las dos marcas: sus precios los
+     * carga el dueño en WooCommerce, no el LMS.
+     */
+    private static function product_kind(int $product_id): ?string {
+        if ((string) get_post_meta($product_id, Product_Metabox::META_IS_COMBO, true) === 'yes') {
+            return self::KIND_COMBO;
+        }
+        if ((string) get_post_meta($product_id, '_lms_course_id', true) !== '') {
+            return self::KIND_COURSE;
+        }
+        return null;
+    }
+
+    /**
+     * ¿Hay un precio FIJO (no una conversión por tasa) para esta moneda?
+     *
+     * La fuente cambia según qué sea el producto, y no es un detalle de
+     * implementación sino el contrato de cada uno:
+     *
+     *  - CURSO: `_studiahub_prices`, o sea lo que mandó el LMS. Deliberadamente
+     *    NO alcanza con un fijo cargado a mano en el switcher: la landing del
+     *    curso muestra el precio del LMS, así que aceptar otro precio en el
+     *    checkout sería prometer una cosa y cobrar otra. El LMS manda.
+     *
+     *  - COMBO: los campos del switcher (WOOCS / Booster). Un combo no existe en
+     *    el LMS —es un producto de WooCommerce a secas, y su landing es Elementor
+     *    a mano— así que no hay ningún precio del LMS con el que contradecirse.
+     *    Acá el dueño ES la fuente de verdad, y el único requisito es que el
+     *    precio lo haya puesto él a propósito.
+     */
+    private static function has_fixed_price(int $product_id, string $currency, string $kind): bool {
+        if ($kind === self::KIND_COMBO) {
+            return self::switcher_fixed_price($product_id, $currency) !== null;
+        }
+        return isset(self::stored_prices($product_id)[$currency]);
+    }
+
+    /**
+     * Precio fijo cargado en el switcher para esa moneda, o null si no hay.
+     *
+     * En WOOCS el `-1` NO es un precio: es literalmente "convertí por tasa", que
+     * es justo lo que este safeguard existe para no dejar pasar. Booster no tiene
+     * ese centinela: o está el meta con un número, o no está.
+     */
+    private static function switcher_fixed_price(int $product_id, string $currency): ?string {
+        if (!preg_match('/^[A-Z]{3}$/', $currency)) {
+            return null;
+        }
+        foreach ([self::WOOCS_REGULAR, self::BOOSTER_REGULAR] as $prefix) {
+            $raw = get_post_meta($product_id, $prefix . $currency, true);
+            if (!is_scalar($raw)) {
+                continue;
+            }
+            $raw = trim((string) $raw);
+            if ($raw === '' || !is_numeric($raw) || (float) $raw <= 0) {
+                continue;
+            }
+            return $raw;
+        }
+        return null;
+    }
+
+    /**
+     * Monedas en las que este producto SÍ se puede comprar, para decírselo al
+     * visitante en vez de dejarlo adivinando.
+     *
+     * @return array<int, string>
+     */
+    private static function sellable_currencies(int $product_id, string $kind, string $base): array {
+        if ($kind !== self::KIND_COMBO) {
+            return array_keys(self::stored_prices($product_id));
+        }
+        // La base siempre se puede: la cobra el precio nativo del producto.
+        $out = $base !== '' ? [$base => true] : [];
+        foreach (self::product_currency_metas($product_id) as $cur) {
+            if (self::switcher_fixed_price($product_id, $cur) !== null) {
+                $out[$cur] = true;
             }
         }
+        return array_keys($out);
+    }
+
+    /**
+     * Monedas que aparecen en los postmeta por moneda de ESTE producto.
+     *
+     * Se escanean las claves reales en vez de pedirle la lista al switcher
+     * porque Booster no expone una: así el mismo código sirve para los dos.
+     *
+     * @return array<int, string>
+     */
+    private static function product_currency_metas(int $product_id): array {
+        $out = [];
+        foreach (array_keys((array) get_post_meta($product_id)) as $key) {
+            foreach ([self::WOOCS_REGULAR, self::BOOSTER_REGULAR] as $prefix) {
+                if (strpos((string) $key, $prefix) !== 0) {
+                    continue;
+                }
+                $cur = strtoupper(substr((string) $key, strlen($prefix)));
+                if (preg_match('/^[A-Z]{3}$/', $cur)) {
+                    $out[$cur] = true;
+                }
+            }
+        }
+        return array_keys($out);
+    }
+
+    /**
+     * Monedas del switcher en las que este combo NO se va a poder vender, para
+     * avisarle al dueño en la pantalla del producto y no cuando un cliente se
+     * come el bloqueo del checkout.
+     *
+     * Solo WOOCS: es el único de los dos switchers que expone su lista de
+     * monedas. Con Booster devolvemos vacío (no hay aviso), pero el safeguard del
+     * checkout protege igual — que es lo que no se negocia.
+     *
+     * @return array<int, string>
+     */
+    public static function missing_combo_currencies(int $product_id): array {
+        if (!class_exists('WOOCS')) {
+            return [];
+        }
+        $base    = strtoupper((string) get_option('woocommerce_currency'));
+        $missing = [];
+        foreach (self::woocs_currencies() as $cur) {
+            if ($cur === '' || $cur === $base) {
+                continue; // la base la cobra el precio nativo
+            }
+            if (self::switcher_fixed_price($product_id, $cur) === null) {
+                $missing[] = $cur;
+            }
+        }
+        return $missing;
     }
 
     // ─────────────────────────────────────────────────────────── PUSH (desde sync)
