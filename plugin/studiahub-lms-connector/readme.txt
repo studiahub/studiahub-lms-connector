@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.16.5
+Stable tag: 0.16.6
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -29,6 +29,10 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.16.6 =
+* El aviso de compra hacia el LMS ahora espera 10 segundos como máximo en vez de 60. Con el LMS lento (no caído), cada compra dejaba un proceso del sitio ocupado hasta un minuto por cada uno de los dos avisos; con varias compras a la vez eso podía dejar la web entera sin responder, incluidas las páginas de venta. Los avisos de otros plugins no se tocan.
+* Nuevo botón "Recrear webhook" en Ajustes → StudiaHub LMS. WooCommerce pausa el aviso automático cuando falla varias veces seguidas (por ejemplo si el LMS estuvo unos minutos fuera de servicio) y, a partir de ahí, las compras se cobran pero nadie queda inscripto y no queda ningún registro. Antes la única salida era desconectar y volver a conectar el sitio; ahora se recupera con un clic, sin perder la conexión. Además el plugin lo reactiva solo cuando detecta que fue WooCommerce quien lo pausó, y la pantalla de ajustes explica el estado en vez de mostrarlo en blanco.
 
 = 0.16.5 =
 * Los productos de curso quedan siempre marcados como Virtual y Descargable, tanto al crearse como en cada sincronización. WooCommerce solo cierra un pedido automáticamente al cobrar si todos sus productos tienen esas dos casillas; si faltaba alguna, el pedido se quedaba en "Procesando" para siempre y el alumno pagaba sin quedar inscripto, sin ningún cartel de error. Antes había que tildarlas a mano en cada producto. Los productos que ya estaban mal se reparan solos en la próxima sincronización del curso.
