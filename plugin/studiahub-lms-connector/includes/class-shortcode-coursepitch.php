@@ -211,14 +211,12 @@ final class Shortcode_CoursePitch {
                 $offer_deadline_label = self::format_relative_es($remaining);
             }
         }
-        $sales_closed = !empty($payload['salesClosed']);
-        // Preventa: botón deshabilitado "Próximamente". Toma precedencia sobre
-        // salesClosed (es un override manual del admin, no una fecha vencida).
-        $coming_soon       = !empty($payload['comingSoon']);
-        $coming_soon_label = trim((string) ($payload['comingSoonLabel'] ?? ''));
-        if ($coming_soon_label === '') {
-            $coming_soon_label = __('Próximamente', 'studiahub-lms-connector');
-        }
+        // Cierre de inscripciones (salesClosed) y preventa (comingSoon, que
+        // tiene precedencia). Lo resuelve Purchase_Gate y no este archivo para
+        // que el botón y el carrito lean la MISMA definición: ese mismo estado
+        // es el que ahora bloquea la compra en WooCommerce, así que si acá
+        // dijera otra cosa el visitante vería un botón que el checkout rechaza.
+        $closed = Purchase_Gate::closed_state_from_payload($payload);
         $bonuses   = Shortcode_CoursePage::data_bonuses_public($payload);
         $guarantee = Shortcode_CoursePage::data_guarantee_public($payload);
         $faq       = Shortcode_CoursePage::data_faq_public($payload);
@@ -354,7 +352,7 @@ final class Shortcode_CoursePitch {
                                     $facade_thumb = $trailer['thumb'] !== '' ? $trailer['thumb'] : $landing_image_url;
                                 ?>
                                     <div class="slc-cpitch__trailer-facade slc-cpitch__longdesc-trailer"
-                                         data-embed="<?php echo esc_attr($trailer['embed']); ?>"
+                                         data-embed="<?php echo esc_url($trailer['embed'], ['http', 'https']); ?>"
                                          <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
                                          role="button" tabindex="0"
                                          aria-label="<?php esc_attr_e('Reproducir trailer', 'studiahub-lms-connector'); ?>">
@@ -719,13 +717,9 @@ final class Shortcode_CoursePitch {
                             <?php endif; ?>
                         </div>
 
-                        <?php if ($coming_soon): ?>
+                        <?php if ($closed !== null): ?>
                         <span class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta slc-cpitch__pricing-cta--closed" aria-disabled="true">
-                            <?php echo esc_html($coming_soon_label); ?>
-                        </span>
-                        <?php elseif ($sales_closed): ?>
-                        <span class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta slc-cpitch__pricing-cta--closed" aria-disabled="true">
-                            <?php esc_html_e('Inscripciones cerradas', 'studiahub-lms-connector'); ?>
+                            <?php echo esc_html($closed['label']); ?>
                         </span>
                         <?php else: ?>
                         <a class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta" href="<?php echo esc_url($checkout_url); ?>">

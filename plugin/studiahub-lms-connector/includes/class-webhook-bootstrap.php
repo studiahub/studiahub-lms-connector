@@ -18,13 +18,17 @@ if (!defined('ABSPATH')) {
  * (unique constraints), así que recibir ambos eventos no duplica enrollments.
  *
  * Flujo:
- * - En admin_init verifica que exista un webhook por cada topic con
+ * - Verifica que exista un webhook por cada topic con
  *   delivery_url={lms_url}/api/webhooks/woocommerce. Si falta alguno, lo crea.
  * - Si se guarda/cambia la URL del LMS, re-verifica.
  * - Si un webhook ya existe y está activo, no lo toca. Si está desactivado,
  *   distingue quién lo apagó: si fue WooCommerce por entregas fallidas lo
  *   reactiva (ver maybe_reactivate); si lo apagó una persona, lo respeta. Para
  *   forzar un reset completo está el botón "Recrear webhook" de la settings page.
+ *
+ * Cuándo corre esa verificación (ver register_hooks): en `admin_init`, en un
+ * cron horario y después de cada compra. Las dos últimas existen porque el
+ * `admin_init` solo no alcanza — ver self_heal_on_order().
  */
 final class WebhookBootstrap {
     /** Topics que registramos. Ambos apuntan al mismo delivery_url. */
@@ -38,12 +42,82 @@ final class WebhookBootstrap {
     /** Guarda cuándo reactivamos por última vez un webhook que WC había pausado. */
     public const OPT_REACTIVATED_AT = 'slc_webhook_reactivated_at';
 
+    /** Evento de wp-cron que re-verifica los webhooks sin intervención humana. */
+    public const CRON_HOOK = 'slc_ensure_webhooks';
+
+    /** Marca de la última verificación disparada por una compra. */
+    public const OPT_LAST_SELF_HEAL = 'slc_webhook_last_self_heal';
+
+    /**
+     * Ventana mínima entre verificaciones disparadas por una compra. Una ráfaga
+     * de pedidos no tiene por qué escanear los webhooks una vez por pedido.
+     */
+    private const SELF_HEAL_THROTTLE = 15 * MINUTE_IN_SECONDS;
+
     public static function register_hooks(): void {
         add_action('admin_init', [self::class, 'ensure_webhook']);
         add_action('update_option_' . Settings::OPT_LMS_URL, [self::class, 'on_lms_url_changed'], 10, 2);
         add_action('add_option_' . Settings::OPT_LMS_URL, [self::class, 'ensure_webhook']);
         add_action('admin_post_slc_recreate_webhook', [self::class, 'handle_recreate']);
         add_filter('woocommerce_webhook_http_args', [self::class, 'filter_http_args'], 10, 3);
+
+        // Auto-sanación sin humanos: cron horario + red de contención en cada
+        // compra. Ver self_heal_on_order() para por qué van los dos.
+        add_action('init', [self::class, 'schedule_self_heal']);
+        add_action(self::CRON_HOOK, [self::class, 'ensure_webhook']);
+        add_action('woocommerce_new_order', [self::class, 'self_heal_on_order']);
+    }
+
+    /**
+     * Programa el cron horario que re-verifica los webhooks.
+     *
+     * Corre en cada request, pero es gratis: `wp_next_scheduled()` lee la option
+     * `cron`, que es autoload — no agrega ni una query.
+     */
+    public static function schedule_self_heal(): void {
+        if (!wp_next_scheduled(self::CRON_HOOK)) {
+            wp_schedule_event(time() + HOUR_IN_SECONDS, 'hourly', self::CRON_HOOK);
+        }
+    }
+
+    public static function unschedule_self_heal(): void {
+        wp_clear_scheduled_hook(self::CRON_HOOK);
+    }
+
+    /**
+     * Re-verifica los webhooks cuando entra un pedido.
+     *
+     * POR QUÉ NO ALCANZA CON `admin_init`: cuando WooCommerce pausa nuestros
+     * webhooks por entregas fallidas (un redeploy del LMS devolviendo 502 de
+     * Traefik alcanza), no los vuelve a activar nunca. Hasta ahora la
+     * reactivación colgaba solo de `admin_init`, o sea de que un humano abriera
+     * wp-admin. Si el cliente no entra a WordPress —y no tiene por qué, el LMS
+     * es otra aplicación— cada compra se cobra y ninguna llega al LMS, en
+     * silencio y para siempre.
+     *
+     * POR QUÉ ADEMÁS DEL CRON: el cron horario es el mecanismo principal, pero
+     * wp-cron depende del tráfico y hay hostings donde está apagado
+     * (`DISABLE_WP_CRON`) sin un cron de sistema que lo reemplace. Un pedido, en
+     * cambio, es tráfico garantizado y es exactamente el momento en que esto
+     * importa.
+     *
+     * LO QUE ESTE HOOK NO ARREGLA: el pedido que lo dispara. WooCommerce engancha
+     * los webhooks activos en `init` con prioridad 0 (WC()->init() →
+     * load_webhooks()), mucho antes de que exista el pedido, así que uno pausado
+     * no entrega ESTA compra por más que lo reactivemos ahora. Reactivarlo antes
+     * costaría escanear los webhooks en cada request. Lo que sí garantiza es que
+     * la compra siguiente llegue, y el LMS reconcilia por su lado los pedidos de
+     * la ventana perdida.
+     */
+    public static function self_heal_on_order(): void {
+        $last = (int) get_option(self::OPT_LAST_SELF_HEAL, 0);
+        if (time() - $last < self::SELF_HEAL_THROTTLE) {
+            return;
+        }
+        // Antes de verificar, no después: si ensure_webhook() muriera, no
+        // queremos que cada pedido siguiente reintente lo mismo.
+        update_option(self::OPT_LAST_SELF_HEAL, time(), false);
+        self::ensure_webhook();
     }
 
     /**
@@ -296,8 +370,11 @@ final class WebhookBootstrap {
      * delete_all_for_lms) para cubrir también los que quedaron con una LMS URL
      * vieja. Cacheado en memoria: en un mismo request se pueden entregar los
      * dos topics.
+     *
+     * Público porque Webhook_Payload necesita el mismo criterio para no tocar
+     * los webhooks de otros plugins del cliente.
      */
-    private static function is_lms_webhook(int $webhook_id): bool {
+    public static function is_lms_webhook(int $webhook_id): bool {
         if ($webhook_id <= 0 || !class_exists('WC_Webhook')) {
             return false;
         }

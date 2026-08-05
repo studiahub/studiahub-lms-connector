@@ -178,6 +178,14 @@ final class Shortcode_CoursePage {
 
         $checkout_url = self::checkout_url($product_id);
 
+        // Cierre de inscripciones (salesClosed) / preventa (comingSoon). Esta
+        // plantilla los ignoraba por completo y mostraba el botón de compra
+        // igual: el visitante clickeaba y —ahora que Purchase_Gate bloquea el
+        // carrito de verdad— se comía un error de WooCommerce sin explicación.
+        // El estado sale del mismo lugar que usa el gate, así que el botón y el
+        // checkout siempre dicen lo mismo.
+        $closed = Purchase_Gate::closed_state_from_payload($payload);
+
         // ── DATA DE MARKETING (payload del LMS, controlado desde el admin) ─
         $social    = self::data_social_proof($payload);
         $offer     = self::data_offer_pricing($payload, $price_disp);
@@ -250,7 +258,7 @@ final class Shortcode_CoursePage {
                     ?>
                         <div class="slc-cp__hero-trailer">
                             <div class="slc-cp__trailer-facade"
-                                 data-embed="<?php echo esc_attr($trailer['embed']); ?>"
+                                 data-embed="<?php echo esc_url($trailer['embed'], ['http', 'https']); ?>"
                                  <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
                                  role="button"
                                  tabindex="0"
@@ -281,7 +289,7 @@ final class Shortcode_CoursePage {
                         <?php if ($offer['installments'] !== ''): ?>
                             <div class="slc-cp__price-inst"><?php echo esc_html($offer['installments']); ?></div>
                         <?php endif; ?>
-                        <a class="slc-cp__cta slc-cp__cta--lg" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
+                        <?php echo self::cta_html($closed, $checkout_url, $cta_label, 'slc-cp__cta--lg'); ?>
                         <?php if ($offer['deadline'] !== ''): ?>
                             <div class="slc-cp__urgency slc-cp__urgency--center">
                                 <span class="slc-cp__urgency-dot" aria-hidden="true"></span>
@@ -350,7 +358,7 @@ final class Shortcode_CoursePage {
                     ?>
                         <div class="slc-cp__herobig-trailer">
                             <div class="slc-cp__trailer-facade"
-                                 data-embed="<?php echo esc_attr($trailer['embed']); ?>"
+                                 data-embed="<?php echo esc_url($trailer['embed'], ['http', 'https']); ?>"
                                  <?php if ($facade_thumb !== ''): ?>style="background-image:url('<?php echo esc_url($facade_thumb); ?>');"<?php endif; ?>
                                  role="button"
                                  tabindex="0"
@@ -379,7 +387,7 @@ final class Shortcode_CoursePage {
                         <?php if ($offer['installments'] !== ''): ?>
                             <div class="slc-cp__herobig-price-inst"><?php echo esc_html($offer['installments']); ?></div>
                         <?php endif; ?>
-                        <a class="slc-cp__cta slc-cp__cta--xl" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
+                        <?php echo self::cta_html($closed, $checkout_url, $cta_label, 'slc-cp__cta--xl'); ?>
                         <?php if ($offer['deadline'] !== ''): ?>
                             <div class="slc-cp__urgency slc-cp__urgency--center">
                                 <span class="slc-cp__urgency-dot" aria-hidden="true"></span>
@@ -724,7 +732,7 @@ final class Shortcode_CoursePage {
                         <?php endif; ?>
                         <span class="slc-cp__final-now"><?php echo esc_html($offer['current']); ?></span>
                     </div>
-                    <a class="slc-cp__cta slc-cp__cta--lg" href="<?php echo esc_url($checkout_url); ?>"><?php echo esc_html($cta_label); ?></a>
+                    <?php echo self::cta_html($closed, $checkout_url, $cta_label, 'slc-cp__cta--lg'); ?>
                     <?php if ($offer['deadline'] !== ''): ?>
                         <div class="slc-cp__urgency slc-cp__urgency--center">
                             <span class="slc-cp__urgency-dot" aria-hidden="true"></span>
@@ -791,6 +799,29 @@ final class Shortcode_CoursePage {
             return (int) $post->ID;
         }
         return 0;
+    }
+
+    /**
+     * Botón de compra, o el cartel de cerrado si el curso no está a la venta.
+     * Único lugar de la plantilla que decide entre uno y otro (la landing lo
+     * pinta tres veces: hero, hero grande y cierre).
+     *
+     * @param array{reason:string, label:string}|null $closed
+     */
+    private static function cta_html(?array $closed, string $checkout_url, string $label, string $size_class): string {
+        if ($closed !== null) {
+            return sprintf(
+                '<span class="slc-cp__cta %1$s slc-cp__cta--closed" aria-disabled="true">%2$s</span>',
+                esc_attr($size_class),
+                esc_html($closed['label'])
+            );
+        }
+        return sprintf(
+            '<a class="slc-cp__cta %1$s" href="%2$s">%3$s</a>',
+            esc_attr($size_class),
+            esc_url($checkout_url),
+            esc_html($label)
+        );
     }
 
     private static function checkout_url(int $product_id): string {
@@ -888,6 +919,15 @@ final class Shortcode_CoursePage {
      * Detecta el provider del trailer y devuelve [embed, thumb, provider].
      * Se usa para el facade pattern (thumbnail estática + play, iframe se
      * carga on-click). Devuelve null si la URL no es válida.
+     *
+     * SEGURIDAD: el `embed` termina en `iframe.src` (ver el JS del facade, acá y
+     * en Shortcode_CoursePitch), sin CSP ni sandbox, en el origin de la tienda
+     * del cliente. La rama genérica confiaba en `FILTER_VALIDATE_URL`, que NO
+     * mira el esquema: un `javascript://x/%0aalert(1)` guardado en el campo
+     * trailer del curso pasaba el filtro y se ejecutaba cuando un visitante
+     * tocaba play. El LMS ya rechaza esos esquemas en la carga, pero validar la
+     * entrada no re-valida lo que ya está guardado — las filas envenenadas de
+     * una base existente las neutraliza este allowlist, no aquel.
      */
     private static function parse_trailer(string $url): ?array {
         $url = trim($url);
@@ -909,7 +949,10 @@ final class Shortcode_CoursePage {
                 'provider' => 'vimeo',
             ];
         }
-        if (filter_var($url, FILTER_VALIDATE_URL)) {
+        // Self-hosted / otro player: solo http(s). Las ramas de arriba no
+        // necesitan el chequeo porque construyen la URL del player ellas mismas.
+        $scheme = strtolower((string) wp_parse_url($url, PHP_URL_SCHEME));
+        if (in_array($scheme, ['http', 'https'], true) && filter_var($url, FILTER_VALIDATE_URL)) {
             return ['embed' => $url, 'thumb' => '', 'provider' => 'generic'];
         }
         return null;

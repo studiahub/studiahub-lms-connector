@@ -17,6 +17,8 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 * Sincroniza cursos del LMS como productos WC via `POST /wp-json/studiahub/v1/course-sync` (incluye pricing multi-moneda).
 * Conexión automática (OAuth-style) con el LMS: registra el webhook de compras (`order.created` + `order.updated`) sin configuración manual.
 * Expone `GET /wp-json/studiahub/v1/health` para test de conexión.
+* Expone `GET /wp-json/studiahub/v1/orders/recent` para que el LMS reconcilie las compras cuyo webhook nunca llegó.
+* Cierra la venta de verdad: un curso en preventa o con las inscripciones cerradas no se puede agregar al carrito ni pagar.
 * Auto-actualización: el plugin chequea las releases de GitHub y se actualiza solo, igual que un plugin del repo oficial. Sin tocar nada en cada sitio.
 
 == Installation ==

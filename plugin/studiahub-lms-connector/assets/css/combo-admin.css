@@ -160,3 +160,16 @@
 .slc-combo.is-hydrated .slc-combo__js-needed {
   display: none;
 }
+
+/* Aviso de monedas sin precio fijo. Usa el notice nativo de WP (mismo lenguaje
+   visual que el resto del wp-admin), solo ajustado al ancho del metabox lateral. */
+.slc-combo__warning {
+  margin: 12px 0 0;
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.slc-combo__warning p {
+  margin: 4px 0;
+}
