@@ -175,7 +175,37 @@ final class WebhookBootstrap {
                 continue;
             }
             self::maybe_reactivate($existing);
+            self::maybe_fix_owner($existing);
         }
+    }
+
+    /**
+     * Le devuelve el webhook a un usuario que pueda leer pedidos.
+     *
+     * Un webhook que quedó a nombre de un cliente (ver `resolve_owner_id()`) se
+     * ve perfectamente sano en WooCommerce: activo, sin fallas, entregas en
+     * verde. Lo único que cambia es que el body que sale es
+     * `{"code":"woocommerce_rest_cannot_view"}` en vez del pedido. Nada lo
+     * corrige solo, así que las instalaciones que ya quedaron así se arreglan
+     * acá, en la misma verificación que reactiva los webhooks pausados.
+     *
+     * Solo tocamos el dueño cuando NO puede leer pedidos: si el admin se lo
+     * asignó a un shop manager, esa decisión se respeta. No tocamos el status,
+     * así que el data store no dispara el `deliver_ping()` bloqueante.
+     */
+    private static function maybe_fix_owner(\WC_Webhook $webhook): void {
+        $owner = (int) $webhook->get_user_id();
+        if ($owner && user_can($owner, 'read_private_shop_orders')) {
+            return;
+        }
+
+        $replacement = self::resolve_owner_id();
+        if ($replacement === $owner) {
+            return; // No hay a quién pasárselo; el grant de Webhook_Payload cubre igual.
+        }
+
+        $webhook->set_user_id($replacement);
+        $webhook->save();
     }
 
     /**
@@ -398,7 +428,7 @@ final class WebhookBootstrap {
 
         $webhook = new \WC_Webhook();
         $webhook->set_name(self::WEBHOOK_NAME . ' (' . $topic . ')');
-        $webhook->set_user_id(get_current_user_id() ?: 1);
+        $webhook->set_user_id(self::resolve_owner_id());
         $webhook->set_topic($topic);
         $webhook->set_secret($secret);
         $webhook->set_delivery_url($delivery_url);
@@ -407,5 +437,52 @@ final class WebhookBootstrap {
         $webhook->save();
 
         return $webhook;
+    }
+
+    /**
+     * Quién queda de DUEÑO del webhook. No es un dato administrativo: WooCommerce
+     * serializa el payload con los permisos de ese usuario
+     * (`WC_Webhook::build_payload()` hace `wp_set_current_user()` antes de armar
+     * el body), y `/wc/v3/orders/{id}` exige `read_private_shop_orders`.
+     *
+     * Antes esto era `get_current_user_id() ?: 1`, y ese "el que esté logueado"
+     * es más peligroso de lo que parece, porque quien dispara la creación no
+     * siempre es el admin:
+     *
+     *   - `admin_init` corre también en `admin-ajax.php` y `admin-post.php`, y
+     *     WooCommerce EXIME esos dos archivos de su redirect de
+     *     `prevent_admin_access()`. Un cliente logueado en la tienda que toque
+     *     cualquier plugin con AJAX de frontend pasa por acá.
+     *   - `self_heal_on_order()` corre en `woocommerce_new_order`, o sea dentro
+     *     del checkout: si el comprador está logueado, el usuario corriente es
+     *     el comprador.
+     *
+     * Si en ese momento faltaba algún webhook, el que quedaba de dueño era el
+     * cliente — que no puede leer pedidos. A partir de ahí WooCommerce entrega
+     * `{"code":"woocommerce_rest_cannot_view"}` en vez del pedido, el LMS no
+     * puede inscribir a nadie y WooCommerce cuenta la entrega como exitosa
+     * (HTTP 200). Ventas cobradas que no llegan nunca, en silencio y para
+     * siempre.
+     *
+     * Preferimos al usuario corriente solo si REALMENTE puede leer pedidos (así
+     * el webhook queda a nombre de quien lo creó, que es lo esperable en el
+     * admin); si no, buscamos un administrador. El `?: 1` final es el último
+     * recurso de siempre.
+     */
+    private static function resolve_owner_id(): int {
+        $current = get_current_user_id();
+        if ($current && user_can($current, 'read_private_shop_orders')) {
+            return $current;
+        }
+
+        $admins = get_users([
+            'role'    => 'administrator',
+            'number'  => 1,
+            'orderby' => 'ID',
+            'order'   => 'ASC',
+            'fields'  => 'ID',
+        ]);
+
+        return $admins ? (int) $admins[0] : 1;
     }
 }

@@ -126,16 +126,19 @@ final class REST_Orders_Recent {
             return new \WP_REST_Response(['orders' => []], 200);
         }
 
-        $orders = self::with_order_read_access(static function () use ($order_ids) {
-            $out = [];
-            foreach ($order_ids as $order_id) {
-                $payload = Webhook_Payload::serialize_order((int) $order_id, 'v3', 'orders/recent');
-                if ($payload !== null) {
-                    $out[] = $payload;
-                }
+        // `serialize_order()` se encarga del permiso para leer el pedido: este
+        // request se autentica con nuestro Bearer y no tiene usuario de
+        // WordPress, así que sin eso el dispatch interno contestaría
+        // `woocommerce_rest_cannot_view` y el pull devolvería una lista vacía —
+        // silenciosamente, que es el peor final posible para una red de
+        // seguridad.
+        $orders = [];
+        foreach ($order_ids as $order_id) {
+            $payload = Webhook_Payload::serialize_order((int) $order_id, 'v3', 'orders/recent');
+            if ($payload !== null) {
+                $orders[] = $payload;
             }
-            return $out;
-        });
+        }
 
         return new \WP_REST_Response(['orders' => $orders], 200);
     }
@@ -148,38 +151,4 @@ final class REST_Orders_Recent {
         return $ts === false ? $fallback : $ts;
     }
 
-    /**
-     * Corre $fn pudiendo leer pedidos por la REST API de WooCommerce.
-     *
-     * `/wc/v3/orders/{id}` pasa por `wc_rest_check_post_permissions()`, que exige
-     * `read_private_shop_orders` sobre el usuario corriente. Un request a
-     * `studiahub/v1` se autentica con nuestro Bearer y NO tiene usuario de
-     * WordPress, así que sin esto el dispatch interno contesta
-     * `woocommerce_rest_cannot_view` y el pull devuelve una lista vacía —
-     * silenciosamente, que es el peor final posible para una red de seguridad.
-     *
-     * Elevamos por el filtro de WooCommerce y no con `wp_set_current_user()` a
-     * un admin: no hace falta inventar un usuario, el permiso queda acotado a
-     * leer pedidos (nada de crear/editar/borrar) y el `finally` garantiza que se
-     * saque aunque el dispatch tire una excepción. El token que habilita esto ya
-     * es de confianza total en el plugin: con el mismo Bearer, `course-sync`
-     * crea y edita productos.
-     *
-     * @return mixed
-     */
-    private static function with_order_read_access(callable $fn) {
-        $grant = static function ($permission, $context, $object_id, $post_type) {
-            if ($post_type === 'shop_order' && $context === 'read') {
-                return true;
-            }
-            return $permission;
-        };
-
-        add_filter('woocommerce_rest_check_permissions', $grant, 10, 4);
-        try {
-            return $fn();
-        } finally {
-            remove_filter('woocommerce_rest_check_permissions', $grant, 10);
-        }
-    }
 }

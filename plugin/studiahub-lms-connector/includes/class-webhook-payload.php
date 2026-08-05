@@ -32,6 +32,15 @@ if (!defined('ABSPATH')) {
  * descarta el evento. WooCommerce lo cuenta como entrega exitosa. La venta se
  * cobra y no queda rastro en ninguna capa.
  *
+ * LA SEGUNDA CAUSA, INDEPENDIENTE DE LA PRIMERA
+ * ---------------------------------------------
+ * El mismo body roto sale cuando el DUEÑO del webhook no puede leer pedidos.
+ * `build_payload()` arma el payload con los permisos de ese usuario, así que un
+ * webhook a nombre de un cliente entrega
+ * `{"code":"woocommerce_rest_cannot_view","data":{"status":403}}` en todas las
+ * compras, para siempre, con el checkout que sea y el gateway que sea. Y llegar
+ * a ese estado es fácil: ver `WebhookBootstrap::resolve_owner_id()`.
+ *
  * A QUIÉN LE PEGA
  * ---------------
  * Al checkout de bloques (el default de WC desde 8.3) cuando el gateway confirma
@@ -53,6 +62,11 @@ if (!defined('ABSPATH')) {
  * tiene ni `id`, registramos el controller de pedidos que falta y repetimos el
  * pedido REST interno tal como lo hace el core. El body que sale es el payload
  * auténtico de la REST API de WC, no una reconstrucción nuestra.
+ *
+ * Ese reintento se hace con el permiso de leer pedidos puesto a mano (ver
+ * `with_order_read_access()`) y no heredado del usuario corriente. Si dependiera
+ * del usuario no arreglaría nada en el caso del dueño sin permisos: sería pedir
+ * el mismo pedido con las mismas credenciales que ya fallaron.
  *
  * Por qué acá y no filtrando `wc_rest_should_load_namespace` para que `wc/v3` se
  * cargue durante los requests de `wc/store`:
@@ -165,10 +179,10 @@ final class Webhook_Payload {
      * corriente les pertenece, y ni el `shutdown` de un checkout de bloques ni
      * un request a `studiahub/v1` pertenecen a `wc/v3`.
      *
-     * OJO: no eleva permisos. `/wc/v3/orders/{id}` exige poder leer el pedido
-     * (`wc_rest_check_post_permissions`), así que el caller tiene que correrla
-     * dentro de un contexto que los tenga — `as_webhook_user()` acá,
-     * `with_order_read_access()` en el endpoint REST.
+     * El permiso para leer el pedido lo pone esta función (ver
+     * `with_order_read_access`): NO se lo delega al caller. Que dependiera del
+     * usuario corriente es justo lo que rompía el rescate cuando el webhook
+     * quedaba a nombre de un cliente.
      *
      * @param string $version 'v1' | 'v2' | 'v3' (versión de la REST API de WC).
      * @param string $context Quién pidió el payload, solo para el error_log.
@@ -191,7 +205,9 @@ final class Webhook_Payload {
             self::$registered[$version] = true;
         }
 
-        $payload = self::get_endpoint_data("/wc/{$version}/orders/{$order_id}");
+        $payload = self::with_order_read_access(static function () use ($version, $order_id) {
+            return self::get_endpoint_data("/wc/{$version}/orders/{$order_id}");
+        });
         if (self::looks_like_order($payload)) {
             // Un pedido rescatado tiene que dar EXACTAMENTE las mismas
             // inscripciones que uno entregado en vivo, así que el combo se
@@ -210,15 +226,22 @@ final class Webhook_Payload {
     /**
      * Corre $fn con el usuario del webhook, igual que WC_Webhook::build_payload().
      *
-     * No es un detalle: `build_payload()` eleva al usuario dueño del webhook,
-     * arma el payload y RESTAURA el usuario original ANTES de aplicar el filtro
-     * `woocommerce_webhook_payload`. O sea que nosotros corremos de vuelta como
-     * el usuario del request — en un checkout de bloques, un invitado — y
-     * `/wc/v3/orders/N` nos contesta `woocommerce_rest_cannot_view`.
+     * Esto NO es lo que da el permiso para leer el pedido — de eso se encarga
+     * `with_order_read_access()`. Elevar al dueño del webhook servía como permiso
+     * mientras el dueño fuera un administrador, y esa suposición se rompe sola:
+     * `WebhookBootstrap::create_webhook()` le pone de dueño al usuario que esté
+     * logueado cuando el webhook se crea, y esa creación puede dispararla
+     * cualquiera (ver el comentario de `resolve_owner_id()` allá). Con un dueño
+     * sin permisos, elevar a ese dueño no rescataba nada: era volver a pedir el
+     * pedido con las mismas credenciales que ya habían fallado.
+     *
+     * Lo que sigue aportando es PARIDAD: `build_payload()` arma el body con el
+     * usuario del webhook, así que el nuestro sale idéntico al de una entrega
+     * sana, incluidos los filtros de terceros que miren el usuario corriente.
      *
      * El `finally` no es decorativo: si el pedido REST tirara una excepción, sin
-     * él quedaría un request de invitado corriendo como administrador hasta el
-     * final del shutdown.
+     * él quedaría un request de invitado corriendo como el dueño del webhook
+     * hasta el final del shutdown.
      *
      * @return mixed
      */
@@ -229,6 +252,50 @@ final class Webhook_Payload {
             return $fn();
         } finally {
             wp_set_current_user($previous_user);
+        }
+    }
+
+    /**
+     * Corre $fn pudiendo leer pedidos por la REST API de WooCommerce.
+     *
+     * `/wc/v3/orders/{id}` pasa por `wc_rest_check_post_permissions()`, que exige
+     * `read_private_shop_orders` sobre el usuario corriente. Ninguno de los dos
+     * llamadores de `serialize_order()` puede garantizar ese usuario:
+     *
+     *   - El repair del webhook corre como el DUEÑO del webhook, que puede ser
+     *     cualquiera (un cliente que pasó por `admin-ajax.php` justo cuando el
+     *     webhook no existía alcanza para quedarse con la titularidad).
+     *   - El pull de `REST_Orders_Recent` se autentica con nuestro Bearer y no
+     *     tiene usuario de WordPress ninguno.
+     *
+     * En ambos casos, sin esto el dispatch interno contesta
+     * `woocommerce_rest_cannot_view` y la venta se pierde en silencio: el LMS
+     * recibe un error REST en vez del pedido y WooCommerce cuenta la entrega
+     * como exitosa.
+     *
+     * Elevamos por el filtro de WooCommerce y no con `wp_set_current_user()` a
+     * un admin: no hace falta inventar un usuario, el permiso queda acotado a
+     * LEER pedidos (nada de crear/editar/borrar, nada de otros post types) y el
+     * `finally` garantiza que se saque aunque el dispatch tire una excepción.
+     * Los dos llamadores ya son contextos de confianza total: uno es un webhook
+     * nuestro cuyo body va firmado con HMAC a la URL del LMS y nada más, el otro
+     * es el mismo Bearer con el que `course-sync` crea y edita productos.
+     *
+     * @return mixed
+     */
+    private static function with_order_read_access(callable $fn) {
+        $grant = static function ($permission, $context, $object_id, $post_type) {
+            if ($post_type === 'shop_order' && $context === 'read') {
+                return true;
+            }
+            return $permission;
+        };
+
+        add_filter('woocommerce_rest_check_permissions', $grant, 10, 4);
+        try {
+            return $fn();
+        } finally {
+            remove_filter('woocommerce_rest_check_permissions', $grant, 10);
         }
     }
 
