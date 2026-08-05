@@ -21,9 +21,10 @@ if (!defined('ABSPATH')) {
  * - En admin_init verifica que exista un webhook por cada topic con
  *   delivery_url={lms_url}/api/webhooks/woocommerce. Si falta alguno, lo crea.
  * - Si se guarda/cambia la URL del LMS, re-verifica.
- * - Si un webhook ya existe (en cualquier estado — active o disabled), no lo
- *   toca: respeta la decisión del admin. Para forzar reset se usa el botón
- *   "Recrear webhook" de la settings page.
+ * - Si un webhook ya existe y está activo, no lo toca. Si está desactivado,
+ *   distingue quién lo apagó: si fue WooCommerce por entregas fallidas lo
+ *   reactiva (ver maybe_reactivate); si lo apagó una persona, lo respeta. Para
+ *   forzar un reset completo está el botón "Recrear webhook" de la settings page.
  */
 final class WebhookBootstrap {
     /** Topics que registramos. Ambos apuntan al mismo delivery_url. */
@@ -31,15 +32,59 @@ final class WebhookBootstrap {
     private const WEBHOOK_NAME  = 'StudiaHub LMS sync';
     private const LMS_WEBHOOK_PATH = '/api/webhooks/woocommerce';
 
+    /** Segundos de timeout de la entrega HTTP. Ver filter_http_args(). */
+    private const DELIVERY_TIMEOUT = 10;
+
+    /** Guarda cuándo reactivamos por última vez un webhook que WC había pausado. */
+    public const OPT_REACTIVATED_AT = 'slc_webhook_reactivated_at';
+
     public static function register_hooks(): void {
         add_action('admin_init', [self::class, 'ensure_webhook']);
         add_action('update_option_' . Settings::OPT_LMS_URL, [self::class, 'on_lms_url_changed'], 10, 2);
         add_action('add_option_' . Settings::OPT_LMS_URL, [self::class, 'ensure_webhook']);
         add_action('admin_post_slc_recreate_webhook', [self::class, 'handle_recreate']);
+        add_filter('woocommerce_webhook_http_args', [self::class, 'filter_http_args'], 10, 3);
     }
 
     /**
-     * Verifica que exista un webhook por cada topic. Crea los que falten.
+     * Baja el timeout de entrega de NUESTROS webhooks (los que apuntan al LMS).
+     *
+     * La entrega síncrona es deliberada: el plugin fuerza
+     * woocommerce_webhook_deliver_async => false (ver Plugin::register_hooks)
+     * para que el enrollment se cree ni bien se completa el pago, sin depender
+     * de wp-cron. Lo que sobra es el timeout de WC core, que arma la request con
+     * 'timeout' => MINUTE_IN_SECONDS y 'blocking' => true (WC_Webhook::deliver).
+     *
+     * Con dos topics registrados eso son hasta 120s de un worker de PHP-FPM
+     * clavado dentro del request del checkout o del IPN del gateway. El caso
+     * malo no es el LMS caído (ahí falla rápido) sino el LMS lento: la DB
+     * despertando del autosuspend, un redeploy en curso. Con unas pocas compras
+     * concurrentes se acaban los workers y se cae el WP entero, landings de
+     * venta incluidas — y si el gateway timeoutea su IPN, reintenta y multiplica.
+     *
+     * 10s le sobran a un LMS sano (~100-500ms de round-trip) y le alcanzan a uno
+     * despertando, sin poner en riesgo al WordPress. Si aun así falla, el LMS
+     * reconcilia las órdenes por su lado y el admin tiene el botón
+     * "Recrear webhook" en la settings page.
+     *
+     * Solo tocamos los webhooks cuyo delivery URL apunta al endpoint del LMS:
+     * los de otros plugins del cliente se quedan con el default de WC.
+     *
+     * @param array $http_args  Args para wp_safe_remote_post().
+     * @param mixed $arg        Primer argumento del hook (null si es el ping).
+     * @param int   $webhook_id ID del webhook que se está entregando.
+     */
+    public static function filter_http_args($http_args, $arg, $webhook_id) {
+        if (!is_array($http_args) || !self::is_lms_webhook((int) $webhook_id)) {
+            return $http_args;
+        }
+        $http_args['timeout'] = self::DELIVERY_TIMEOUT;
+        return $http_args;
+    }
+
+    /**
+     * Verifica que exista un webhook activo por cada topic. Crea los que falten
+     * y reactiva los que WC haya pausado por fallos.
      */
     public static function ensure_webhook(): void {
         if (!class_exists('WC_Data_Store')) {
@@ -50,10 +95,54 @@ final class WebhookBootstrap {
             return; // LMS URL no configurada todavía
         }
         foreach (self::WEBHOOK_TOPICS as $topic) {
-            if (!self::find_webhook($delivery_url, $topic)) {
+            $existing = self::find_webhook($delivery_url, $topic);
+            if (!$existing) {
                 self::create_webhook($delivery_url, $topic);
+                continue;
             }
+            self::maybe_reactivate($existing);
         }
+    }
+
+    /**
+     * Un webhook en 'disabled' puede estarlo por dos motivos muy distintos:
+     *
+     *   - Lo apagó una persona desde WC → Ajustes → Avanzado → Webhooks. Esa
+     *     decisión se respeta.
+     *   - Lo apagó WooCommerce solo. WC_Webhook::failed_delivery() cuenta como
+     *     falla cualquier respuesta fuera del rango 2xx/301/302 y desactiva el
+     *     webhook cuando el contador supera el umbral. Un redeploy del LMS
+     *     devolviendo 502 de Traefik alcanza. WC no reintenta ninguna entrega,
+     *     así que a partir de ese momento toda compra se cobra y ninguna llega
+     *     al LMS, para siempre y en silencio. Eso no es una decisión del admin.
+     *
+     * Los distinguimos por el contador de fallas: WC solo desactiva cuando
+     * supera su propio umbral (5 por default, filtrable), y no lo resetea al
+     * hacerlo. Un 'disabled' con el contador por encima del umbral es obra de
+     * WC; con el contador bajo, de una persona.
+     *
+     * Al reactivar reseteamos el contador — si no, la primera falla siguiente lo
+     * vuelve a apagar — y dejamos rastro en una option para poder avisarle al
+     * admin en la settings page.
+     */
+    private static function maybe_reactivate(\WC_Webhook $webhook): void {
+        if ($webhook->get_status() === 'active') {
+            return;
+        }
+        $max_failures = (int) apply_filters('woocommerce_max_webhook_delivery_failures', 5);
+        if ((int) $webhook->get_failure_count() <= $max_failures) {
+            return; // Lo apagó una persona, no WC.
+        }
+
+        $webhook->set_status('active');
+        $webhook->set_failure_count(0);
+        // Sin esto, el data store de WC dispara un deliver_ping() bloqueante al
+        // guardar un webhook activo con entrega pendiente — justo lo que no
+        // queremos colgado de un admin_init si el LMS está lento.
+        $webhook->set_pending_delivery(false);
+        $webhook->save();
+
+        update_option(self::OPT_REACTIVATED_AT, time(), false);
     }
 
     public static function on_lms_url_changed($old, $new): void {
@@ -105,6 +194,8 @@ final class WebhookBootstrap {
             }
             $ok = (bool) self::create_webhook($delivery_url, $topic) && $ok;
         }
+        // Webhooks nuevos: el aviso de reactivación automática ya no aplica.
+        delete_option(self::OPT_REACTIVATED_AT);
         return $ok;
     }
 
@@ -198,6 +289,24 @@ final class WebhookBootstrap {
             }
         }
         return null;
+    }
+
+    /**
+     * ¿El webhook apunta al endpoint del LMS? Matcheamos por path (igual que
+     * delete_all_for_lms) para cubrir también los que quedaron con una LMS URL
+     * vieja. Cacheado en memoria: en un mismo request se pueden entregar los
+     * dos topics.
+     */
+    private static function is_lms_webhook(int $webhook_id): bool {
+        if ($webhook_id <= 0 || !class_exists('WC_Webhook')) {
+            return false;
+        }
+        static $cache = [];
+        if (!isset($cache[$webhook_id])) {
+            $webhook = new \WC_Webhook($webhook_id);
+            $cache[$webhook_id] = strpos($webhook->get_delivery_url(), self::LMS_WEBHOOK_PATH) !== false;
+        }
+        return $cache[$webhook_id];
     }
 
     private static function create_webhook(string $delivery_url, string $topic): ?\WC_Webhook {
