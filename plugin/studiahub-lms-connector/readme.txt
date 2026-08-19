@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.17.1
+Stable tag: 0.17.2
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -31,6 +31,9 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.17.2 =
+* La página de venta del curso se quedaba congelada con información vieja. Cambiabas fechas, precios o textos en la plataforma, el curso se guardaba bien, pero la página seguía mostrando la versión anterior por tiempo indefinido — semanas enteras, sin ningún aviso. Ocurría porque el control que decide si un curso se puede comprar consultaba la copia de respaldo guardada, y eso hacía que la página se conformara con esa copia en vez de pedirle la información actualizada a la plataforma. Nunca volvía a preguntar, y como la copia de respaldo solo se renueva cuando se pregunta, quedaba dando vueltas sobre sí misma. Ahora cada uno usa su propia memoria y la página vuelve a actualizarse sola.
 
 = 0.17.1 =
 * Compras que se perdían según a nombre de quién hubiera quedado el aviso automático. Tu tienda arma el aviso con los permisos del usuario que lo creó; si ese usuario era un cliente (algo que podía pasar sin que nadie lo notara, incluso durante una compra), la tienda le mandaba a la academia un error de permisos en vez del pedido y nadie quedaba inscripto. Ahora el aviso se crea siempre a nombre de alguien que pueda ver los pedidos, y además el pedido se lee correctamente sin importar de quién sea el aviso. Las tiendas que ya hubieran quedado en ese estado se reparan solas.

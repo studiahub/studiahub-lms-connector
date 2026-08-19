@@ -51,6 +51,18 @@ final class Landing_Fetch {
     /** Memo por request: la misma landing se pide varias veces por render. */
     private static array $memo = [];
 
+    /**
+     * Memo SEPARADO del camino cache-only (get_cached_payload).
+     *
+     * No puede compartir $memo con get_payload(): `woocommerce_is_purchasable`
+     * corre en cada render de producto ANTES del contenido y entra por el camino
+     * cache-only. Si eso memoizara en $memo, el shortcode que viene después se
+     * encontraría la copia vieja ya resuelta y devolvería sin fetchear nunca —
+     * y como el LKG solo se pisa con un fetch exitoso, la landing quedaba
+     * congelada para siempre. Pasó en producción: un mes sin actualizarse.
+     */
+    private static array $memo_cached = [];
+
     public static function get_payload(string $course_id): ?array {
         // 0. Filter de override — usado por el mu-plugin de dev para inyectar
         // un payload mockeado y permitir trabajar el diseño sin LMS corriendo.
@@ -115,8 +127,13 @@ final class Landing_Fetch {
         if (is_array($override)) {
             return $override;
         }
+        // Si get_payload() ya resolvió en este request, esa respuesta es la mejor
+        // que tenemos (puede venir de un fetch fresco) y vale para este camino.
         if (array_key_exists($course_id, self::$memo)) {
             return self::$memo[$course_id];
+        }
+        if (array_key_exists($course_id, self::$memo_cached)) {
+            return self::$memo_cached[$course_id];
         }
 
         $cached = self::read_cached(self::keys($course_id));
@@ -128,7 +145,8 @@ final class Landing_Fetch {
         if ($cached === null) {
             return null;
         }
-        return self::$memo[$course_id] = $cached;
+        // Va al memo cache-only: NO puede envenenar el de get_payload().
+        return self::$memo_cached[$course_id] = $cached;
     }
 
     /**
@@ -144,7 +162,7 @@ final class Landing_Fetch {
         delete_transient($keys['fresh']);
         delete_transient($keys['stale']);
         delete_transient($keys['backoff']);
-        unset(self::$memo[$course_id]);
+        unset(self::$memo[$course_id], self::$memo_cached[$course_id]);
     }
 
     /** Borra TODO lo cacheado del curso, incluida la última copia buena. */
@@ -154,7 +172,7 @@ final class Landing_Fetch {
         delete_transient($keys['stale']);
         delete_transient($keys['backoff']);
         delete_option($keys['lkg']);
-        unset(self::$memo[$course_id]);
+        unset(self::$memo[$course_id], self::$memo_cached[$course_id]);
     }
 
     /**
