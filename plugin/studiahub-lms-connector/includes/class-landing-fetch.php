@@ -43,7 +43,7 @@ if (!defined('ABSPATH')) {
  * entrantes en Auth).
  */
 final class Landing_Fetch {
-    private const TTL_FRESH   = 900;     // 15 min
+    public const TTL_FRESH    = 900;     // 15 min
     private const TTL_STALE   = 604800;  // 7 días
     private const TTL_BACKOFF = 60;      // 1 min sin reintentar tras una falla
     private const TIMEOUT_S   = 5;
@@ -94,6 +94,10 @@ final class Landing_Fetch {
                 set_transient($keys['fresh'], $result['payload'], self::TTL_FRESH);
                 set_transient($keys['stale'], $result['payload'], self::TTL_STALE);
                 self::store_last_known_good($keys['lkg'], $result['payload']);
+                // Marca de "esto lo trajimos del LMS recién". Sin esto no hay forma
+                // de distinguir un payload de hace cinco minutos de uno de hace tres
+                // semanas: las tres capas se ven igual de frescas al leerlas.
+                update_option($keys['at'], time(), false);
                 return self::$memo[$course_id] = $result['payload'];
             }
 
@@ -172,11 +176,81 @@ final class Landing_Fetch {
         delete_transient($keys['stale']);
         delete_transient($keys['backoff']);
         delete_option($keys['lkg']);
+        delete_option($keys['at']);
         unset(self::$memo[$course_id], self::$memo_cached[$course_id]);
     }
 
     /**
-     * @return array{fresh:string, stale:string, backoff:string, lkg:string}
+     * Radiografía de la caché de un curso, para diagnóstico.
+     *
+     * NO fetchea, NO escribe y NO memoiza: es seguro llamarla desde un endpoint
+     * o desde el admin sin alterar lo que ve el visitante. Lo aclaro porque el
+     * bug que motivó todo esto se nos escondió justamente porque cada intento de
+     * medirlo lo arreglaba sin querer.
+     *
+     * @return array{served_from:string, last_success_at:?int, age_seconds:?int,
+     *               backoff_active:bool, has_payload:bool, content_version:?string}
+     */
+    public static function status(string $course_id): array {
+        // Si hay un override (el mock de dev), es lo que realmente se está
+        // renderizando. Reportar la caché de abajo sería mentir, y el cron
+        // terminaría avisando de un problema inexistente en cada entorno local.
+        $override = apply_filters('slc_landing_payload_override', null, $course_id);
+        if (is_array($override)) {
+            return [
+                'served_from'     => 'override',
+                'last_success_at' => null,
+                'age_seconds'     => null,
+                'backoff_active'  => false,
+                'has_payload'     => true,
+                'content_version' => isset($override['contentVersion'])
+                    ? (string) $override['contentVersion']
+                    : null,
+            ];
+        }
+
+        $keys    = self::keys($course_id);
+        $payload = null;
+        $from    = 'none';
+
+        // Mismo orden que read_cached(), para reportar la capa que se serviría.
+        $fresh = get_transient($keys['fresh']);
+        if (is_array($fresh)) {
+            $payload = $fresh;
+            $from    = 'fresh';
+        } else {
+            $stale = get_transient($keys['stale']);
+            if (is_array($stale)) {
+                $payload = $stale;
+                $from    = 'stale';
+            } else {
+                $lkg = get_option($keys['lkg']);
+                if (is_array($lkg)) {
+                    $payload = $lkg;
+                    $from    = 'lkg';
+                }
+            }
+        }
+
+        $at = (int) get_option($keys['at'], 0);
+
+        return [
+            'served_from'     => $from,
+            'last_success_at' => $at > 0 ? $at : null,
+            'age_seconds'     => $at > 0 ? max(0, time() - $at) : null,
+            'backoff_active'  => get_transient($keys['backoff']) !== false,
+            'has_payload'     => is_array($payload),
+            // Huella de contenido que manda el LMS. Es lo que le permite al canario
+            // comparar lo que estamos sirviendo contra lo que el LMS tiene ahora,
+            // sin depender de que alguien mire la página.
+            'content_version' => is_array($payload) && isset($payload['contentVersion'])
+                ? (string) $payload['contentVersion']
+                : null,
+        ];
+    }
+
+    /**
+     * @return array{fresh:string, stale:string, backoff:string, lkg:string, at:string}
      */
     private static function keys(string $course_id): array {
         $hash = md5($course_id);
@@ -186,6 +260,15 @@ final class Landing_Fetch {
             'backoff' => 'slc_landing_fail_' . $hash,
             // Nombre de option: hasta 191 chars en WP, el hash entra holgado.
             'lkg'     => 'slc_landing_lkg_' . $hash,
+            // Timestamp del último fetch exitoso, en una option APARTE.
+            //
+            // Aparte y no adentro del LKG a propósito: el LKG guarda el payload
+            // plano y read_cached() lo devuelve tal cual. Envolverlo para meterle
+            // el timestamp haría que se sirva el envoltorio como si fuera el
+            // payload — landing vacía — y encima habría que migrar los LKG que ya
+            // están guardados en cada cliente. Separado no se migra nada, y volver
+            // a una versión anterior del plugin simplemente ignora esta option.
+            'at'      => 'slc_landing_at_' . $hash,
         ];
     }
 

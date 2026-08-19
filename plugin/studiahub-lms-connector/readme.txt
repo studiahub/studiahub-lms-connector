@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.17.2
+Stable tag: 0.18.0
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -16,7 +16,8 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 * Renderiza la landing del curso en vivo desde el LMS con los shortcodes `[studiahub_course_page]` y `[studiahub_course_pitch]` (estilo DTC), sin ACFs. El branding del tenant se inyecta dinámicamente.
 * Sincroniza cursos del LMS como productos WC via `POST /wp-json/studiahub/v1/course-sync` (incluye pricing multi-moneda).
 * Conexión automática (OAuth-style) con el LMS: registra el webhook de compras (`order.created` + `order.updated`) sin configuración manual.
-* Expone `GET /wp-json/studiahub/v1/health` para test de conexión.
+* Expone `GET /wp-json/studiahub/v1/health` para test de conexión (con `?check_lms=1` también verifica la vuelta: que este WP alcance al LMS).
+* Expone `GET /wp-json/studiahub/v1/landing-status` con la radiografía de la caché de la landing (qué copia se sirve y hace cuánto), para que el LMS detecte contenido desactualizado sin depender de que alguien mire la página.
 * Expone `GET /wp-json/studiahub/v1/orders/recent` para que el LMS reconcilie las compras cuyo webhook nunca llegó.
 * Cierra la venta de verdad: un curso en preventa o con las inscripciones cerradas no se puede agregar al carrito ni pagar.
 * Auto-actualización: el plugin chequea las releases de GitHub y se actualiza solo, igual que un plugin del repo oficial. Sin tocar nada en cada sitio.
@@ -31,6 +32,13 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.18.0 =
+* Si la página de venta deja de actualizarse, ahora te enterás. Antes podía quedar mostrando precios y fechas viejos durante semanas sin que nada fallara ni avisara: cada parte funcionaba, la página cargaba bien, y el problema solo se descubría si alguien la miraba de casualidad. Ahora el plugin controla cada hora hace cuánto que no trae contenido de la plataforma y, si quedó atrasado o no logra conectarse, lo avisa en el panel de WordPress.
+* La página se refresca sola aunque nadie la visite. El contenido se renovaba únicamente cuando alguien abría la página, así que en un sitio con poco tráfico el primer visitante del día se encontraba con información vieja. Ahora se renueva por reloj, empezando siempre por los cursos más atrasados.
+* Los cambios se publican al instante. Cuando la plataforma avisaba que un curso cambió, el plugin solo descartaba lo viejo: el contenido nuevo recién se buscaba cuando alguien abría la página, así que en un sitio con poco tráfico la novedad podía tardar horas en verse. Ahora lo trae en el mismo momento del aviso.
+* La plataforma puede auditar por su cuenta qué está publicado. El plugin expone en qué estado está el contenido de cada curso, para que la plataforma detecte diferencias y las corrija sin depender de que alguien mire la página.
+* "Probar conexión" ahora prueba las dos direcciones. Verificaba solo que la plataforma llegara a tu sitio, y por eso podía dar verde mientras el sitio no lograba traer el contenido del curso — que es la parte de la que depende la página de venta. Ahora comprueba también el camino de vuelta y avisa si está cortado.
 
 = 0.17.2 =
 * La página de venta del curso se quedaba congelada con información vieja. Cambiabas fechas, precios o textos en la plataforma, el curso se guardaba bien, pero la página seguía mostrando la versión anterior por tiempo indefinido — semanas enteras, sin ningún aviso. Ocurría porque el control que decide si un curso se puede comprar consultaba la copia de respaldo guardada, y eso hacía que la página se conformara con esa copia en vez de pedirle la información actualizada a la plataforma. Nunca volvía a preguntar, y como la copia de respaldo solo se renueva cuando se pregunta, quedaba dando vueltas sobre sí misma. Ahora cada uno usa su propia memoria y la página vuelve a actualizarse sola.
