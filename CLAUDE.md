@@ -4,6 +4,8 @@ Contexto para cualquier agente que abra este repo. Leé también el [README](REA
 
 Para dar de alta un tenant nuevo o debuggear precios/landing vacía, mirá **[docs/multimoneda-y-troubleshooting.md](docs/multimoneda-y-troubleshooting.md)** (cadena de la landing, regla de oro de multimoneda `woocommerce_currency` = principal del LMS, WOOCS vs Booster, qué postmeta esperar).
 
+🔴 **Si la landing muestra precios, fechas o textos que ya no son los del curso, leé [docs/landing-desactualizada.md](docs/landing-desactualizada.md) ANTES de tocar nada.** Ese caso ya nos costó horas de diagnóstico por perseguir hipótesis equivocadas, y la guía arranca con la heurística que lo resuelve en minutos. Lo más importante de todo: `Landing_Fetch::get_payload()` **muta estado** — cada vez que lo llamás para medir, arregla el síntoma sin querer y te borra la evidencia. Para mirar sin tocar está `GET /wp-json/studiahub/v1/landing-status`.
+
 ## Qué es
 Plugin de WordPress que conecta WooCommerce con el StudiaHub LMS. Renderiza la **landing del curso en vivo** desde el LMS con dos shortcodes:
 - `[studiahub_course_page]` — variante "refinada".
@@ -41,6 +43,17 @@ Cuando el usuario quiera **cambiar algo de la landing, previsualizar otra info, 
 1. **Avisale explícitamente** que esa data sale de este mock (`.docker/dev-mock/payload.json.disabled`), no del LMS.
 2. **Ofrecele editarlo vos** por él (cambiar la fecha, vaciar reseñas, togglear `salesClosed`, etc.) para que vea la variante que necesita — o explicale qué campo tocar si prefiere hacerlo él.
 3. Si las fechas del mock quedaron en el pasado (mirá `courseStartAt` / `offerDeadlineAt`), corrélas al futuro para que el countdown y el timer de oferta se vean activos.
+
+## Cómo se mantiene la landing al día
+
+La landing no se lee del LMS en cada visita: se cachea en tres capas (transient 15 min → transient 7 días → **option sin vencimiento**). Esa tercera capa existe para que una caída del LMS no deje la página vacía, pero tiene un costo: **una copia mala se puede servir para siempre**, porque solo la reemplaza un fetch exitoso.
+
+Lo que mantiene la cadena viva:
+- El LMS avisa de cada cambio (`POST /cache-bust`), y el plugin **invalida y trae el contenido nuevo en el momento** — no espera a que entre un visitante.
+- Un cron horario del plugin refresca lo que haya vencido, empezando por los más atrasados, y avisa en el panel si algo quedó viejo.
+- Un canario horario del lado del LMS compara lo publicado contra lo real y alerta en Sentry si no se corrige solo.
+
+Detalle completo en **[docs/observabilidad-landing.md](docs/observabilidad-landing.md)**. Si tocás algo de esta cadena, tené presente que `Purchase_Gate` corre en **cada visita, antes del contenido** — ahí nació el peor bug que tuvo este plugin.
 
 ## Estructura
 - `plugin/` — el plugin (lo único que se empaqueta y llega a los WP).
