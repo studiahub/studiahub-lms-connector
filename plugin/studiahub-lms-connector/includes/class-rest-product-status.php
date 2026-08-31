@@ -50,6 +50,29 @@ if (!defined('ABSPATH')) {
  *
  * Cualquier otro valor se rechaza con 400 `slc_invalid_status`.
  *
+ * ── Por qué se rechaza un producto marcado como combo ───────────────────────
+ *
+ * Un producto con `_lms_is_combo` = 'yes' vende VARIOS cursos (Product_Metabox).
+ * Si además llega hasta acá es porque el LMS lo tiene guardado como el
+ * `wcProductId` de UN curso puntual, y eso es un estado de configuración
+ * ambiguo: el mismo producto es a la vez "el producto de este curso" y "el que
+ * vende otros N". Pasarlo a borrador porque uno solo de esos cursos se dejó de
+ * publicar dejaría a todos los demás sin venta, sin que explote nada y sin que
+ * nadie se entere hasta que alguien note que no entran compras.
+ *
+ * Ese pareo ambiguo puede existir por otros motivos (course-sync también le
+ * pisa el título y el precio al combo en cada sync, que es un bug aparte y
+ * preexistente). Pero que ya esté roto no es razón para agregarle una forma
+ * nueva de romperse, y esta ruta sería una: la diferencia es que la de acá
+ * sería silenciosa. Así que frenamos con 409 `slc_product_is_combo` y le
+ * decimos al cliente qué mirar, en vez de bajar la página y no avisar.
+ *
+ * Ojo con el orden dentro de handle(): el guard protege la ESCRITURA, así que
+ * va después del caso papelera (ahí no se escribe nada y la página ya está
+ * abajo) y antes del chequeo de idempotencia — si el pareo está mal, tampoco
+ * queremos contestarle "listo, lo bajamos" al LMS y que dé por buena una
+ * relación curso↔producto que no lo es.
+ *
  * Auth: misma Bearer key que el resto de los endpoints (Auth::verify_request).
  */
 final class REST_Product_Status {
@@ -135,6 +158,22 @@ final class REST_Product_Status {
         // esta pregunta "¿la página está abajo?".
         if ($post->post_status === 'trash') {
             return self::respond($product_id, 'trash', false);
+        }
+
+        // Ver el docblock: un combo vende varios cursos, así que bajarlo por uno
+        // solo se lleva puesta la venta de los demás. No lo tocamos y avisamos.
+        if (get_post_meta($product_id, Product_Metabox::META_IS_COMBO, true) === 'yes') {
+            return new \WP_Error(
+                'slc_product_is_combo',
+                sprintf(
+                    'El producto #%d está marcado como combo de cursos, así que también vende otros cursos: '
+                    . 'pasarlo a borrador los dejaría a todos sin venta. No lo tocamos. '
+                    . 'Revisalo en WooCommerce: o le destildás "Este producto es un combo de cursos", '
+                    . 'o creale un producto propio a este curso.',
+                    $product_id
+                ),
+                ['status' => 409]
+            );
         }
 
         $product = wc_get_product($product_id);
