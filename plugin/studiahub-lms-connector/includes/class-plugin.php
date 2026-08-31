@@ -33,6 +33,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-orders-recent.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-pair.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-cache-bust.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-rest-product-status.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-lms-courses.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-landing-status.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-landing-health.php';
@@ -62,6 +63,7 @@ final class Plugin {
         REST_Orders_Recent::register_hooks();
         REST_Pair::register_hooks();
         REST_Cache_Bust::register_hooks();
+        REST_Product_Status::register_hooks();
         REST_Landing_Status::register_hooks();
         Landing_Health::register_hooks();
         REST_LMS_Courses::register_hooks();
