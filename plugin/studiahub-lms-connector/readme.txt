@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.18.0
+Stable tag: 0.19.0
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -32,6 +32,10 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.19.0 =
+* Al dejar de publicar un curso, su página de venta ahora se baja sola. Antes apagarlo en la plataforma no tocaba la tienda: la página seguía online, visible en Google y compartible por link, y había que entrar a WordPress a pasarla a borrador a mano. Al que se olvidaba le quedaba a la venta un curso que ya no vendía. Ahora pasa a borrador en el momento. Volver a publicarla sigue siendo decisión tuya: la plataforma puede bajar una página, nunca subirla.
+* Los combos quedan protegidos. Si un producto está marcado como combo de cursos, vende varios a la vez: dejar de publicar uno solo de ellos no lo baja, porque eso dejaría sin venta a todos los demás. En ese caso la plataforma te avisa cuál es el producto y qué revisar, en vez de bajarlo sin decir nada.
 
 = 0.18.0 =
 * Si la página de venta deja de actualizarse, ahora te enterás. Antes podía quedar mostrando precios y fechas viejos durante semanas sin que nada fallara ni avisara: cada parte funcionaba, la página cargaba bien, y el problema solo se descubría si alguien la miraba de casualidad. Ahora el plugin controla cada hora hace cuánto que no trae contenido de la plataforma y, si quedó atrasado o no logra conectarse, lo avisa en el panel de WordPress.
