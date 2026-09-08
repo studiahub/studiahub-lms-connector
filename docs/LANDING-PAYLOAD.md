@@ -58,8 +58,9 @@ Convención de columnas: **Dónde** = en qué shortcode se usa (`ambos` / `pitch
 | `courseType` | enum | ambos | `on_demand` \| `live` \| `in_person` \| `hybrid` → chip "On demand / En vivo / Presencial / Híbrido". |
 | `level` | string | ambos | Nivel (ej "Intermedio", "Intermedio / Avanzado"). |
 | `language` | string | ambos | Idioma. |
-| `durationHours` | int | ambos | Duración total en horas (chip). |
-| `totalDurationMin` | int | ambos | Duración total en minutos. |
+| `accessDays` | int ≥ 0 | pitch | Plazo de acceso, no duración del contenido. Chip del encabezado y checklist de la pricing card: `30` → "Acceso por 30 días", `1` → "Acceso por 1 día", `0` → "Acceso de por vida". Ausente, `null` o inválido → se oculta en ambos lugares; no se convierten strings, booleanos, fracciones ni negativos. |
+| `durationHours` | number | page | Horas de contenido derivadas de los segundos de video en el LMS; se conserva en el payload público. Solo `page` muestra el chip; `pitch` omite las horas intencionalmente. |
+| `totalDurationMin` | int | page | Duración del contenido en minutos, no horas ni plazo de acceso. Fallback del chip en `page`; `pitch` no muestra un chip total (sí las duraciones del temario). |
 | `hasCertificate` | bool | ambos | `true` → chip "Certificado". |
 | `modulesCount` | int | ambos | Cantidad de módulos. |
 | `lessonsCount` | int | ambos | Cantidad de lecciones. |

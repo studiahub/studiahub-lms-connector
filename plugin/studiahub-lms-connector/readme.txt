@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.19.0
+Stable tag: 0.20.0
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -32,6 +32,10 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.20.0 =
+* La página de venta muestra el plazo de acceso al curso en el encabezado y junto al precio: "Acceso por X días" o "Acceso de por vida", según la configuración del LMS. Este plazo es independiente de la duración del contenido.
+* Si una copia anterior del curso todavía no incluye el plazo de acceso, o el dato no es válido, la página lo omite en lugar de anunciar acceso de por vida.
 
 = 0.19.0 =
 * Al dejar de publicar un curso, su página de venta ahora se baja sola. Antes apagarlo en la plataforma no tocaba la tienda: la página seguía online, visible en Google y compartible por link, y había que entrar a WordPress a pasarla a borrador a mano. Al que se olvidaba le quedaba a la venta un curso que ya no vendía. Ahora pasa a borrador en el momento. Volver a publicarla sigue siendo decisión tuya: la plataforma puede bajar una página, nunca subirla.
