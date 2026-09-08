@@ -114,6 +114,7 @@ final class Shortcode_CoursePitch {
         $short_desc  = trim((string) ($payload['shortDescription'] ?? ''));
         $long_desc   = trim((string) ($payload['longDescription'] ?? ''));
         $type_key    = (string) ($payload['courseType'] ?? '');
+        $access_label = self::format_access_duration($payload['accessDays'] ?? null);
         $hours       = (int) ($payload['durationHours'] ?? 0);
         $level       = trim((string) ($payload['level'] ?? ''));
         $language    = trim((string) ($payload['language'] ?? ''));
@@ -166,6 +167,10 @@ final class Shortcode_CoursePitch {
         $outcomes  = is_array($payload['learningOutcomes'] ?? null) ? $payload['learningOutcomes'] : [];
         $audience  = is_array($payload['targetAudience'] ?? null) ? $payload['targetAudience'] : [];
         $materials = is_array($payload['includedMaterials'] ?? null) ? $payload['includedMaterials'] : [];
+        $pricing_materials = $materials;
+        if ($access_label !== '') {
+            $pricing_materials[] = ['text' => $access_label];
+        }
         $reqs      = is_array($payload['requirements'] ?? null) ? $payload['requirements'] : [];
         $reqs_img  = trim((string) ($payload['requirementsImageUrl'] ?? $payload['thumbnailUrl'] ?? ''));
 
@@ -297,7 +302,7 @@ final class Shortcode_CoursePitch {
                         </div>
 
                         <ul class="slc-cpitch__hero-meta">
-                            <?php foreach (self::meta_chips($type_key, $hours, $total_min, $level, $language, $has_cert, $modules_count, $lessons_count, $live_count) as $chip): ?>
+                            <?php foreach (self::meta_chips($type_key, $hours, $total_min, $level, $language, $has_cert, $modules_count, $lessons_count, $live_count, $access_label) as $chip): ?>
                                 <li class="slc-cpitch__meta-chip">
                                     <span class="slc-cpitch__meta-icon" aria-hidden="true"><?php echo $chip['icon']; ?></span>
                                     <?php echo esc_html($chip['label']); ?>
@@ -685,9 +690,9 @@ final class Shortcode_CoursePitch {
 
                         <h3 class="slc-cpitch__pricing-course-title"><?php echo esc_html($title); ?></h3>
 
-                        <?php if (!empty($materials)): ?>
+                        <?php if (!empty($pricing_materials)): ?>
                         <ul class="slc-cpitch__pricing-checklist">
-                            <?php foreach ($materials as $mat):
+                            <?php foreach ($pricing_materials as $mat):
                                 $mat_text = is_array($mat) ? ($mat['text'] ?? '') : (string)$mat;
                                 if ($mat_text === '') continue;
                             ?>
@@ -1132,8 +1137,22 @@ final class Shortcode_CoursePitch {
         return rtrim(mb_substr($s, 0, $max - 1)) . '…';
     }
 
-    private static function meta_chips(string $type_key, int $hours, int $total_min, string $level, string $language, bool $has_cert, int $modules, int $lessons, int $live = 0): array {
-        // Orden: tipo → nivel → módulos → lecciones → encuentros en vivo → idioma → certificado.
+    /** No inferir acceso vitalicio de payloads antiguos o inválidos. */
+    private static function format_access_duration($days): string {
+        if (!is_int($days) || $days < 0) {
+            return '';
+        }
+        if ($days === 0) {
+            return __('Acceso de por vida', 'studiahub-lms-connector');
+        }
+        return sprintf(
+            _n('Acceso por %d día', 'Acceso por %d días', $days, 'studiahub-lms-connector'),
+            $days
+        );
+    }
+
+    private static function meta_chips(string $type_key, int $hours, int $total_min, string $level, string $language, bool $has_cert, int $modules, int $lessons, int $live = 0, string $access_label = ''): array {
+        // Orden: tipo → nivel → módulos → lecciones → encuentros en vivo → idioma → certificado → acceso.
         // (Las horas de contenido se omiten a propósito en esta variante.)
         $chips = [];
         if ($type_key !== '' && isset(self::TYPE_LABELS[$type_key])) {
@@ -1156,6 +1175,9 @@ final class Shortcode_CoursePitch {
         }
         if ($has_cert) {
             $chips[] = ['icon' => self::icon('certificate'), 'label' => __('Certificado', 'studiahub-lms-connector')];
+        }
+        if ($access_label !== '') {
+            $chips[] = ['icon' => self::icon('calendar'), 'label' => $access_label];
         }
         return $chips;
     }

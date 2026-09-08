@@ -31,6 +31,7 @@
   "level": "Intermedio",
   "language": "Español",
   "durationHours": 19,
+  "accessDays": 180,
   "hasCertificate": true,
   "salesClosed": false,
   "instructors": [
