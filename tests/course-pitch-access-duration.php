@@ -84,6 +84,21 @@ namespace {
         }
     }
     unset($GLOBALS['translations']);
+    $outline = render_pitch(['outline' => [['title' => 'Module', 'lessons' => [
+        ['title' => 'Introduction', 'type' => 'VIDEO', 'durationMin' => 51],
+        ['title' => 'Bonus', 'type' => 'VIDEO', 'durationMin' => 41],
+        ['title' => 'Notes', 'type' => 'PDF', 'durationMin' => 0],
+        ['title' => 'Welcome', 'type' => 'TEXT', 'durationMin' => 0],
+    ]]]]);
+    preg_match_all('~<span class="slc-cpitch__lesson-icon"[^>]*>(.*?)</span>~s', $outline, $icons);
+    check(count($icons[1]) === 4, 'Actual pitch renders all lesson icons');
+    foreach (array_slice($icons[1], 0, 2) as $icon) {
+        check(str_contains($icon, '<circle') && str_contains($icon, '<polygon'), 'Video icon is circular play, not a disclosure triangle');
+    }
+    check(str_contains($icons[1][2] ?? '', '<path d="M4 2h6l3 3v9H4z"/>'), 'PDF document icon unchanged');
+    check(str_contains($icons[1][3] ?? '', '<line x1="3" y1="5"'), 'Text lines icon unchanged');
+    check(str_contains($outline, '51 min') && str_contains($outline, '41 min'), 'Video lesson minutes remain visible');
+    check(\SLC\Shortcode_CoursePage::lesson_icon_public(null) === \SLC\Shortcode_CoursePage::lesson_icon_public('VIDEO'), 'Legacy fallback remains video');
     foreach ($failures as $failure) fwrite(STDERR, "FAIL: $failure\n");
     echo ($checks - count($failures)) . "/$checks assertions passed\n";
     exit($failures ? 1 : 0);

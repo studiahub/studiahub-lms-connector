@@ -1163,7 +1163,7 @@ final class Shortcode_CoursePage {
     // ── ICONOS SVG INLINE ─────────────────────────────────────────────────
     private static function lesson_icon(?string $type): string {
         $icons = [
-            'VIDEO' => '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="6,4 12,8 6,12" fill="currentColor"/></svg>',
+            'VIDEO' => self::icon('play'),
             'TEXT'  => '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="5" x2="13" y2="5"/><line x1="3" y1="8" x2="13" y2="8"/><line x1="3" y1="11" x2="10" y2="11"/></svg>',
             'PDF'   => '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2h6l3 3v9H4z"/><path d="M10 2v3h3"/></svg>',
         ];
