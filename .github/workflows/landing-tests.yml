@@ -1,0 +1,25 @@
+name: Landing tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  landing-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Check runtime versions
+        run: |
+          node --version
+          php --version
+      - name: Test sticky layout calculations
+        run: node --test tests/course-pitch-sticky.cjs
+      - name: Test landing renderer regression
+        run: php tests/course-pitch-access-duration.php
+      - name: Lint plugin PHP
+        run: git ls-files -z 'plugin/*.php' | xargs -0 -n 1 php -l
