@@ -962,6 +962,83 @@ final class Shortcode_CoursePitch {
         })();
         </script>
         <?php endif; ?>
+        <script data-slc-proposal-sticky>
+        (function(){
+            var columns = document.querySelectorAll('.slc-coursepitch .slc-cpitch__longdesc-grid:not(.slc-cpitch__longdesc-grid--no-media) .slc-cpitch__longdesc-left');
+            if (!columns.length) return;
+            var mobile = window.matchMedia('(max-width: 960px)');
+            var bars = document.querySelectorAll('.slc-coursepitch .slc-cpitch__topbar, .slc-coursepitch .slc-cpitch__sticky');
+            var candidates = new Set();
+            // Incluye wrappers sticky y secciones internas de headers de builders.
+            // La búsqueda se hace una vez, no sobre todo el DOM en cada scroll.
+            document.querySelectorAll('header, [role="banner"], #wpadminbar, .elementor-location-header').forEach(function(header){
+                candidates.add(header);
+                header.querySelectorAll('*').forEach(function(el){ candidates.add(el); });
+                for (var parent = header.parentElement; parent && parent !== document.body && parent !== document.documentElement; parent = parent.parentElement) {
+                    candidates.add(parent);
+                }
+            });
+            var pending = false;
+            function update() {
+                pending = false;
+                var rects = [];
+                if (!mobile.matches) candidates.forEach(function(el){
+                    var style = getComputedStyle(el);
+                    if ((style.position !== 'fixed' && style.position !== 'sticky') || style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+                    var rect = el.getBoundingClientRect();
+                    if (rect.height > 0 && rect.bottom > 0) rects.push(rect);
+                });
+                var barRects = [];
+                if (!mobile.matches) bars.forEach(function(el){
+                    var style = getComputedStyle(el);
+                    if (style.position !== 'fixed' || style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') return;
+                    var rect = el.getBoundingClientRect();
+                    if (rect.height > 0 && rect.top < window.innerHeight && rect.bottom > 0) barRects.push(rect);
+                });
+                rects.sort(function(a, b){ return a.top - b.top; });
+                columns.forEach(function(column){
+                    var bounds = column.getBoundingClientRect();
+                    var bottom = 0;
+                    // Unión de los tramos pegados al borde superior: no sumar
+                    // dos veces la admin bar ni wrappers que se superponen.
+                    rects.forEach(function(rect){
+                        if (rect.left < bounds.right && rect.right > bounds.left && rect.top <= bottom + 1) {
+                            bottom = Math.max(bottom, rect.bottom);
+                        }
+                    });
+                    var availableBottom = window.innerHeight;
+                    barRects.forEach(function(rect){
+                        if (rect.left < bounds.right && rect.right > bounds.left) availableBottom = Math.min(availableBottom, rect.top);
+                    });
+                    var top = Math.ceil(bottom) + 16;
+                    column.style.setProperty('--slc-proposal-top', top + 'px');
+                    // Si no entra completo, dejar que todo el bloque se desplace.
+                    column.style.setProperty('--slc-proposal-position', !mobile.matches && bounds.height + top + 16 <= availableBottom ? 'sticky' : 'static');
+                });
+            }
+            function schedule() {
+                if (pending) return;
+                pending = true;
+                requestAnimationFrame(update);
+            }
+            window.addEventListener('scroll', schedule, { passive: true });
+            window.addEventListener('resize', schedule);
+            window.addEventListener('load', schedule);
+            // Las barras entran con transform: ResizeObserver no ve ese cambio.
+            bars.forEach(function(el){ el.addEventListener('transitionend', schedule); });
+            if (typeof MutationObserver !== 'undefined') {
+                var barObserver = new MutationObserver(schedule);
+                bars.forEach(function(el){ barObserver.observe(el, { attributes: true, attributeFilter: ['class', 'style'] }); });
+            }
+            if (typeof ResizeObserver !== 'undefined') {
+                var observer = new ResizeObserver(schedule);
+                candidates.forEach(function(el){ observer.observe(el); });
+                columns.forEach(function(el){ observer.observe(el); });
+                bars.forEach(function(el){ observer.observe(el); });
+            }
+            schedule();
+        })();
+        </script>
         <script>
         (function(){
             // Reveal escalonado de items al scrollear (¿Es para vos?)

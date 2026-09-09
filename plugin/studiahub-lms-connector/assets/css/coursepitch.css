@@ -740,11 +740,11 @@
     overflow: hidden;
     aspect-ratio: 16 / 10;
 }
-/* Columna izquierda (título + video): queda fija mientras el texto scrollea.
-   top deja lugar a la barra sticky del countdown cuando existe. */
+/* El controller mide el header visible antes de habilitar el sticky.
+   Sin JS o sin espacio vertical suficiente, permanece en el flujo normal. */
 .slc-cpitch__longdesc-left {
-    position: sticky;
-    top: 100px;
+    position: var(--slc-proposal-position, static);
+    top: var(--slc-proposal-top, 16px);
     align-self: start;
 }
 /* Sin media → 1 columna, el bloque izquierdo (solo título) no es sticky. */
