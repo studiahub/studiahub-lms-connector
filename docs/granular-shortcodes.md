@@ -64,9 +64,26 @@ Un único shortcode genérico. Devuelve el valor **pelado** del campo, escapado 
 
 > Los campos que son **arrays u objetos** (bonos, faq, temario, etc.) **no** se sacan con `field` — tienen su propio shortcode de loop más abajo.
 
+## 2. CTA dinámico — `[studiahub_course_cta]`
+
+`ctaLabel` devuelve únicamente el texto. Para renderizar el botón real usá:
+
+```
+[studiahub_course_cta]
+[studiahub_course_cta id="1373"]
+```
+
+Este shortcode consulta el mismo payload que el resto de la landing y decide:
+
+- venta abierta → botón hacia el checkout limpio;
+- lista de espera → botón + popup + consentimiento + Turnstile;
+- próximamente o inscripciones cerradas → botón deshabilitado con el texto correcto.
+
+La compra también queda bloqueada por WooCommerce, así que el estado visual y la cerradura real usan la misma definición. El CTA carga su CSS y JavaScript propios; para integrarlo al diseño personalizado, estilá `.slc-coursecta` y sus hijos desde el theme.
+
 ---
 
-## 2. Loops (arrays) — template interno con tokens
+## 3. Loops (arrays) — template interno con tokens
 
 Cada array/objeto tiene su propio shortcode. El **contenido interno** del shortcode es el **template por-item**: se repite una vez por elemento, reemplazando los tokens `{{campo}}` por el valor de cada item.
 
@@ -181,7 +198,7 @@ Fallbacks: `.slc-outcomes > .slc-outcome`, `.slc-audience > .slc-audience__item`
 
 ---
 
-## 3. Temario anidado — `[studiahub_course_outline]` + `[studiahub_course_lessons]`
+## 4. Temario anidado — `[studiahub_course_outline]` + `[studiahub_course_lessons]`
 
 El temario tiene dos niveles: **módulos**, y dentro de cada uno, **lecciones**. Se resuelve con dos shortcodes: el loop de módulos, y — anidado dentro de su template — el loop de lecciones del módulo actual.
 
@@ -226,7 +243,7 @@ Colocalo **dentro** del template de `[studiahub_course_outline]`. Itera las lecc
 
 ---
 
-## 4. Objeto único — `[studiahub_course_guarantee]`
+## 5. Objeto único — `[studiahub_course_guarantee]`
 
 La garantía es un objeto (no un array). Tokens dentro del template; sin template, un bloque mínimo. Si el tenant deshabilitó la garantía → **vacío**.
 
@@ -269,7 +286,7 @@ Tenés dos caminos:
    .slc-bonus__title { font-weight: 700; }
    ```
 
-Los shortcodes **no cargan ningún CSS propio** — la parte visual es 100% tuya.
+Los shortcodes de datos **no cargan ningún CSS propio** — la parte visual es 100% tuya. La excepción es `[studiahub_course_cta]`, que incluye la apariencia y el comportamiento necesarios para sus estados y popup.
 
 ---
 
@@ -330,7 +347,7 @@ Los shortcodes **no cargan ningún CSS propio** — la parte visual es 100% tuya
   <aside class="guarantee"><strong>{{title}}</strong> {{text}}</aside>
 [/studiahub_course_guarantee]
 
-<a class="cta" href="?add-to-cart=...">[studiahub_course_field field="ctaLabel"]</a>
+[studiahub_course_cta]
 ```
 
 > Cada bloque se auto-oculta si el curso no tiene ese dato (array vacío / campo vacío) — no vas a ver placeholders vacíos en la landing.

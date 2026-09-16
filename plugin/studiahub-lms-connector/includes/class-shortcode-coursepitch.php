@@ -101,11 +101,19 @@ final class Shortcode_CoursePitch {
         if (!$post instanceof \WP_Post) {
             return false;
         }
-        if (has_shortcode((string) $post->post_content, self::SHORTCODE_TAG)) {
+        if (
+            has_shortcode((string) $post->post_content, self::SHORTCODE_TAG)
+            || has_shortcode((string) $post->post_content, Shortcode_CourseCTA::SHORTCODE_TAG)
+        ) {
             return true;
         }
         $elementor = get_post_meta($post->ID, '_elementor_data', true);
-        return is_string($elementor) && $elementor !== '' && strpos($elementor, self::SHORTCODE_TAG) !== false;
+        return is_string($elementor)
+            && $elementor !== ''
+            && (
+                strpos($elementor, self::SHORTCODE_TAG) !== false
+                || strpos($elementor, Shortcode_CourseCTA::SHORTCODE_TAG) !== false
+            );
     }
 
     public static function render($atts): string {

@@ -1,6 +1,6 @@
 # Shortcodes — StudiaHub LMS Connector
 
-El plugin expone **dos** shortcodes monolíticos. Cada uno renderiza la **landing completa** de un curso (hero, descripción, temario, instructores, precios, FAQ, etc.) trayendo todo el contenido **en vivo desde el LMS** (el `landing-payload` del tenant).
+El plugin expone dos shortcodes monolíticos y un CTA autónomo. Los primeros renderizan la **landing completa** de un curso (hero, descripción, temario, instructores, precios, FAQ, etc.); el CTA permite que una landing a medida delegue en el LMS la decisión entre compra, lista de espera, próximamente y venta cerrada. Todos leen el mismo `landing-payload` del tenant.
 
 > 🧩 **¿Necesitás las piezas sueltas para una landing a medida?** Mirá [granular-shortcodes.md](granular-shortcodes.md): shortcodes granulares que exponen cada campo del curso (título, precio, bonos, temario, reseñas, etc.) como data cruda para componer con tu propio markup en Elementor.
 
@@ -12,6 +12,7 @@ El plugin expone **dos** shortcodes monolíticos. Cada uno renderiza la **landin
 |-----------|--------|--------|
 | `[studiahub_course_pitch]` | 🟢 **Oficial / en producción** | Landing estilo DTC / pitch: hero grande con foto + cajitas, countdown de inicio, social proof, combos, garantía. |
 | `[studiahub_course_page]`  | ⚪ Secundaria (no en uso) | Landing "página de curso" (refinada). |
+| `[studiahub_course_cta]` | 🟢 Pieza granular | Botón autónomo para landings a medida: compra, popup de lista de espera o estado no comprable. |
 
 ## Atributo
 
@@ -22,7 +23,21 @@ El plugin expone **dos** shortcodes monolíticos. Cada uno renderiza la **landin
 ```
 [studiahub_course_pitch]
 [studiahub_course_page id="1373"]
+[studiahub_course_cta id="1373"]
 ```
+
+## CTA autónomo para landings a medida
+
+Usá `[studiahub_course_cta]` dentro del widget **Shortcode** de Elementor. No lo reemplaces por un widget Button con `ctaLabel`: ese campo solo contiene el texto y no puede decidir el estado comercial.
+
+El CTA autónomo resuelve siempre desde el LMS:
+
+- venta abierta → enlace al checkout limpio del connector;
+- `waitlist.enabled` → botón + popup + consentimiento + Turnstile si corresponde;
+- `comingSoon` → estado “Próximamente” deshabilitado;
+- `salesClosed` → estado “Inscripciones cerradas” deshabilitado.
+
+La lista de espera gana sobre los demás estados, igual que en la landing pitch y en el bloqueo real de WooCommerce.
 
 ## Cómo se usa
 

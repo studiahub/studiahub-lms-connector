@@ -166,6 +166,7 @@ namespace {
     require __DIR__ . '/../plugin/studiahub-lms-connector/includes/class-render-guard.php';
     require __DIR__ . '/../plugin/studiahub-lms-connector/includes/class-purchase-gate.php';
     require __DIR__ . '/../plugin/studiahub-lms-connector/includes/class-shortcode-coursepitch.php';
+    require __DIR__ . '/../plugin/studiahub-lms-connector/includes/class-shortcode-coursecta.php';
     require __DIR__ . '/../plugin/studiahub-lms-connector/includes/class-rest-waitlist.php';
 
     set_error_handler(static function ($severity, $message, $file, $line) {
@@ -194,6 +195,11 @@ namespace {
         $GLOBALS['enqueued_scripts'] = [];
         \SLC\Landing_Fetch::$payload = $payload;
         return \SLC\Render_Guard::restore(\SLC\Shortcode_CoursePitch::render(['id' => '42']));
+    }
+    function render_cta(array $payload): string {
+        $GLOBALS['enqueued_scripts'] = [];
+        \SLC\Landing_Fetch::$payload = $payload;
+        return \SLC\Render_Guard::restore(\SLC\Shortcode_CourseCTA::render(['id' => '42']));
     }
     function remote_response(int $status, array $body = [], array $headers = []): array {
         return ['response' => ['code' => $status], 'body' => json_encode($body), 'headers' => array_change_key_case($headers)];
@@ -281,6 +287,64 @@ namespace {
     ]));
     check(!str_contains($invalid_config, 'data-slc-waitlist-modal'), 'Non-string waitlist config fails safe without PHP coercion');
     check(!str_contains($invalid_config, 'https://example.test/checkout/42'), 'Non-string waitlist config keeps checkout blocked');
+
+    // CTA granular: misma fuente de verdad que la landing completa.
+    $cta_open = render_cta(base_payload([
+        'salesClosed' => false,
+        'comingSoon' => false,
+        'ctaLabel' => 'Quiero empezar <hoy>',
+        'waitlist' => ['enabled' => false],
+    ]));
+    check(str_contains($cta_open, 'https://example.test/checkout/42'), 'Granular CTA links to the clean enrollment endpoint when sale is open');
+    check(str_contains($cta_open, 'Quiero empezar &lt;hoy&gt;'), 'Granular CTA renders and escapes the LMS label');
+    check(!str_contains($cta_open, 'data-slc-waitlist-modal'), 'Open granular CTA does not render a waitlist modal');
+
+    $cta_waitlist = render_cta(base_payload([
+        'salesClosed' => false,
+        'comingSoon' => false,
+        'waitlist' => [
+            'enabled' => true,
+            'formIntroText' => 'Avisame <pronto>.',
+            'consentText' => 'Acepto <novedades>.',
+            'consentVersion' => 'v2',
+            'turnstileSiteKey' => 'public-<site-key>',
+        ],
+    ]));
+    check(str_contains($cta_waitlist, 'data-slc-waitlist-open'), 'Granular CTA becomes a waitlist opener');
+    check(str_contains($cta_waitlist, 'data-slc-waitlist-modal'), 'Granular CTA includes its waitlist modal');
+    check(str_contains($cta_waitlist, 'Avisame &lt;pronto&gt;.'), 'Granular CTA renders and escapes the waitlist intro');
+    check(str_contains($cta_waitlist, 'Acepto &lt;novedades&gt;.'), 'Granular CTA renders and escapes consent');
+    check(str_contains($cta_waitlist, 'data-consent-version="v2"'), 'Granular CTA sends the current consent version');
+    check(str_contains($cta_waitlist, 'data-turnstile-site-key="public-&lt;site-key&gt;"'), 'Granular CTA includes the public Turnstile site key');
+    check(!str_contains($cta_waitlist, 'https://example.test/checkout/42'), 'Waitlist granular CTA hides checkout');
+    check(!str_contains($cta_waitlist, 'server-only-secret') && !str_contains($cta_waitlist, 'Bearer'), 'Granular CTA never exposes the connector secret');
+    check($GLOBALS['enqueued_scripts'] === [
+        \SLC\Shortcode_CoursePitch::TURNSTILE_SCRIPT_HANDLE,
+        \SLC\Shortcode_CoursePitch::WAITLIST_SCRIPT_HANDLE,
+    ], 'Granular CTA loads Turnstile before the waitlist controller');
+
+    $cta_waitlist_again = render_cta(base_payload());
+    preg_match('/slc-coursecta-waitlist-title-([^" ]+)/', $cta_waitlist, $first_cta_id);
+    preg_match('/slc-coursecta-waitlist-title-([^" ]+)/', $cta_waitlist_again, $second_cta_id);
+    check(($first_cta_id[1] ?? '') !== ($second_cta_id[1] ?? ''), 'Multiple granular CTAs use unique form IDs');
+
+    $cta_coming_soon = render_cta(base_payload([
+        'salesClosed' => false,
+        'comingSoon' => true,
+        'comingSoonLabel' => 'Muy pronto',
+        'waitlist' => ['enabled' => false],
+    ]));
+    check(str_contains($cta_coming_soon, 'Muy pronto'), 'Granular CTA renders the coming-soon state');
+    check(!str_contains($cta_coming_soon, '<a '), 'Coming-soon granular CTA cannot navigate to checkout');
+
+    $cta_incomplete = render_cta(base_payload([
+        'salesClosed' => false,
+        'comingSoon' => false,
+        'waitlist' => ['enabled' => true],
+    ]));
+    check(str_contains($cta_incomplete, 'Lista de espera'), 'Incomplete waitlist keeps the granular CTA closed');
+    check(!str_contains($cta_incomplete, 'data-slc-waitlist-modal'), 'Incomplete waitlist does not render an unusable granular modal');
+    check(!str_contains($cta_incomplete, 'https://example.test/checkout/42'), 'Incomplete waitlist granular CTA fails closed');
 
     // Purchase_Gate también cierra los caminos directos de WooCommerce.
     \SLC\Landing_Fetch::$payload = base_payload(['salesClosed' => false, 'comingSoon' => false]);

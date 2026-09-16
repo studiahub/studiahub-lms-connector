@@ -4,10 +4,11 @@ Este documento lista **todos los campos dinámicos** que las landings reciben de
 
 ## De dónde sale esta data
 - La landing se renderiza en vivo desde el LMS: `GET {LMS}/api/wc/courses/:id/landing-payload` (ver [class-landing-fetch.php](../plugin/studiahub-lms-connector/includes/class-landing-fetch.php)). El plugin **no transforma** el JSON: lee las claves tal cual llegan.
-- Los dos shortcodes consumen el mismo payload:
+- Los tres renderers consumen el mismo payload:
   - 🟢 `[studiahub_course_pitch]` → [class-shortcode-coursepitch.php](../plugin/studiahub-lms-connector/includes/class-shortcode-coursepitch.php) — **la landing OFICIAL en producción. Trabajá sobre esta.**
   - ⚪ `[studiahub_course_page]` → [class-shortcode-coursepage.php](../plugin/studiahub-lms-connector/includes/class-shortcode-coursepage.php) — variante secundaria, hoy no en uso.
-- **Fuente de verdad de esta tabla = esos dos archivos** (lo que el plugin realmente lee y renderiza). Este repo no tiene el LMS; si dudás de si el LMS manda un campo, confirmalo en el repo del LMS.
+  - 🧩 `[studiahub_course_cta]` → [class-shortcode-coursecta.php](../plugin/studiahub-lms-connector/includes/class-shortcode-coursecta.php) — CTA autónomo para landings armadas con piezas granulares.
+- **Fuente de verdad de esta tabla = esos tres archivos** (lo que el plugin realmente lee y renderiza). Este repo no tiene el LMS; si dudás de si el LMS manda un campo, confirmalo en el repo del LMS.
 - En dev, esta misma estructura se mockea en [.docker/dev-mock/payload.json.disabled](../.docker/dev-mock/payload.json.disabled) (`make mock-on`). Preview: `http://localhost:8080/?slc_test_render=1&variant=pitch&id=<ID_producto>`.
 
 > **Regla de trabajo:** todos estos valores son dinámicos por curso/tenant. Nunca hardcodees un valor en el HTML/CSS del shortcode: si algo tiene que ser configurable, tiene que salir de uno de estos campos. Cualquier campo puede venir vacío/ausente → el template lo oculta. Diseñá para el caso "sin dato" también.
@@ -28,7 +29,7 @@ Convención de columnas: **Dónde** = en qué shortcode se usa (`ambos` / `pitch
 | `tenantName` | string | ambos | Nombre de la academia/tenant. |
 | `category` | string | ambos | Categoría del curso. |
 | `highlightBadge` | string | ambos | Badge destacado (ej "Actualizado 2026", "-30%"). Texto libre. |
-| `ctaLabel` | string | ambos | Texto del botón de compra. Fallback: "Quiero inscribirme". |
+| `ctaLabel` | string | ambos + CTA | Texto del botón de compra. Fallback: "Quiero inscribirme". |
 
 ## Imágenes y media
 
@@ -48,8 +49,8 @@ Convención de columnas: **Dónde** = en qué shortcode se usa (`ambos` / `pitch
 | `compareAtPrice` | string | ambos | Precio regular tachado (texto libre multimoneda). No calcula descuento. |
 | `installmentsLabel` | string | ambos | Ej "o 12 cuotas sin interés". |
 | `offerDeadlineAt` | ISO datetime \| null | ambos | Deadline de la oferta → timer "La oferta termina en X". El LMS manda `null` si ya venció. A < 48 hs pasa a countdown vivo (JS). |
-| `salesClosed` | bool | pitch | `true` → botón "Inscripciones cerradas" deshabilitado (reemplaza el CTA), salvo que `waitlist.enabled` esté activo. |
-| `waitlist` | object \| null | pitch | Lista de espera opcional: `{ enabled, formIntroText, consentText, consentVersion, turnstileSiteKey? }`. `formIntroText` personaliza el texto bajo el título del popup; si falta por compatibilidad con un LMS anterior, se usa el texto histórico por defecto. `turnstileSiteKey`, cuando viene, activa Cloudflare Turnstile en modo managed con render explícito y apariencia `interaction-only`; es una clave pública, el secret nunca llega a WordPress. `enabled: true` tiene precedencia sobre `comingSoon` y `salesClosed`: siempre vuelve el producto no comprable y, con consentimiento completo, muestra “Anotarme a la lista de espera” aunque la venta estuviera abierta. No modifica esos flags: al deshabilitarla reaparece automáticamente el comportamiento comercial previo. Si está habilitada pero incompleta, la compra permanece bloqueada y no se muestra un formulario inválido. Ausente, `null` o deshabilitada conserva compatibilidad con payloads anteriores. |
+| `salesClosed` | bool | pitch + CTA | `true` → botón "Inscripciones cerradas" deshabilitado (reemplaza el CTA), salvo que `waitlist.enabled` esté activo. |
+| `waitlist` | object \| null | pitch + CTA | Lista de espera opcional: `{ enabled, formIntroText, consentText, consentVersion, turnstileSiteKey? }`. `formIntroText` personaliza el texto bajo el título del popup; si falta por compatibilidad con un LMS anterior, se usa el texto histórico por defecto. `turnstileSiteKey`, cuando viene, activa Cloudflare Turnstile en modo managed con render explícito y apariencia `interaction-only`; es una clave pública, el secret nunca llega a WordPress. `enabled: true` tiene precedencia sobre `comingSoon` y `salesClosed`: siempre vuelve el producto no comprable y, con consentimiento completo, muestra “Anotarme a la lista de espera” aunque la venta estuviera abierta. No modifica esos flags: al deshabilitarla reaparece automáticamente el comportamiento comercial previo. Si está habilitada pero incompleta, la compra permanece bloqueada y no se muestra un formulario inválido. Ausente, `null` o deshabilitada conserva compatibilidad con payloads anteriores. |
 | `paymentMethods[]` | array | pitch | Logos de medios de pago en la pricing card. Cada item: `{ name, logoUrl }`. |
 
 ## Metadata del curso (chips)

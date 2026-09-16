@@ -221,8 +221,8 @@ final class Purchase_Gate {
 
     /**
      * Única definición de "este curso no se puede comprar", para que el botón de
-     * la landing y el carrito lean exactamente lo mismo. La usan los dos
-     * shortcodes además del gate.
+     * la landing y el carrito lean exactamente lo mismo. La usan los renderers
+     * de landing, el CTA autónomo y el gate.
      *
      * @return array{reason:string, label:string}|null
      */

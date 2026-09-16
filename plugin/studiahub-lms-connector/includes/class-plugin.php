@@ -48,6 +48,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-render-guard.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepage.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursepitch.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-coursecta.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-shortcode-fields.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-updater.php';
     }
@@ -78,6 +79,7 @@ final class Plugin {
         Render_Guard::register_hooks();
         Shortcode_CoursePage::register_hooks();
         Shortcode_CoursePitch::register_hooks();
+        Shortcode_CourseCTA::register_hooks();
         Shortcode_Fields::register_hooks();
         Updater::register_hooks();
 

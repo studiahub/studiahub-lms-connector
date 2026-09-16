@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.20.2
+Stable tag: 0.21.0
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -13,7 +13,7 @@ Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de al
 
 Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 
-* Renderiza la landing del curso en vivo desde el LMS con los shortcodes `[studiahub_course_page]` y `[studiahub_course_pitch]` (estilo DTC), sin ACFs. El branding del tenant se inyecta dinámicamente.
+* Renderiza la landing del curso en vivo desde el LMS con los shortcodes `[studiahub_course_page]` y `[studiahub_course_pitch]` (estilo DTC), o el CTA autónomo `[studiahub_course_cta]` dentro de una landing a medida, sin ACFs. El branding del tenant se inyecta dinámicamente.
 * Sincroniza cursos del LMS como productos WC via `POST /wp-json/studiahub/v1/course-sync` (incluye pricing multi-moneda).
 * Conexión automática (OAuth-style) con el LMS: registra el webhook de compras (`order.created` + `order.updated`) sin configuración manual.
 * Expone `GET /wp-json/studiahub/v1/health` para test de conexión (con `?check_lms=1` también verifica la vuelta: que este WP alcance al LMS).
@@ -32,6 +32,11 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.21.0 =
+* Nuevo CTA autónomo `[studiahub_course_cta]` para landings personalizadas. Usa el mismo estado del LMS para mostrar compra, lista de espera, próximamente o inscripciones cerradas.
+* La lista de espera reemplaza temporalmente la venta, muestra un popup con consentimiento y puede validar Cloudflare Turnstile antes de registrar el interés en el LMS.
+* WooCommerce bloquea también los enlaces directos y carritos anteriores mientras la lista de espera, “Próximamente” o el cierre de inscripciones estén activos.
 
 = 0.20.2 =
 * La sección «La propuesta» mantiene el título y la imagen visibles al desplazarse, respetando la altura del menú y la barra de WordPress. Si no cabe entre el encabezado y la barra inferior de inscripción, vuelve al desplazamiento normal para evitar recortes.
