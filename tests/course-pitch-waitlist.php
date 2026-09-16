@@ -371,6 +371,7 @@ namespace {
     $GLOBALS['remote_response'] = remote_response(200, ['ok' => true, 'message' => 'raw upstream']);
     $response = \SLC\REST_Waitlist::handle(request());
     check($response->get_status() === 200 && $response->get_data()['ok'] === true, 'Valid LMS success maps to public success');
+    check(($response->get_data()['message'] ?? '') === 'Te inscribiste correctamente a la lista de espera!', 'Public success uses the waitlist confirmation copy');
     $call = $GLOBALS['remote_calls'][0] ?? [];
     check(($call['url'] ?? '') === 'https://lms.test/api/wc/courses/test-course/waitlist', 'Course destination comes from product metadata');
     check(($call['args']['headers']['Authorization'] ?? '') === 'Bearer server-only-secret', 'Bearer is only added server-side');

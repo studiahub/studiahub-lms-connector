@@ -139,6 +139,19 @@ test('submission sends only public form data to the WordPress proxy', async () =
     assert.equal(state.document.activeElement, state.close);
 });
 
+test('successful submission uses the waitlist confirmation fallback', async () => {
+    const state = fixture(() => Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ ok: true }),
+    }));
+    state.form.handlers.submit(event());
+    await settle();
+
+    assert.equal(state.status.textContent, 'Te inscribiste correctamente a la lista de espera!');
+    assert.equal(state.status.classList.contains('slc-cpitch__waitlist-status--success'), true);
+});
+
 test('Turnstile renders explicitly on open and sends a single-use token', async () => {
     const renderCalls = [];
     const resetCalls = [];

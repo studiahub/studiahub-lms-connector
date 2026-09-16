@@ -279,7 +279,7 @@ final class REST_Waitlist {
         if ($status === 200 && is_array($decoded) && ($decoded['ok'] ?? false) === true) {
             return new \WP_REST_Response([
                 'ok'      => true,
-                'message' => __('Tu interés quedó registrado en la lista de espera.', 'studiahub-lms-connector'),
+                'message' => __('Te inscribiste correctamente a la lista de espera!', 'studiahub-lms-connector'),
             ], 200);
         }
 

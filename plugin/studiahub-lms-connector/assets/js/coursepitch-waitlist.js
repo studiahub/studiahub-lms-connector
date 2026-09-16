@@ -168,7 +168,7 @@
                     throw { publicMessage: result.data.message || fallback };
                 }
                 form.reset();
-                showStatus(result.data.message || 'Tu interés quedó registrado en la lista de espera.', true);
+                showStatus(result.data.message || 'Te inscribiste correctamente a la lista de espera!', true);
             }).catch(function (error) {
                 if (currentSubmissionId !== submissionId) return;
                 showStatus(
