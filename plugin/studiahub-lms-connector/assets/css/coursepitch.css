@@ -1201,7 +1201,7 @@
     background: #fff;
     border: 1px solid var(--shub-border);
     border-radius: var(--shub-radius);
-    padding: 24px;
+    padding: 20px;
     overflow: hidden;
     transition: border-color 150ms ease, transform 150ms ease;
 }
@@ -1369,10 +1369,11 @@
 /* CTA */
 .slc-cpitch__pricing-cta {
     display: block;
-    width: auto;
+    width: calc(100% - 72px);
     box-sizing: border-box;
     text-align: center;
     font-size: 15px;
+    line-height: 1.65;
     padding: 16px 24px;
     letter-spacing: 0.02em;
     margin: 0 36px 20px;
@@ -1382,6 +1383,122 @@
     color: var(--shub-text-muted) !important;
     cursor: not-allowed;
     pointer-events: none;
+}
+.slc-cpitch__waitlist-open {
+    appearance: none;
+    border: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* ── LISTA DE ESPERA ───────────────────────────────────────────────── */
+body.slc-waitlist-open { overflow: hidden; }
+.slc-cpitch__waitlist-modal[hidden] { display: none !important; }
+.slc-cpitch__waitlist-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(15, 23, 42, 0.68);
+}
+.slc-cpitch__waitlist-panel {
+    position: relative;
+    width: min(100%, 460px);
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
+    padding: 28px;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+    color: var(--shub-text);
+}
+.slc-cpitch__waitlist-close {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--shub-text-muted);
+    font: 400 26px/1 sans-serif;
+    cursor: pointer;
+}
+.slc-cpitch__waitlist-close:hover { background: var(--shub-bg-soft); color: var(--shub-text-title); }
+.slc-cpitch__waitlist-title {
+    margin: 0 40px 8px 0;
+    color: var(--shub-text-title);
+    font-size: 24px;
+    line-height: 1.2;
+}
+.slc-cpitch__waitlist-intro { margin: 0 0 18px; color: var(--shub-text-muted); font-size: 15px; line-height: 1.5; }
+.slc-cpitch__waitlist-fields { display: grid; gap: 7px; }
+.slc-cpitch__waitlist-fields > label:not(.slc-cpitch__waitlist-consent) {
+    margin-top: 6px;
+    color: var(--shub-text-title);
+    font-size: 13px;
+    font-weight: 700;
+}
+.slc-cpitch__waitlist-fields input[type="text"],
+.slc-cpitch__waitlist-fields input[type="email"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 12px;
+    border: 1px solid var(--shub-border);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--shub-text-title);
+    font: inherit;
+    font-size: 15px;
+}
+.slc-cpitch__waitlist-fields input:focus,
+.slc-cpitch__waitlist-close:focus-visible,
+.slc-cpitch__waitlist-submit:focus-visible,
+.slc-cpitch__waitlist-open:focus-visible {
+    outline: 3px solid rgba(var(--shub-accent-rgb), 0.32);
+    outline-offset: 2px;
+}
+.slc-cpitch__waitlist-consent {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 8px;
+    align-items: start;
+    margin: 8px 0 6px;
+    color: var(--shub-text);
+    font-size: 13px;
+    line-height: 1.45;
+}
+.slc-cpitch__waitlist-consent input { width: 18px; height: 18px; margin: 2px 0 0; }
+.slc-cpitch__waitlist-turnstile { margin: 4px 0; }
+.slc-cpitch__waitlist-submit {
+    border: 0;
+    padding: 12px 20px;
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+.slc-cpitch__waitlist-submit:disabled { cursor: wait; opacity: 0.72; }
+.slc-cpitch__waitlist-status {
+    min-height: 22px;
+    margin: 12px 0 0;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.45;
+}
+.slc-cpitch__waitlist-status:empty { min-height: 0; margin-top: 0; }
+.slc-cpitch__waitlist-status--error { color: #B42318; }
+.slc-cpitch__waitlist-status--success { color: #067647; }
+.slc-cpitch__waitlist-honeypot {
+    position: absolute !important;
+    left: -10000px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
 }
 
 /* Logos de pago */
@@ -1520,7 +1637,7 @@
     .slc-cpitch__pricing-course-title { padding: 24px 24px 0; }
     .slc-cpitch__pricing-checklist { padding: 16px 24px 0; }
     .slc-cpitch__pricing-price { padding: 0 24px; }
-    .slc-cpitch__pricing-cta { margin: 0 24px 20px; }
+    .slc-cpitch__pricing-cta { width: calc(100% - 48px); margin: 0 24px 20px; }
     .slc-cpitch__pricing-logos { padding: 0 24px; }
     .slc-cpitch__pricing-trust { padding: 0 24px 24px; }
 }
@@ -1823,6 +1940,16 @@
        evitar saltos y dejamos el degradé como fondo normal. */
     .slc-cpitch__section--audience,
     .slc-cpitch__pricing-section { background-attachment: scroll; }
+    .slc-cpitch__waitlist-modal { align-items: flex-end; padding: 12px; }
+    .slc-cpitch__waitlist-panel {
+        width: 100%;
+        max-height: calc(100vh - 24px);
+        padding: 24px 18px 20px;
+        border-radius: 16px;
+    }
+    .slc-cpitch__waitlist-title { font-size: 22px; }
+    .slc-cpitch__waitlist-fields input[type="text"],
+    .slc-cpitch__waitlist-fields input[type="email"] { font-size: 16px; }
 }
 
 /* ── DEFENSIVE LAYER: overrides contra Elementor / theme injections ─────

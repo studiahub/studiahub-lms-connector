@@ -36,6 +36,7 @@ final class Plugin {
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-product-status.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-lms-courses.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-rest-landing-status.php';
+        require_once SLC_PLUGIN_DIR . 'includes/class-rest-waitlist.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-landing-health.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-landing-fetch.php';
         require_once SLC_PLUGIN_DIR . 'includes/class-product-metabox.php';
@@ -65,6 +66,7 @@ final class Plugin {
         REST_Cache_Bust::register_hooks();
         REST_Product_Status::register_hooks();
         REST_Landing_Status::register_hooks();
+        REST_Waitlist::register_hooks();
         Landing_Health::register_hooks();
         REST_LMS_Courses::register_hooks();
         Product_Metabox::register_hooks();

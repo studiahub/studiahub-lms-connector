@@ -3,7 +3,7 @@
   "_editing": {
     "fechas": "courseStartAt / offerDeadlineAt / outline[].lessons[].liveAt están en el FUTURO a propósito, para ver el countdown de la barra superior y el timer de oferta activos. Si estás leyendo esto en 2026+ y ya quedaron viejas, corrélas hacia adelante. offerDeadlineAt a < 48hs del ahora activa el countdown 'vivo' en JS.",
     "sin_reseñas": "Vaciá 'reviews' a [] y poné reviewStats {count:0, average:0} para simular un curso nuevo (así se ve el bug que arreglamos: la fecha en el título debe seguir apareciendo).",
-    "inscripciones_cerradas": "Poné salesClosed:true para ver el botón 'Inscripciones cerradas' deshabilitado.",
+    "inscripciones_cerradas": "waitlist.enabled:true muestra el CTA de lista de espera y bloquea la compra aunque salesClosed sea false. Poné waitlist.enabled:false para volver al estado comercial previo; con salesClosed:true se muestra 'Inscripciones cerradas' deshabilitado.",
     "sin_trailer": "Borrá trailerUrl para ver el bloque 'Por qué' usando landingImageUrl como imagen.",
     "branding": "primaryColor/secondaryColor se inyectan como CSS vars; fontFamily se ignora en dev si no está en Google Fonts."
   },
@@ -34,6 +34,13 @@
   "accessDays": 180,
   "hasCertificate": true,
   "salesClosed": false,
+  "waitlist": {
+    "enabled": true,
+    "formIntroText": "Dejanos tus datos y te avisamos cuando haya novedades sobre este curso.",
+    "consentText": "Acepto recibir novedades sobre este curso.",
+    "consentVersion": "v1",
+    "turnstileSiteKey": ""
+  },
   "instructors": [
     {
       "id": "u1",

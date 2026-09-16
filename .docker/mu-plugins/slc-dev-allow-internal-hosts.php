@@ -19,5 +19,5 @@ add_filter('http_request_host_is_external', function ($is_external, $host) {
 // Habilita puertos no estándar (ej 3000 del Next.js dev server). Por defecto
 // wp_http_validate_url solo permite 80/443/8080 (WP 5.9+).
 add_filter('http_allowed_safe_ports', function (array $ports) {
-    return array_values(array_unique(array_merge($ports, [3000, 3001, 3002])));
+    return array_values(array_unique(array_merge($ports, [3000, 3001, 3002, 3417])));
 }, 99);

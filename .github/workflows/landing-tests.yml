@@ -21,5 +21,9 @@ jobs:
         run: node --test tests/course-pitch-sticky.cjs
       - name: Test landing renderer regression
         run: php tests/course-pitch-access-duration.php
+      - name: Test course waitlist proxy
+        run: php tests/course-pitch-waitlist.php
+      - name: Test course waitlist modal
+        run: node --test tests/course-pitch-waitlist.cjs
       - name: Lint plugin PHP
         run: git ls-files -z 'plugin/*.php' | xargs -0 -n 1 php -l

@@ -6,15 +6,15 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Hace que el cierre de inscripciones sea REAL y no un cartel.
+ * Hace que los estados no comprables sean REALES y no un cartel.
  *
  * EL AGUJERO
  * ----------
- * `comingSoon` y `salesClosed` (el vencimiento de `salesEndAt`) llegan en el
- * payload de la landing y hasta acá solo cambiaban el TEXTO del botón: se
- * pintaba "Inscripciones cerradas" / "Próximamente" deshabilitado y listo. El
- * producto de WooCommerce seguía intacto, así que cualquiera que llegara por
- * fuera del botón compraba igual:
+ * `waitlist.enabled`, `comingSoon` y `salesClosed` (el vencimiento de
+ * `salesEndAt`) llegan en el payload de la landing. Si cualquiera deja el curso
+ * en un estado no comprable, cambiar sólo el botón no alcanza: el producto de
+ * WooCommerce seguiría intacto y cualquiera que llegara por fuera del CTA
+ * podría comprar igual:
  *
  *   - `?add-to-cart=<id>` (el patrón nativo de WC) sobre cualquier URL;
  *   - un link al checkout guardado en marcadores, indexado por Google o
@@ -35,8 +35,15 @@ if (!defined('ABSPATH')) {
  * vez de un error genérico de WooCommerce) y para frenar lo que ya estaba en el
  * carrito antes del cierre.
  *
+ * PRECEDENCIA
+ * -----------
+ * `waitlist.enabled === true` gana ante cualquier estado comercial. La lista
+ * de espera reemplaza temporalmente la venta, sin borrar ni reescribir
+ * `comingSoon` o `salesClosed`; al deshabilitarla, esos flags vuelven a decidir
+ * automáticamente si el curso se puede comprar.
+ *
  * POR QUÉ TAMBIÉN `comingSoon`
- * ----------------------------
+ * ---------------------------
  * Podría leerse como "preventa", que en otros negocios significa aceptar
  * reservas. Acá no: el toggle del LMS se llama "Próximamente (preventa)" y su
  * campo de texto se describe como "lo que muestra el botón deshabilitado". O
@@ -220,6 +227,17 @@ final class Purchase_Gate {
      * @return array{reason:string, label:string}|null
      */
     public static function closed_state_from_payload(array $payload): ?array {
+        // La lista de espera es un override de compra, no un derivado del
+        // estado comercial. Se evalúa primero para que activarla pause una venta
+        // abierta y para que desactivarla revele el estado previo sin mutarlo.
+        $waitlist = is_array($payload['waitlist'] ?? null) ? $payload['waitlist'] : [];
+        if (($waitlist['enabled'] ?? false) === true) {
+            return [
+                'reason' => 'waitlist',
+                'label'  => __('Lista de espera', 'studiahub-lms-connector'),
+            ];
+        }
+
         // comingSoon tiene precedencia: es un override manual del admin, no una
         // fecha vencida. Un curso en preventa con salesEndAt viejo muestra
         // "Próximamente", no "cerradas".
@@ -242,6 +260,13 @@ final class Purchase_Gate {
     /** @param array{reason:string, label:string} $closed */
     private static function notice_for(int $product_id, array $closed): string {
         $name = get_the_title($product_id);
+        if ($closed['reason'] === 'waitlist') {
+            return sprintf(
+                /* translators: %s: nombre del curso */
+                __('«%s» está disponible únicamente mediante lista de espera.', 'studiahub-lms-connector'),
+                $name
+            );
+        }
         if ($closed['reason'] === 'coming_soon') {
             return sprintf(
                 /* translators: 1: nombre del curso, 2: etiqueta de preventa */

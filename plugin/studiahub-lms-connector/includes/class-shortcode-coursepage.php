@@ -178,12 +178,12 @@ final class Shortcode_CoursePage {
 
         $checkout_url = self::checkout_url($product_id);
 
-        // Cierre de inscripciones (salesClosed) / preventa (comingSoon). Esta
-        // plantilla los ignoraba por completo y mostraba el botón de compra
-        // igual: el visitante clickeaba y —ahora que Purchase_Gate bloquea el
-        // carrito de verdad— se comía un error de WooCommerce sin explicación.
-        // El estado sale del mismo lugar que usa el gate, así que el botón y el
-        // checkout siempre dicen lo mismo.
+        // Estados no comprables del payload: lista de espera, preventa o cierre
+        // de inscripciones. Esta plantilla los ignoraba por completo y mostraba
+        // el botón de compra igual: el visitante clickeaba y —ahora que
+        // Purchase_Gate bloquea el carrito de verdad— se comía un error de
+        // WooCommerce sin explicación. El estado sale del mismo lugar que usa
+        // el gate, así que el botón y el checkout siempre dicen lo mismo.
         $closed = Purchase_Gate::closed_state_from_payload($payload);
 
         // ── DATA DE MARKETING (payload del LMS, controlado desde el admin) ─

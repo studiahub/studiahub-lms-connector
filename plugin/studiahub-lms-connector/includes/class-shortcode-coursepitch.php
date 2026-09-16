@@ -24,6 +24,8 @@ if (!defined('ABSPATH')) {
 final class Shortcode_CoursePitch {
     public const SHORTCODE_TAG = 'studiahub_course_pitch';
     public const STYLE_HANDLE  = 'slc-coursepitch';
+    public const WAITLIST_SCRIPT_HANDLE = 'slc-coursepitch-waitlist';
+    public const TURNSTILE_SCRIPT_HANDLE = 'slc-turnstile';
 
     private const TYPE_LABELS = [
         'on_demand' => 'On demand',
@@ -56,6 +58,20 @@ final class Shortcode_CoursePitch {
             SLC_PLUGIN_URL . 'assets/css/coursepitch.css',
             ['flaticon-uicons-thin-rounded', 'slc-playfair-quote'],
             SLC_VERSION
+        );
+        wp_register_script(
+            self::WAITLIST_SCRIPT_HANDLE,
+            SLC_PLUGIN_URL . 'assets/js/coursepitch-waitlist.js',
+            [],
+            SLC_VERSION,
+            true
+        );
+        wp_register_script(
+            self::TURNSTILE_SCRIPT_HANDLE,
+            'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit',
+            [],
+            null,
+            true
         );
 
         // Anti-FOUC: encolamos en el <head> si la página ya trae el shortcode
@@ -197,7 +213,7 @@ final class Shortcode_CoursePitch {
         $social    = Shortcode_CoursePage::data_social_proof_public($payload);
         $offer     = Shortcode_CoursePage::data_offer_pricing_public($payload, $price_disp);
         // Countdown de oferta (offerDeadlineAt solo viaja si la oferta está
-        // vigente) + cierre de inscripciones (salesClosed → botón deshabilitado).
+        // vigente) + resolución posterior del CTA según el estado de compra.
         $offer_deadline_iso   = trim((string) ($payload['offerDeadlineAt'] ?? ''));
         $offer_deadline_label = '';
         $offer_imminent       = false; // a < 48hs pasamos a countdown vivo (JS)
@@ -216,12 +232,33 @@ final class Shortcode_CoursePitch {
                 $offer_deadline_label = self::format_relative_es($remaining);
             }
         }
-        // Cierre de inscripciones (salesClosed) y preventa (comingSoon, que
-        // tiene precedencia). Lo resuelve Purchase_Gate y no este archivo para
-        // que el botón y el carrito lean la MISMA definición: ese mismo estado
-        // es el que ahora bloquea la compra en WooCommerce, así que si acá
-        // dijera otra cosa el visitante vería un botón que el checkout rechaza.
+        // Lista de espera, cierre de inscripciones y preventa, en ese orden de
+        // precedencia. Lo resuelve Purchase_Gate para que el botón y el carrito
+        // lean la MISMA definición y nunca ofrezcamos checkout cuando WC lo va
+        // a rechazar. El modal exige además la configuración de consentimiento
+        // completa; si está incompleta, el gate sigue cerrando la compra de
+        // forma segura pero no muestra un formulario que no podría enviar.
         $closed = Purchase_Gate::closed_state_from_payload($payload);
+        $waitlist = is_array($payload['waitlist'] ?? null) ? $payload['waitlist'] : [];
+        $waitlist_consent = is_string($waitlist['consentText'] ?? null)
+            ? trim($waitlist['consentText'])
+            : '';
+        $waitlist_version = is_string($waitlist['consentVersion'] ?? null)
+            ? trim($waitlist['consentVersion'])
+            : '';
+        $waitlist_intro = is_string($waitlist['formIntroText'] ?? null)
+            ? trim($waitlist['formIntroText'])
+            : '';
+        $turnstile_site_key = is_string($waitlist['turnstileSiteKey'] ?? null)
+            ? trim($waitlist['turnstileSiteKey'])
+            : '';
+        // Compatibilidad con payloads del LMS anteriores al texto editable.
+        if ($waitlist_intro === '') {
+            $waitlist_intro = 'Dejanos tus datos y te avisamos cuando haya novedades sobre este curso.';
+        }
+        $waitlist_enabled = ($waitlist['enabled'] ?? false) === true
+            && $waitlist_consent !== ''
+            && $waitlist_version !== '';
         $bonuses   = Shortcode_CoursePage::data_bonuses_public($payload);
         $guarantee = Shortcode_CoursePage::data_guarantee_public($payload);
         $faq       = Shortcode_CoursePage::data_faq_public($payload);
@@ -233,6 +270,14 @@ final class Shortcode_CoursePitch {
         Shortcode_CoursePage::maybe_enqueue_google_font_public($branding['fontFamily'] ?? 'default');
 
         wp_enqueue_style(self::STYLE_HANDLE);
+        if ($waitlist_enabled) {
+            if ($turnstile_site_key !== '') {
+                // Se encola antes del controlador para que el render explícito
+                // esté disponible cuando el visitante abra el modal.
+                wp_enqueue_script(self::TURNSTILE_SCRIPT_HANDLE);
+            }
+            wp_enqueue_script(self::WAITLIST_SCRIPT_HANDLE);
+        }
 
         ob_start();
         ?>
@@ -722,7 +767,11 @@ final class Shortcode_CoursePitch {
                             <?php endif; ?>
                         </div>
 
-                        <?php if ($closed !== null): ?>
+                        <?php if ($waitlist_enabled): ?>
+                        <button type="button" class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta slc-cpitch__waitlist-open" data-slc-waitlist-open>
+                            <?php esc_html_e('Anotarme a la lista de espera', 'studiahub-lms-connector'); ?> →
+                        </button>
+                        <?php elseif ($closed !== null): ?>
                         <span class="slc-cpitch__btn slc-cpitch__btn--block slc-cpitch__pricing-cta slc-cpitch__pricing-cta--closed" aria-disabled="true">
                             <?php echo esc_html($closed['label']); ?>
                         </span>
@@ -865,6 +914,52 @@ final class Shortcode_CoursePitch {
 
             <?php /* La barra inferior sticky se reemplazó por la barra superior
                      con countdown, que queda fija al scrollear. */ ?>
+
+            <?php if ($waitlist_enabled): ?>
+            <div class="slc-cpitch__waitlist-modal"
+                 data-slc-waitlist-modal
+                 data-endpoint="<?php echo esc_url(rest_url('studiahub/v1/course-waitlist/' . $product_id)); ?>"
+                 data-consent-version="<?php echo esc_attr($waitlist_version); ?>"
+                 <?php if ($turnstile_site_key !== ''): ?>data-turnstile-site-key="<?php echo esc_attr($turnstile_site_key); ?>"<?php endif; ?>
+                 role="dialog"
+                 aria-modal="true"
+                 aria-labelledby="slc-waitlist-title-<?php echo (int) $product_id; ?>"
+                 hidden>
+                <div class="slc-cpitch__waitlist-panel" data-slc-waitlist-panel>
+                    <button type="button" class="slc-cpitch__waitlist-close" data-slc-waitlist-close aria-label="<?php esc_attr_e('Cerrar formulario', 'studiahub-lms-connector'); ?>">&times;</button>
+                    <h2 id="slc-waitlist-title-<?php echo (int) $product_id; ?>" class="slc-cpitch__waitlist-title"><?php esc_html_e('Lista de espera', 'studiahub-lms-connector'); ?></h2>
+                    <p class="slc-cpitch__waitlist-intro"><?php echo esc_html($waitlist_intro); ?></p>
+                    <form class="slc-cpitch__waitlist-form" data-slc-waitlist-form novalidate>
+                        <div class="slc-cpitch__waitlist-fields" data-slc-waitlist-fields>
+                            <label for="slc-waitlist-name-<?php echo (int) $product_id; ?>"><?php esc_html_e('Nombre completo', 'studiahub-lms-connector'); ?></label>
+                            <input id="slc-waitlist-name-<?php echo (int) $product_id; ?>" name="fullName" type="text" autocomplete="name" maxlength="120" required>
+
+                            <label for="slc-waitlist-email-<?php echo (int) $product_id; ?>"><?php esc_html_e('Email', 'studiahub-lms-connector'); ?></label>
+                            <input id="slc-waitlist-email-<?php echo (int) $product_id; ?>" name="email" type="email" autocomplete="email" maxlength="254" required>
+
+                            <div class="slc-cpitch__waitlist-honeypot" aria-hidden="true">
+                                <label for="slc-waitlist-website-<?php echo (int) $product_id; ?>">Website</label>
+                                <input id="slc-waitlist-website-<?php echo (int) $product_id; ?>" name="website" type="text" autocomplete="off" tabindex="-1">
+                            </div>
+
+                            <label class="slc-cpitch__waitlist-consent">
+                                <input name="consent" type="checkbox" required>
+                                <span><?php echo esc_html($waitlist_consent); ?></span>
+                            </label>
+
+                            <?php if ($turnstile_site_key !== ''): ?>
+                            <div class="slc-cpitch__waitlist-turnstile" data-slc-waitlist-turnstile></div>
+                            <?php endif; ?>
+
+                            <button type="submit" class="slc-cpitch__btn slc-cpitch__waitlist-submit" data-slc-waitlist-submit>
+                                <?php esc_html_e('Anotarme', 'studiahub-lms-connector'); ?>
+                            </button>
+                        </div>
+                        <p class="slc-cpitch__waitlist-status" data-slc-waitlist-status role="status" aria-live="polite" tabindex="-1"></p>
+                    </form>
+                </div>
+            </div>
+            <?php endif; ?>
 
         </article>
         <?php if ($trailer !== null): ?>

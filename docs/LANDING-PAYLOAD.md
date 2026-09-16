@@ -48,7 +48,8 @@ Convención de columnas: **Dónde** = en qué shortcode se usa (`ambos` / `pitch
 | `compareAtPrice` | string | ambos | Precio regular tachado (texto libre multimoneda). No calcula descuento. |
 | `installmentsLabel` | string | ambos | Ej "o 12 cuotas sin interés". |
 | `offerDeadlineAt` | ISO datetime \| null | ambos | Deadline de la oferta → timer "La oferta termina en X". El LMS manda `null` si ya venció. A < 48 hs pasa a countdown vivo (JS). |
-| `salesClosed` | bool | pitch | `true` → botón "Inscripciones cerradas" deshabilitado (reemplaza el CTA). |
+| `salesClosed` | bool | pitch | `true` → botón "Inscripciones cerradas" deshabilitado (reemplaza el CTA), salvo que `waitlist.enabled` esté activo. |
+| `waitlist` | object \| null | pitch | Lista de espera opcional: `{ enabled, formIntroText, consentText, consentVersion, turnstileSiteKey? }`. `formIntroText` personaliza el texto bajo el título del popup; si falta por compatibilidad con un LMS anterior, se usa el texto histórico por defecto. `turnstileSiteKey`, cuando viene, activa Cloudflare Turnstile en modo managed con render explícito y apariencia `interaction-only`; es una clave pública, el secret nunca llega a WordPress. `enabled: true` tiene precedencia sobre `comingSoon` y `salesClosed`: siempre vuelve el producto no comprable y, con consentimiento completo, muestra “Anotarme a la lista de espera” aunque la venta estuviera abierta. No modifica esos flags: al deshabilitarla reaparece automáticamente el comportamiento comercial previo. Si está habilitada pero incompleta, la compra permanece bloqueada y no se muestra un formulario inválido. Ausente, `null` o deshabilitada conserva compatibilidad con payloads anteriores. |
 | `paymentMethods[]` | array | pitch | Logos de medios de pago en la pricing card. Cada item: `{ name, logoUrl }`. |
 
 ## Metadata del curso (chips)
@@ -129,7 +130,8 @@ Editá [.docker/dev-mock/payload.json.disabled](../.docker/dev-mock/payload.json
 - **Curso nuevo (sin reseñas):** `reviews: []` + `reviewStats: {count:0, average:0}`.
 - **Countdown activo:** `courseStartAt` en el futuro.
 - **Oferta con timer:** `offerDeadlineAt` en el futuro (a < 48 hs, countdown vivo).
-- **Inscripciones cerradas:** `salesClosed: true`.
+- **Inscripciones cerradas:** `salesClosed: true` con `waitlist.enabled: false` (o sin `waitlist`).
+- **Lista de espera:** `waitlist.enabled: true`, independientemente de `salesClosed`/`comingSoon`. Para probar Turnstile, cargá una site key válida para el hostname local en `waitlist.turnstileSiteKey`; vacío o ausente conserva el formulario sin Turnstile. El modal del mock permite verificar apariencia y validación del navegador, pero el POST no se mockea: para probar el envío necesitás un LMS local vinculado o un transporte aislado de pruebas.
 - **Sin trailer:** borrá `trailerUrl` (usa `landingImageUrl`).
 
 Ver también los bloques `_comment` / `_editing` dentro del JSON.
