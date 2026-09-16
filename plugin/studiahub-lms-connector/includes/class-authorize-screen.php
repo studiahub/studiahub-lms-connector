@@ -109,6 +109,9 @@ final class Authorize_Screen {
         if (!$lms_host || !$return_host) {
             return 'URLs inválidas.';
         }
+        if (!Settings::is_secure_lms_url($lms_url) || !Settings::is_secure_lms_url($return_url)) {
+            return 'El LMS debe usar HTTPS fuera de un entorno local.';
+        }
         // Anti-open-redirect: en prod requerimos mismo host. En dev (loopback /
         // docker) permitimos pares distintos porque el browser ve el LMS por
         // localhost mientras que el container lo ve por host.docker.internal.

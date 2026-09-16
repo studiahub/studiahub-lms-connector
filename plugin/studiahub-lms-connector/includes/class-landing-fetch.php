@@ -300,14 +300,16 @@ final class Landing_Fetch {
     private static function fetch_from_lms(string $course_id): array {
         $lms_url = (string) get_option(Settings::OPT_LMS_URL, '');
         $api_key = (string) get_option(Settings::OPT_WEBHOOK_SECRET, '');
-        if ($lms_url === '' || $api_key === '') {
+        if ($lms_url === '' || $api_key === '' || !Settings::is_secure_lms_url($lms_url)) {
             return ['payload' => null, 'gone' => false];
         }
 
         $url = rtrim($lms_url, '/') . '/api/wc/courses/' . rawurlencode($course_id) . '/landing-payload';
         $response = wp_remote_get($url, [
-            'timeout' => self::TIMEOUT_S,
-            'headers' => [
+            'timeout'            => self::TIMEOUT_S,
+            'redirection'        => 0,
+            'reject_unsafe_urls' => true,
+            'headers'            => [
                 'Authorization' => 'Bearer ' . $api_key,
                 'Accept'        => 'application/json',
             ],

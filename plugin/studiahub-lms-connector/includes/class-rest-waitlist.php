@@ -19,6 +19,8 @@ final class REST_Waitlist {
     private const MAX_TURNSTILE_TOKEN_LENGTH = 2048;
     private const RATE_LIMIT = 3;
     private const RATE_WINDOW_SECONDS = 600;
+    private const COURSE_RATE_LIMIT = 120;
+    private const COURSE_RATE_WINDOW_SECONDS = 60;
     private const RATE_LOCK_TTL_SECONDS = 5;
     private const RATE_LOCK_ATTEMPTS = 4;
     private const RATE_LOCK_WAIT_MICROSECONDS = 50000;
@@ -79,9 +81,32 @@ final class REST_Waitlist {
             return self::error_response($status, $context->get_error_message());
         }
 
+        // Evita gastar un worker PHP y una llamada al LMS cuando el formulario
+        // publicado exige Turnstile pero el cliente ni siquiera mandó token.
+        if ($context['turnstileRequired'] && !isset($input['turnstileToken'])) {
+            return self::error_response(400, __('No pudimos validar la solicitud. Probá de nuevo.', 'studiahub-lms-connector'));
+        }
+
+        // Consultar primero el corte global sin consumirlo evita que intentos ya
+        // bloqueados por email agoten la cuota del curso. El consumo definitivo
+        // sigue antes del upstream y resuelve carreras entre requests.
+        if (self::course_rate_limit_reached($context['courseId'])) {
+            $response = self::error_response(429, __('Hiciste varios intentos. Esperá unos minutos y volvé a probar.', 'studiahub-lms-connector'));
+            $response->header('Retry-After', (string) self::COURSE_RATE_WINDOW_SECONDS);
+            return $response;
+        }
+
         if (!self::consume_rate_limit($context['courseId'], $input['email'])) {
             $response = self::error_response(429, __('Hiciste varios intentos. Esperá unos minutos y volvé a probar.', 'studiahub-lms-connector'));
             $response->header('Retry-After', (string) self::RATE_WINDOW_SECONDS);
+            return $response;
+        }
+
+        // Límite de cardinalidad fija antes del upstream: rotar direcciones no
+        // permite abrir requests ilimitados hacia el LMS.
+        if (!self::consume_course_rate_limit($context['courseId'])) {
+            $response = self::error_response(429, __('Hiciste varios intentos. Esperá unos minutos y volvé a probar.', 'studiahub-lms-connector'));
+            $response->header('Retry-After', (string) self::COURSE_RATE_WINDOW_SECONDS);
             return $response;
         }
 
@@ -136,7 +161,7 @@ final class REST_Waitlist {
         return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
     }
 
-    /** @return array{courseId:string}|\WP_Error */
+    /** @return array{courseId:string,turnstileRequired:bool}|\WP_Error */
     private static function resolve_course_context(int $product_id, string $consent_version) {
         if ($product_id <= 0 || get_post_type($product_id) !== 'product' || get_post_status($product_id) !== 'publish') {
             return new \WP_Error('slc_waitlist_product', __('El curso no está disponible.', 'studiahub-lms-connector'), ['status' => 404]);
@@ -171,14 +196,45 @@ final class REST_Waitlist {
             return new \WP_Error('slc_waitlist_stale', __('La configuración cambió. Actualizá la página y volvé a intentar.', 'studiahub-lms-connector'), ['status' => 409]);
         }
 
-        return ['courseId' => $course_id];
+        return [
+            'courseId' => $course_id,
+            'turnstileRequired' => is_string($waitlist['turnstileSiteKey'] ?? null)
+                && trim($waitlist['turnstileSiteKey']) !== '',
+        ];
+    }
+
+    private static function consume_course_rate_limit(string $course_id): bool {
+        $digest = hash_hmac('sha256', 'course|' . $course_id, wp_salt('nonce'));
+        return self::consume_rate_limit_key(
+            'slc_waitlist_course_rate_' . $digest,
+            'slc_waitlist_course_lock_' . $digest,
+            self::COURSE_RATE_LIMIT,
+            self::COURSE_RATE_WINDOW_SECONDS
+        );
+    }
+
+    private static function course_rate_limit_reached(string $course_id): bool {
+        $digest = hash_hmac('sha256', 'course|' . $course_id, wp_salt('nonce'));
+        return self::rate_limit_key_reached(
+            'slc_waitlist_course_rate_' . $digest,
+            'slc_waitlist_course_lock_' . $digest,
+            self::COURSE_RATE_LIMIT,
+            self::COURSE_RATE_WINDOW_SECONDS
+        );
     }
 
     private static function consume_rate_limit(string $course_id, string $email): bool {
         $normalized_email = strtolower(trim($email));
         $digest = hash_hmac('sha256', $course_id . '|' . $normalized_email, wp_salt('nonce'));
-        $key = 'slc_waitlist_rate_' . $digest;
-        $lock_key = 'slc_waitlist_lock_' . $digest;
+        return self::consume_rate_limit_key(
+            'slc_waitlist_rate_' . $digest,
+            'slc_waitlist_lock_' . $digest,
+            self::RATE_LIMIT,
+            self::RATE_WINDOW_SECONDS
+        );
+    }
+
+    private static function consume_rate_limit_key(string $key, string $lock_key, int $limit, int $window_seconds): bool {
         $lock_value = self::acquire_rate_lock($lock_key);
         if ($lock_value === null) {
             return false;
@@ -189,15 +245,35 @@ final class REST_Waitlist {
             $attempts = get_transient($key);
             $attempts = is_array($attempts) ? array_values(array_filter(
                 $attempts,
-                static fn($timestamp) => is_int($timestamp) && $timestamp > $now - self::RATE_WINDOW_SECONDS
+                static fn($timestamp) => is_int($timestamp) && $timestamp > $now - $window_seconds
             )) : [];
 
-            if (count($attempts) >= self::RATE_LIMIT) {
+            if (count($attempts) >= $limit) {
                 return false;
             }
 
             $attempts[] = $now;
-            return set_transient($key, $attempts, self::RATE_WINDOW_SECONDS);
+            return set_transient($key, $attempts, $window_seconds);
+        } finally {
+            self::delete_rate_lock($lock_key, $lock_value);
+        }
+    }
+
+    private static function rate_limit_key_reached(string $key, string $lock_key, int $limit, int $window_seconds): bool {
+        $lock_value = self::acquire_rate_lock($lock_key);
+        if ($lock_value === null) {
+            return true;
+        }
+
+        try {
+            $now = time();
+            $attempts = get_transient($key);
+            $attempts = is_array($attempts) ? array_values(array_filter(
+                $attempts,
+                static fn($timestamp) => is_int($timestamp) && $timestamp > $now - $window_seconds
+            )) : [];
+
+            return count($attempts) >= $limit;
         } finally {
             self::delete_rate_lock($lock_key, $lock_value);
         }
@@ -242,7 +318,7 @@ final class REST_Waitlist {
     private static function proxy_to_lms(string $course_id, array $input): \WP_REST_Response {
         $lms_url = trim((string) get_option(Settings::OPT_LMS_URL, ''));
         $secret = (string) get_option(Settings::OPT_WEBHOOK_SECRET, '');
-        if ($lms_url === '' || $secret === '') {
+        if ($lms_url === '' || $secret === '' || !Settings::is_secure_lms_url($lms_url)) {
             return self::error_response(503, __('La lista de espera no está disponible en este momento.', 'studiahub-lms-connector'));
         }
 

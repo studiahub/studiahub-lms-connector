@@ -85,8 +85,15 @@ if (!defined('ABSPATH')) {
  */
 final class Purchase_Gate {
 
-    /** Memo por request: is_purchasable() se llama muchas veces por página. */
+    /** Memo por request para decisiones que pudieron consultar al LMS. */
     private static array $memo = [];
+
+    /**
+     * Memo separado para `is_purchasable`, que deliberadamente mira solo la
+     * caché. Un resultado cacheado nunca debe impedir que add-to-cart o
+     * checkout hagan el fetch autoritativo que tienen permitido.
+     */
+    private static array $memo_cached = [];
 
     public static function register_hooks(): void {
         add_filter('woocommerce_is_purchasable', [self::class, 'filter_is_purchasable'], 10, 2);
@@ -192,12 +199,23 @@ final class Purchase_Gate {
         if ($product_id <= 0) {
             return null;
         }
-        if (array_key_exists($product_id, self::$memo)) {
+        if ($allow_fetch && array_key_exists($product_id, self::$memo)) {
             return self::$memo[$product_id];
+        }
+        if (!$allow_fetch) {
+            // Un resultado del camino autoritativo también sirve para una
+            // lectura cache-only posterior dentro del mismo request.
+            if (array_key_exists($product_id, self::$memo)) {
+                return self::$memo[$product_id];
+            }
+            if (array_key_exists($product_id, self::$memo_cached)) {
+                return self::$memo_cached[$product_id];
+            }
         }
 
         $course_id = (string) get_post_meta($product_id, '_lms_course_id', true);
         if ($course_id === '') {
+            self::$memo_cached[$product_id] = null;
             return self::$memo[$product_id] = null;
         }
 
@@ -216,7 +234,11 @@ final class Purchase_Gate {
             return null;
         }
 
-        return self::$memo[$product_id] = self::closed_state_from_payload($payload);
+        $closed = self::closed_state_from_payload($payload);
+        if ($allow_fetch) {
+            return self::$memo[$product_id] = $closed;
+        }
+        return self::$memo_cached[$product_id] = $closed;
     }
 
     /**

@@ -23,6 +23,31 @@ final class Settings {
     public const OPT_LMS_URL              = 'slc_lms_url';
     public const OPT_WEBHOOK_SECRET       = 'slc_webhook_secret';
 
+    /** HTTPS obligatorio fuera de entornos locales: esta URL transporta credenciales y PII. */
+    public static function is_secure_lms_url(string $url): bool {
+        $scheme = strtolower((string) wp_parse_url($url, PHP_URL_SCHEME));
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        if ($host === '') {
+            return false;
+        }
+        if ($scheme === 'https') {
+            return true;
+        }
+        if ($scheme !== 'http') {
+            return false;
+        }
+
+        // parse_url conserva los corchetes de IPv6. Sólo aceptamos loopback
+        // real; un hostname que empieza con "127." no es necesariamente local.
+        $normalized_host = trim($host, '[]');
+        if (in_array($normalized_host, ['localhost', '::1', 'host.docker.internal'], true)) {
+            return true;
+        }
+
+        return filter_var($normalized_host, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false
+            && strpos($normalized_host, '127.') === 0;
+    }
+
     public static function register_hooks(): void {
         add_action('admin_menu', [self::class, 'register_menu']);
         add_action('admin_post_slc_local_disconnect', [self::class, 'handle_local_disconnect']);

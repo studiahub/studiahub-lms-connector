@@ -23,6 +23,8 @@ jobs:
         run: php tests/course-pitch-access-duration.php
       - name: Test course waitlist proxy
         run: php tests/course-pitch-waitlist.php
+      - name: Test LMS transport security
+        run: php tests/lms-url-security.php
       - name: Test course waitlist modal
         run: node --test tests/course-pitch-waitlist.cjs
       - name: Lint plugin PHP

@@ -6,11 +6,13 @@ namespace SLC {
     final class Settings {
         public const OPT_LMS_URL = 'slc_lms_url';
         public const OPT_WEBHOOK_SECRET = 'slc_webhook_secret';
+        public static function is_secure_lms_url(string $url): bool { return true; }
     }
     final class Landing_Fetch {
         public static array $payload = [];
+        public static ?array $cached_payload = null;
         public static function get_payload($id): array { return self::$payload; }
-        public static function get_cached_payload($id): array { return self::$payload; }
+        public static function get_cached_payload($id): array { return self::$cached_payload ?? self::$payload; }
     }
     final class Enroll {
         public static function url($id): string { return 'https://example.test/checkout/' . $id; }
@@ -359,6 +361,18 @@ namespace {
     check(\SLC\Purchase_Gate::filter_is_purchasable(true, new WC_Product(45)) === true, 'Disabling waitlist restores purchasability for an open sale');
     check(\SLC\Purchase_Gate::validate_add_to_cart(true, 46) === true, 'Disabling waitlist restores direct add-to-cart for an open sale');
 
+    // Una lectura cache-only vieja nunca puede anular el fetch autoritativo del
+    // agregado al carrito: es el último control antes de aceptar la compra.
+    \SLC\Landing_Fetch::$cached_payload = base_payload([
+        'salesClosed' => false,
+        'comingSoon' => false,
+        'waitlist' => ['enabled' => false],
+    ]);
+    \SLC\Landing_Fetch::$payload = base_payload(['salesClosed' => false, 'comingSoon' => false]);
+    check(\SLC\Purchase_Gate::filter_is_purchasable(true, new WC_Product(47)) === true, 'Stale cache can still render the product as purchasable');
+    check(\SLC\Purchase_Gate::validate_add_to_cart(true, 47) === false, 'Authoritative add-to-cart fetch overrides a stale open-sale memo');
+    \SLC\Landing_Fetch::$cached_payload = null;
+
     \SLC\REST_Waitlist::register_routes();
     $route = $GLOBALS['registered_routes'][0] ?? null;
     check(($route['args']['methods'] ?? null) === 'POST', 'Anonymous proxy only registers POST');
@@ -390,6 +404,19 @@ namespace {
     $turnstile_sent = json_decode($turnstile_call['args']['body'] ?? '', true);
     check($turnstile_response->get_status() === 200, 'Turnstile request is accepted by the WordPress proxy');
     check(($turnstile_sent['turnstileToken'] ?? '') === 'turnstile-token', 'Turnstile token is normalized and passed only to LMS');
+
+    $before_turnstile_missing = count($GLOBALS['remote_calls']);
+    \SLC\Landing_Fetch::$payload = base_payload([
+        'waitlist' => [
+            'enabled' => true,
+            'consentText' => 'Acepto.',
+            'consentVersion' => 'v1',
+            'turnstileSiteKey' => 'public-site-key',
+        ],
+    ]);
+    $missing_turnstile = \SLC\REST_Waitlist::handle(request(['email' => 'missing-token@example.com']));
+    check($missing_turnstile->get_status() === 400, 'Turnstile-enabled waitlist rejects a missing token in WordPress');
+    check(count($GLOBALS['remote_calls']) === $before_turnstile_missing, 'Missing Turnstile token never reaches LMS');
 
     \SLC\Landing_Fetch::$payload = base_payload(['salesClosed' => false, 'comingSoon' => false]);
     $GLOBALS['remote_response'] = remote_response(200, ['ok' => true]);
@@ -445,6 +472,9 @@ namespace {
     }
     check(\SLC\REST_Waitlist::handle(request(['email' => 'repeat@example.com']))->get_status() === 429, 'Fourth same-course/email attempt is limited');
     check(\SLC\REST_Waitlist::handle(request(['email' => 'other@example.com']))->get_status() === 200, 'Different email behind same proxy IP remains allowed');
+    $course_digest = hash_hmac('sha256', 'course|test-course', wp_salt('nonce'));
+    $course_rate_key = 'slc_waitlist_course_rate_' . $course_digest;
+    check(count($GLOBALS['transients'][$course_rate_key] ?? []) === 4, 'Rejected same-email attempts do not consume the course quota');
     check(!str_contains(implode('|', array_keys($GLOBALS['transients'])), 'repeat@example.com'), 'Rate-limit keys never store raw email');
     check(!str_contains(json_encode($GLOBALS['lock_snapshots']), 'repeat@example.com'), 'Database lock never stores raw email');
     check(array_reduce(
@@ -459,11 +489,16 @@ namespace {
     $concurrent_rate_key = 'slc_waitlist_rate_' . $concurrent_digest;
     $GLOBALS['transients'][$concurrent_rate_key] = [time(), time()];
     $GLOBALS['concurrent_response'] = null;
-    $GLOBALS['before_get_transient'] = static function ($key) use ($concurrent_email, $concurrent_rate_key): void {
-        if ($key === $concurrent_rate_key) {
-            $GLOBALS['concurrent_response'] = \SLC\REST_Waitlist::handle(request(['email' => $concurrent_email]));
+    $GLOBALS['concurrent_hook'] = static function ($key) use ($concurrent_email, $concurrent_rate_key): void {
+        if ($key !== $concurrent_rate_key) {
+            // El nuevo límite coarse consulta otro transient primero; conservar
+            // el hook hasta entrar en la sección crítica por email que se prueba.
+            $GLOBALS['before_get_transient'] = $GLOBALS['concurrent_hook'];
+            return;
         }
+        $GLOBALS['concurrent_response'] = \SLC\REST_Waitlist::handle(request(['email' => $concurrent_email]));
     };
+    $GLOBALS['before_get_transient'] = $GLOBALS['concurrent_hook'];
     $concurrent_calls_before = count($GLOBALS['remote_calls']);
     $third = \SLC\REST_Waitlist::handle(request(['email' => $concurrent_email]));
     check($third->get_status() === 200, 'Lock owner records the third attempt');
@@ -484,6 +519,25 @@ namespace {
     check($stale_response->get_status() === 200, 'Expired database lock is recovered');
     check(!array_key_exists($stale_lock_key, $GLOBALS['options']), 'Recovered lock is released after use');
     check(in_array($stale_value, $GLOBALS['wpdb']->deleted_values, true), 'Stale lock removal is value-conditional');
+
+    // Rotar emails no permite superar el corte global ni abrir más upstreams.
+    $GLOBALS['transients'] = [];
+    $course_calls_before = count($GLOBALS['remote_calls']);
+    $course_attempts_allowed = true;
+    for ($i = 0; $i < 120; $i++) {
+        if (\SLC\REST_Waitlist::handle(request(['email' => "course-limit-{$i}@example.com"]))->get_status() !== 200) {
+            $course_attempts_allowed = false;
+        }
+    }
+    check($course_attempts_allowed, 'Course limit allows the configured first 120 unique emails');
+    check(
+        \SLC\REST_Waitlist::handle(request(['email' => 'course-limit-overflow@example.com']))->get_status() === 429,
+        'Course limit rejects the 121st unique email'
+    );
+    check(
+        count($GLOBALS['remote_calls']) === $course_calls_before + 120,
+        'Course limit never proxies more requests than its configured allowance'
+    );
 
     foreach ($failures as $failure) fwrite(STDERR, "FAIL: $failure\n");
     echo ($checks - count($failures)) . "/$checks assertions passed\n";
