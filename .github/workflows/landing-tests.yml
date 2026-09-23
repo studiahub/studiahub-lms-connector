@@ -21,6 +21,8 @@ jobs:
         run: node --test tests/course-pitch-sticky.cjs
       - name: Test landing renderer regression
         run: php tests/course-pitch-access-duration.php
+      - name: Test granular live lesson dates
+        run: php tests/granular-live-lessons.php
       - name: Test course waitlist proxy
         run: php tests/course-pitch-waitlist.php
       - name: Test LMS transport security

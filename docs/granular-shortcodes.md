@@ -239,7 +239,7 @@ Colocalo **dentro** del template de `[studiahub_course_outline]`. Itera las lecc
 
 > `[studiahub_course_lessons]` **fuera** de un `[studiahub_course_outline]` devuelve vacío (no tiene módulo de contexto).
 
-**Fallback** (outline self-closing): rinde `.slc-outline > .slc-outline__module` con su título y, anidado, `.slc-lessons > .slc-lesson > .slc-lesson__title / .slc-lesson__duration`.
+**Fallback** (outline self-closing): rinde `.slc-outline > .slc-outline__module` con su título y, anidado, `.slc-lessons > .slc-lesson > .slc-lesson__title / .slc-lesson__duration`. Las lecciones en vivo agregan `<time class="slc-lesson__live-date" datetime="<ISO>">fecha legible</time>` dentro del `<li>`. La apertura `<li class="slc-lesson">` se conserva idéntica para los themes que parsean este HTML. El shortcode no aplica estilos: el theme decide cómo presentar el ícono y el badge. No se expone el enlace de Zoom/Meet.
 
 ---
 

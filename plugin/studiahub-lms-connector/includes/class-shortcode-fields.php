@@ -507,6 +507,18 @@ final class Shortcode_Fields {
             return '';
         }
 
+        $timezone = trim((string) ($payload['timezone'] ?? ''));
+        $timezone_label = trim((string) ($payload['timezoneLabel'] ?? ''));
+        try {
+            $timezone = new \DateTimeZone($timezone ?: 'America/Argentina/Buenos_Aires');
+        } catch (\Exception $e) {
+            $timezone = new \DateTimeZone('America/Argentina/Buenos_Aires');
+            $timezone_label = '';
+        }
+        if (empty($payload['timezone'])) {
+            $timezone_label = '';
+        }
+
         $has_template = is_string($content) && trim($content) !== '';
         $index = 0;
         $out = $has_template ? '' : '<ul class="slc-outline">';
@@ -514,6 +526,7 @@ final class Shortcode_Fields {
         foreach ($outline as $module) {
             if (!is_array($module)) continue;
             $lessons = is_array($module['lessons'] ?? null) ? $module['lessons'] : [];
+            $lesson_items = self::normalize_lessons($lessons, $timezone, $timezone_label);
             $index++;
             $dur_min = isset($module['durationMin']) && is_numeric($module['durationMin'])
                 ? (int) $module['durationMin']
@@ -531,7 +544,7 @@ final class Shortcode_Fields {
             ];
 
             // Publicamos las lecciones del módulo actual para el loop anidado.
-            self::$current_module_lessons = $lessons;
+            self::$current_module_lessons = $lesson_items;
 
             if ($has_template) {
                 $out .= do_shortcode(self::expand_template($content, $module_item));
@@ -540,7 +553,7 @@ final class Shortcode_Fields {
                 if ($module_item['title'] !== '') {
                     $out .= '<span class="slc-outline__module-title">' . esc_html($module_item['title']) . '</span>';
                 }
-                $out .= self::render_lessons_fallback($lessons);
+                $out .= self::render_lessons_fallback($lesson_items);
                 $out .= '</li>';
             }
 
@@ -562,10 +575,11 @@ final class Shortcode_Fields {
         if (!is_array(self::$current_module_lessons)) {
             return '';
         }
-        $items = self::normalize_lessons(self::$current_module_lessons);
+        $items = self::$current_module_lessons;
         return self::render_loop($items, $content, static function ($item) {
             $out = '<li class="slc-lesson">';
             $out .= '<span class="slc-lesson__title">' . esc_html($item['title']) . '</span>';
+            $out .= self::lesson_live_date_html($item);
             if ($item['duration'] !== '') {
                 $out .= '<span class="slc-lesson__duration">' . esc_html($item['duration']) . '</span>';
             }
@@ -573,8 +587,7 @@ final class Shortcode_Fields {
         }, 'slc-lessons');
     }
 
-    private static function render_lessons_fallback(array $lessons): string {
-        $items = self::normalize_lessons($lessons);
+    private static function render_lessons_fallback(array $items): string {
         if (empty($items)) {
             return '';
         }
@@ -582,6 +595,7 @@ final class Shortcode_Fields {
         foreach ($items as $item) {
             $out .= '<li class="slc-lesson">';
             $out .= '<span class="slc-lesson__title">' . esc_html($item['title']) . '</span>';
+            $out .= self::lesson_live_date_html($item);
             if ($item['duration'] !== '') {
                 $out .= '<span class="slc-lesson__duration">' . esc_html($item['duration']) . '</span>';
             }
@@ -590,7 +604,7 @@ final class Shortcode_Fields {
         return $out . '</ul>';
     }
 
-    private static function normalize_lessons(array $lessons): array {
+    private static function normalize_lessons(array $lessons, \DateTimeZone $timezone, string $timezone_label): array {
         $items = [];
         $index = 0;
         foreach ($lessons as $l) {
@@ -599,6 +613,7 @@ final class Shortcode_Fields {
             if ($title === '') continue;
             $index++;
             $dur = isset($l['durationMin']) && is_numeric($l['durationMin']) ? (int) $l['durationMin'] : 0;
+            $live_at = trim((string) ($l['liveAt'] ?? ''));
             $items[] = [
                 'title'       => $title,
                 'type'        => trim((string) ($l['type'] ?? '')),
@@ -608,9 +623,36 @@ final class Shortcode_Fields {
                     ? esc_html__('Sí', 'studiahub-lms-connector')
                     : esc_html__('No', 'studiahub-lms-connector'),
                 'index'       => (string) $index,
+                'liveAt'      => $live_at,
+                'liveDate'    => self::format_lesson_live_date($live_at, $timezone, $timezone_label),
             ];
         }
         return $items;
+    }
+
+    private static function lesson_live_date_html(array $item): string {
+        if ($item['liveDate'] === '') {
+            return '';
+        }
+        return '<time class="slc-lesson__live-date" datetime="' . esc_attr($item['liveAt']) . '">'
+            . esc_html($item['liveDate']) . '</time>';
+    }
+
+    private static function format_lesson_live_date(string $iso, \DateTimeZone $timezone, string $timezone_label): string {
+        if ($iso === '') {
+            return '';
+        }
+        try {
+            $date = (new \DateTimeImmutable($iso))->setTimezone($timezone);
+        } catch (\Exception $e) {
+            return '';
+        }
+        $months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+        $hour = (int) $date->format('G');
+        $minute = $date->format('i');
+        $time = $minute === '00' ? $hour . 'hs' : $hour . ':' . $minute . 'hs';
+        $suffix = $timezone_label !== '' ? ' (' . $timezone_label . ')' : '';
+        return $date->format('j') . ' ' . $months[(int) $date->format('n') - 1] . ' ' . $date->format('Y') . ' · ' . $time . $suffix;
     }
 
     // ── OBJETO ÚNICO ──────────────────────────────────────────────────────
