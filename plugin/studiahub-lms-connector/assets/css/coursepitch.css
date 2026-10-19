@@ -1934,6 +1934,25 @@ body.slc-waitlist-open { overflow: hidden; }
     }
     .slc-cpitch__module-meta { grid-column: 1 / -1; padding-left: 48px; }
     .slc-cpitch__lesson { padding-left: 60px; padding-right: 18px; }
+    /* Encuentro en vivo: la fecha baja debajo del título (alineada con el
+       texto, no con el ícono) para no apretar el título ni cortar la fecha. */
+    .slc-cpitch__lesson--live {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        column-gap: 12px;
+        row-gap: 3px;
+        align-items: start;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .slc-cpitch__lesson--live > .slc-cpitch__lesson-icon { grid-row: 1 / span 2; padding-top: 3px; }
+    .slc-cpitch__lesson--live > span:nth-child(2) { overflow-wrap: anywhere; }
+    .slc-cpitch__lesson--live > .slc-cpitch__lesson-date {
+        grid-column: 2;
+        font-size: 12.5px;
+        line-height: 1.35;
+        white-space: normal;
+    }
     .slc-cpitch__sticky-text .slc-cpitch__price-old { display: none; }
     .slc-cpitch__btn--md { padding: 12px 18px; font-size: 13px; }
     /* El parallax fijo es poco fiable en móviles: lo desactivamos para

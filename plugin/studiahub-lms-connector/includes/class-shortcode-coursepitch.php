@@ -570,7 +570,9 @@ final class Shortcode_CoursePitch {
                                     <span class="slc-cpitch__module-num"><?php echo esc_html(str_pad((string) ($index + 1), 2, '0', STR_PAD_LEFT)); ?></span>
                                     <h3 class="slc-cpitch__module-title"><?php echo esc_html($module['title'] ?? ''); ?><?php if ($is_live): ?> <span class="slc-cpitch__live-badge"><span class="slc-cpitch__live-dot" aria-hidden="true"></span><?php esc_html_e('EN VIVO', 'studiahub-lms-connector'); ?></span><?php endif; ?></h3>
                                     <span class="slc-cpitch__module-meta">
-                                        <?php echo esc_html($lc . ' ' . _n('lección', 'lecciones', $lc, 'studiahub-lms-connector')); ?>
+                                        <?php echo esc_html($lc . ' ' . ($is_live
+                                            ? _n('encuentro', 'encuentros', $lc, 'studiahub-lms-connector')
+                                            : _n('lección', 'lecciones', $lc, 'studiahub-lms-connector'))); ?>
                                         <?php if ($md > 0): ?>
                                             · <?php echo esc_html(Shortcode_CoursePage::format_duration_public($md)); ?>
                                         <?php endif; ?>
@@ -581,7 +583,7 @@ final class Shortcode_CoursePitch {
                                     <ul class="slc-cpitch__lessons">
                                         <?php foreach ($lessons as $lesson): ?>
                                             <?php $lesson_live = is_array($lesson) ? trim((string) ($lesson['liveAt'] ?? '')) : ''; ?>
-                                            <li class="slc-cpitch__lesson">
+                                            <li class="slc-cpitch__lesson<?php if ($lesson_live !== '') echo ' slc-cpitch__lesson--live'; ?>">
                                                 <?php if ($lesson_live !== ''): ?>
                                                     <span class="slc-cpitch__lesson-icon slc-cpitch__lesson-icon--live" aria-hidden="true"><svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="4.5" width="9" height="7" rx="1.5"/><path d="M10.5 7 14.5 5v6l-4-2z"/></svg></span>
                                                 <?php else: ?>
