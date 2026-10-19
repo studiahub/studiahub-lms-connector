@@ -4,7 +4,7 @@ Tags: lms, woocommerce, e-learning, courses
 Requires at least: 6.8
 Tested up to: 6.8
 Requires PHP: 8.1
-Stable tag: 0.21.1
+Stable tag: 0.21.2
 License: MIT
 
 Vendé tus cursos de StudiaHub LMS desde WooCommerce, con alta automática de alumnos.
@@ -32,6 +32,10 @@ Plugin que extiende WooCommerce con la integración a StudiaHub LMS:
 Ver docs/INSTALL.md para el detalle del flujo de conexión.
 
 == Changelog ==
+
+= 0.21.2 =
+* El temario cuenta los módulos en vivo en encuentros ("8 encuentros") en lugar de lecciones.
+* En celular, la fecha de cada encuentro va debajo del título y ya no se corta.
 
 = 0.21.1 =
 * El CTA autónomo para landings personalizadas y la lista de espera llegan a todos los sitios. WooCommerce bloquea la compra cuando el curso está en espera, próximamente o con inscripciones cerradas.
