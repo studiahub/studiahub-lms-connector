@@ -99,6 +99,8 @@ namespace {
     check(str_contains($icons[1][3] ?? '', '<line x1="3" y1="5"'), 'Text lines icon unchanged');
     check(str_contains($outline, '51 min') && str_contains($outline, '41 min'), 'Video lesson minutes remain visible');
     check(\SLC\Shortcode_CoursePage::lesson_icon_public(null) === \SLC\Shortcode_CoursePage::lesson_icon_public('VIDEO'), 'Legacy fallback remains video');
+    $audio = \SLC\Shortcode_CoursePage::lesson_icon_public('AUDIO');
+    check($audio !== \SLC\Shortcode_CoursePage::lesson_icon_public('VIDEO') && str_contains($audio, 'data-icon="audio"'), 'Audio lessons get their own headphones icon');
     foreach ($failures as $failure) fwrite(STDERR, "FAIL: $failure\n");
     echo ($checks - count($failures)) . "/$checks assertions passed\n";
     exit($failures ? 1 : 0);

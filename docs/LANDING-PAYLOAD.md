@@ -101,7 +101,7 @@ Convención de columnas: **Dónde** = en qué shortcode se usa (`ambos` / `pitch
 | `outline[].isLive` | bool | `true` → badge "EN VIVO" en el módulo. Alternativa: `mode: "live"`. |
 | `outline[].durationMin` | int | Duración del módulo. Si es 0, se suma de las lecciones. |
 | `outline[].lessons[]` | array | Lecciones. Item: `{ title, type, durationMin, free, liveAt }`. |
-| `lessons[].type` | enum | `VIDEO` \| `TEXT` \| `PDF` → ícono de la lección. |
+| `lessons[].type` | enum | `VIDEO` \| `TEXT` \| `PDF` \| `AUDIO` → ícono de la lección. Un valor desconocido cae al de `VIDEO`. |
 | `lessons[].durationMin` | int | Duración de la lección. |
 | `lessons[].liveAt` | ISO datetime | Si viene, la lección muestra ícono live + la fecha, en vez de la duración. |
 | `lessons[].free` | bool | ⚠️ Viene en el payload pero **el plugin hoy NO lo renderiza**. (Candidato a "clase gratis / preview" si algún día se implementa.) |
